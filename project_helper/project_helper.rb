@@ -125,7 +125,7 @@ class ProjectHelper
         log_warn("no CODE_SIGN_IDENTITY build settings found for target: #{target}")
       elsif codesign_identity.nil?
         codesign_identity = identity
-        log_done("project codesign identity: #{codesign_identity}")
+        Log.done("project codesign identity: #{codesign_identity}")
       elsif !codesign_identites_match?(codesign_identity, identity)
         log_warn("target codesign identity: #{identity} does not match to the already registered codesign identity: #{codesign_identity}")
         codesign_identity = nil
@@ -150,7 +150,7 @@ class ProjectHelper
         log_warn("no DEVELOPMENT_TEAM build settings found for target: #{target}")
       elsif team_id.nil?
         team_id = id
-        log_done("project team id: #{team_id}")
+        Log.done("project team id: #{team_id}")
       elsif team_id != id
         log_warn("target team id: #{id} does not match to the already registered team id: #{team_id}")
         team_id = nil
@@ -216,28 +216,28 @@ class ProjectHelper
       attributes = project.root_object.attributes['TargetAttributes']
       target_attributes = attributes[target_id]
       target_attributes['ProvisioningStyle'] = 'Manual'
-      log_details('ProvisioningStyle: Manual')
+      Log.print('ProvisioningStyle: Manual')
 
       # apply code sign properties
       target_obj.build_configuration_list.build_configurations.each do |build_configuration|
         build_settings = build_configuration.build_settings
 
         build_settings['CODE_SIGN_STYLE'] = 'Manual'
-        log_details('CODE_SIGN_STYLE: Manual')
+        Log.print('CODE_SIGN_STYLE: Manual')
 
         build_settings['DEVELOPMENT_TEAM'] = development_team
-        log_details("DEVELOPMENT_TEAM: #{development_team}")
+        Log.print("DEVELOPMENT_TEAM: #{development_team}")
 
         build_settings['PROVISIONING_PROFILE'] = provisioning_profile_uuid
-        log_details("PROVISIONING_PROFILE: #{provisioning_profile_uuid}")
+        Log.print("PROVISIONING_PROFILE: #{provisioning_profile_uuid}")
 
         build_settings['PROVISIONING_PROFILE_SPECIFIER'] = ''
-        log_details('PROVISIONING_PROFILE_SPECIFIER: \'\'')
+        Log.print('PROVISIONING_PROFILE_SPECIFIER: \'\'')
 
         # code sign identity may presents as: CODE_SIGN_IDENTITY and CODE_SIGN_IDENTITY[sdk=iphoneos*]
         build_settings.each_key do |key|
           build_settings[key] = code_sign_identity if key.include?('CODE_SIGN_IDENTITY')
-          log_details("#{key}: #{code_sign_identity}")
+          Log.print("#{key}: #{code_sign_identity}")
         end
       end
     end

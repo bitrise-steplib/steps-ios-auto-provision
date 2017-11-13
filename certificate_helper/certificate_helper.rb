@@ -35,8 +35,8 @@ def find_matching_codesign_identity_info(identity_name, team_id, certificate_inf
 
   team_certificate_infos = find_certificate_infos_by_team_id(team_id, certificate_infos)
   return team_certificate_infos[0] if team_certificate_infos.to_a.length == 1
-  log_details('no development certificate found') if team_certificate_infos.to_a.empty?
-  log_warning("#{team_certificate_infos.length} development certificate found") if team_certificate_infos.to_a.length > 1
+  Log.print('no development certificate found') if team_certificate_infos.to_a.empty?
+  Log.warn("#{team_certificate_infos.length} development certificate found") if team_certificate_infos.to_a.length > 1
 end
 
 def read_certificates(path, passphrase)

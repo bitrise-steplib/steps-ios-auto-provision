@@ -1,25 +1,32 @@
-def log_info(message)
-  puts
-  puts "\e[34m#{message}\e[0m"
-end
+# Log
+class Log
+  @verbose = true
 
-def log_details(message)
-  puts message.to_s
-end
+  class << self
+     attr_accessor :verbose
+  end
 
-def log_done(message)
-  puts "\e[32m#{message}\e[0m"
-end
+  def self.info(str)
+    puts("\n\e[34m#{str}\e[0m")
+  end
 
-def log_warning(message)
-  puts "\e[33m#{message}\e[0m"
-end
+  def self.print(str)
+    puts(str.to_s)
+  end
 
-def log_error(message)
-  puts "\e[31m#{message}\e[0m"
-end
+  def self.done(str)
+    puts("\e[32m#{str}\e[0m")
+  end
 
-def log_debug(message)
-  return unless DEBUG_LOG
-  puts message.to_s
+  def self.warn(str)
+    puts("\e[33m#{str}\e[0m")
+  end
+
+  def self.error(str)
+    puts("\e[31m#{str}\e[0m")
+  end
+
+  def self.debug(str)
+    puts(str.to_s) if @verbose
+  end
 end

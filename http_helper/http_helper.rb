@@ -56,7 +56,7 @@ def download_profile(profile)
   FileUtils.mkdir_p(profiles_dir) unless File.directory?(profiles_dir)
 
   profile_path = File.join(profiles_dir, profile.uuid + '.mobileprovision')
-  log_warning("Provisioning Profile already exists at: #{profile_path}, overwriting...") if File.file?(profile_path)
+  Log.warn("Provisioning Profile already exists at: #{profile_path}, overwriting...") if File.file?(profile_path)
 
   File.write(profile_path, profile.download)
   profile_path
