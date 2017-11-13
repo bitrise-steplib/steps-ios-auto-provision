@@ -43,5 +43,6 @@ def read_certificates(path, passphrase)
   content = File.read(path)
   p12 = OpenSSL::PKCS12.new(content, passphrase)
 
-  [p12.certificate].concat(p12.ca_certs)
+  certificates = [p12.certificate]
+  certificates.concat(p12.ca_certs) if p12.ca_certs
 end
