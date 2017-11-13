@@ -387,7 +387,7 @@ begin
 
   keychain_helper = KeychainHelper.new(params.keychain_path, params.keychain_password)
 
-  certificate_path_passphrase_map = Hash[certificate_infos.map{|info| [info.path, info.passphrase]}]
+  certificate_path_passphrase_map = Hash[certificate_infos.map { |info| [info.path, info.passphrase] }]
 
   keychain_helper.install_certificates(certificate_path_passphrase_map)
 

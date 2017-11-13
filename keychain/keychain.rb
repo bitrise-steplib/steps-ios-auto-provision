@@ -2,6 +2,15 @@ require 'English'
 
 # KeychainHelper
 class KeychainHelper
+  class << self
+    def create_keychain(keychain_path, keychain_password)
+      cmd = ['security', '-v', 'create-keychain', '-p', keychain_password, "\"#{keychain_path}\""].join(' ')
+      Log.debug("$ #{cmd}")
+      out = `#{cmd}`
+      raise "#{cmd} failed, out: #{out}" unless $CHILD_STATUS.success?
+    end
+  end
+
   def initialize(keychain_path, keychain_password)
     if File.file?(keychain_path)
       @keychain_path = keychain_path
@@ -25,7 +34,7 @@ class KeychainHelper
     certificate_passphrase_map.each do |path, passphrase|
       import_certificate(path, passphrase)
     end
-    
+
     set_key_partition_list_if_needed
     set_keychain_settings_default_lock
     add_to_keychain_search_path
@@ -34,13 +43,6 @@ class KeychainHelper
   end
 
   private
-
-  def self.create_keychain(keychain_path, keychain_password)
-    cmd = ['security', '-v', 'create-keychain', '-p', keychain_password, "\"#{keychain_path}\""].join(' ')
-    Log.debug("$ #{cmd}")
-    out = `#{cmd}`
-    raise "#{cmd} failed, out: #{out}" unless $CHILD_STATUS.success?
-  end
 
   def import_certificate(path, passphrase)
     passphrase = '""' if passphrase.empty?
