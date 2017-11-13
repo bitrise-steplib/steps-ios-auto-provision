@@ -90,7 +90,6 @@ class Params
   def validate
     raise 'missing: build_url' if @build_url.empty?
     raise 'missing: build_api_token' if @build_api_token.empty?
-    raise 'missing: team_id' if @team_id.empty?
     raise 'missing: certificate_urls' if @certificate_urls.empty?
     raise 'missing: distributon_type' if @distributon_type.empty?
     raise 'missing: project_path' if @project_path.empty?
