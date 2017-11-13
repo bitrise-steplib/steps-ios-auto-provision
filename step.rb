@@ -163,7 +163,6 @@ begin
       Log.done("development Certificate found: #{portal_certificate.name}")
       raise 'multiple development certificates provided: step can handle only one development (and only one production) certificate' unless development_certificate_infos.empty?
 
-      certificate_info.certificate = certificate_info.certificate
       certificate_info.portal_certificate = portal_certificate
       development_certificate_infos.push(certificate_info)
     end
@@ -174,7 +173,6 @@ begin
     Log.done("production Certificate found: #{portal_certificate.name}")
     raise 'multiple production certificates provided: step can handle only one production (and only one development) certificate' unless production_certificate_infos.empty?
 
-    certificate_info.certificate = certificate_info.certificate
     certificate_info.portal_certificate = portal_certificate
     production_certificate_infos.push(certificate_info)
   end
@@ -389,17 +387,11 @@ begin
 
   keychain_helper = KeychainHelper.new(params.keychain_path, params.keychain_password)
 
-  certificate_infos.each do |certificate_info|
-    keychain_helper.import_certificate(certificate_info.path, certificate_info.passphrase)
-  end
+  certificate_path_passphrase_map = Hash[certificate_infos.map{|info| [info.path, info.passphrase]}]
 
-  keychain_helper.set_key_partition_list_if_needed
-  keychain_helper.set_keychain_settings_default_lock
-  keychain_helper.add_to_keychain_search_path
-  keychain_helper.set_default_keychain
-  keychain_helper.unlock_keychain
+  keychain_helper.install_certificates(certificate_path_passphrase_map)
 
-  Log.done("#{certificate_infos.length} certificates installed")
+  Log.done("#{certificate_path_passphrase_map.length} certificates installed")
   ###
 rescue => ex
   puts

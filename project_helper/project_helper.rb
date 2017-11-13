@@ -140,7 +140,9 @@ class ProjectHelper
 
         # code sign identity may presents as: CODE_SIGN_IDENTITY and CODE_SIGN_IDENTITY[sdk=iphoneos*]
         build_settings.each_key do |key|
-          build_settings[key] = code_sign_identity if key.include?('CODE_SIGN_IDENTITY')
+          next unless key.include?('CODE_SIGN_IDENTITY')
+
+          build_settings[key] = code_sign_identity
           Log.print("#{key}: #{code_sign_identity}")
         end
       end
