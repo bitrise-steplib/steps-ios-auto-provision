@@ -8,17 +8,14 @@ require_relative 'auto-provision/app_services'
 require_relative 'keychain/keychain'
 require_relative 'certificate_helper/certificate_helper'
 
+DEBUG_LOG = true
+
 # CertificateInfo
 class CertificateInfo
   attr_accessor :path
   attr_accessor :passphrase
   attr_accessor :certificate
   attr_accessor :portal_certificate
-
-  @path = nil
-  @passphrase = nil
-  @certificate = nil
-  @portal_certificate = nil
 end
 
 # ProfileInfo
@@ -26,10 +23,6 @@ class ProfileInfo
   attr_accessor :path
   attr_accessor :profile
   attr_accessor :portal_profile
-
-  @path = nil
-  @profile = nil
-  @portal_profile = nil
 end
 
 # CodesignSettings
@@ -39,12 +32,6 @@ class CodesignSettings
   attr_accessor :production_certificate_info
   attr_accessor :bundle_id_development_profile
   attr_accessor :bundle_id_production_profile
-
-  @team_id = nil
-  @development_certificates = []
-  @production_certificates = []
-  @bundle_id_development_profile = {}
-  @bundle_id_production_profile = {}
 end
 
 # Params
