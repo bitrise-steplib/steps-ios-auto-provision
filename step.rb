@@ -8,8 +8,6 @@ require_relative 'auto-provision/app_services'
 require_relative 'keychain/keychain'
 require_relative 'certificate_helper/certificate_helper'
 
-DEBUG_LOG = true
-
 # CertificateInfo
 class CertificateInfo
   attr_accessor :path
@@ -110,51 +108,6 @@ begin
   DEBUG_LOG = (params.verbose_log == 'yes')
   ###
 
-  # Anlyzing project
-  log_info('Anlyzing project')
-
-  project_helper = ProjectHelper.new(params.project_path)
-
-  project_target_bundle_id_map = project_helper.project_target_bundle_id_map
-  raise 'no targets found' if project_target_bundle_id_map.to_a.empty?
-
-  project_target_entitlements_map = project_helper.project_target_entitlements_map
-  raise 'no targets found' if project_target_entitlements_map.to_a.empty?
-  raise 'analyzer failed' unless project_target_bundle_id_map.to_a.length == project_target_entitlements_map.to_a.length
-
-  project_codesign_identity_map = {}
-  project_team_id_map = {}
-  project_target_bundle_id_map.each do |project_path, target_bundle_id|
-    log_done("project: #{project_path}")
-
-    idx = 0
-    target_bundle_id.each do |target, bundle_id|
-      idx += 1
-      entitlements_count = (project_target_entitlements_map[project_path][target] || []).length
-
-      log_details("target ##{idx}: #{target} (#{bundle_id}) with #{entitlements_count} services")
-    end
-
-    codesign_identity = project_helper.codesign_identity(project_path)
-    raise 'failed to determine project codesign identity' unless codesign_identity
-
-    team_id = project_helper.team_id(project_path)
-    raise 'failed to determine project team id' unless team_id
-
-    if !params.team_id.to_s.empty? && params.team_id != team_id
-      log_warning("different team id defined: #{params.team_id} then the project's one: #{team_id}")
-      log_warning("using defined team id: #{params.team_id}")
-      log_warning("droping project codesign identity: #{codesign_identity}")
-
-      team_id = params.team_id
-      codesign_identity = nil
-    end
-
-    project_codesign_identity_map[project_path] = codesign_identity if codesign_identity
-    project_team_id_map[project_path] = team_id
-  end
-  ###
-
   # Developer Portal authentication
   log_info('Developer Portal authentication')
 
@@ -226,6 +179,51 @@ begin
     production_certificate_infos.push(certificate_info)
   end
   raise 'no development nor production certificate identified on development portal' if development_certificate_infos.empty? && production_certificate_infos.empty?
+  ###
+
+  # Anlyzing project
+  log_info('Anlyzing project')
+
+  project_helper = ProjectHelper.new(params.project_path)
+
+  project_target_bundle_id_map = project_helper.project_target_bundle_id_map
+  raise 'no targets found' if project_target_bundle_id_map.to_a.empty?
+
+  project_target_entitlements_map = project_helper.project_target_entitlements_map
+  raise 'no targets found' if project_target_entitlements_map.to_a.empty?
+  raise 'analyzer failed' unless project_target_bundle_id_map.to_a.length == project_target_entitlements_map.to_a.length
+
+  project_codesign_identity_map = {}
+  project_team_id_map = {}
+  project_target_bundle_id_map.each do |project_path, target_bundle_id|
+    log_done("project: #{project_path}")
+
+    idx = 0
+    target_bundle_id.each do |target, bundle_id|
+      idx += 1
+      entitlements_count = (project_target_entitlements_map[project_path][target] || []).length
+
+      log_details("target ##{idx}: #{target} (#{bundle_id}) with #{entitlements_count} services")
+    end
+
+    codesign_identity = project_helper.codesign_identity(project_path)
+    raise 'failed to determine project codesign identity' unless codesign_identity
+
+    team_id = project_helper.team_id(project_path)
+    raise 'failed to determine project team id' unless team_id
+
+    if !params.team_id.to_s.empty? && params.team_id != team_id
+      log_warning("different team id defined: #{params.team_id} then the project's one: #{team_id}")
+      log_warning("using defined team id: #{params.team_id}")
+      log_warning("droping project codesign identity: #{codesign_identity}")
+
+      team_id = params.team_id
+      codesign_identity = nil
+    end
+
+    project_codesign_identity_map[project_path] = codesign_identity if codesign_identity
+    project_team_id_map[project_path] = team_id
+  end
   ###
 
   # Matching project codesign identity with the uploaded certificates
