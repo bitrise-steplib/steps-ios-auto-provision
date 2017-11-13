@@ -74,15 +74,6 @@ def ensure_test_devices(test_devices)
   end
 end
 
-def find_profile_by_bundle_id(profiles, bundle_id)
-  matching = []
-  profiles.each do |profile|
-    matching.push(profile) if profile.app.bundle_id == bundle_id
-  end
-
-  matching
-end
-
 def ensure_profile_certificate(profile, certificate)
   certificate_included = false
 
@@ -118,42 +109,38 @@ def ensure_provisioning_profile(certificate, app, distributon_type)
     raise "invalid distribution type provided: #{distributon_type}, available: [development, app-store, ad-hoc, enterprise]"
   end
 
-  profiles = find_profile_by_bundle_id(portal_profile_class.all, app.bundle_id)
+  profiles = portal_profile_class.all.select { |profile| profile.app.bundle_id == app.bundle_id }
   # Both app_store.all and ad_hoc.all return the same
   # This is the case since September 2016, since the API has changed
   # and there is no fast way to get the type when fetching the profiles
   # Distinguish between App Store and Ad Hoc profiles
   if distributon_type == 'app-store'
-    profiles = profiles.find_all { |current| !current.is_adhoc? }
+    profiles = profiles.reject(&:is_adhoc?)
   elsif distributon_type == 'ad-hoc'
-    profiles = profiles.find_all(&:is_adhoc?)
+    profiles = profiles.select(&:is_adhoc?)
   end
 
-  profile = nil
-  if profiles.to_a.empty?
+  if profiles.empty?
     Log.done("generating #{distributon_type} provisioning profile for bundle id: #{app.bundle_id}")
-    profile = portal_profile_class.create!(bundle_id: app.bundle_id, certificate: certificate, name: "Bitrise #{distributon_type} - (#{app.bundle_id})")
   else
+    # it's easier to just create a new one, than to:
+    # - add test devices
+    # - add the certificate
+    # - update profile
+    # update seems to revoking the certificate, even if it is not neccessary
+    # it has the same effects anyway, including a new UUID of the provisioning profile
+
     if profiles.count > 1
-      Log.warn("multiple #{distributon_type} provisionig profiles for bundle id: #{app.bundle_id}, using first:")
+      Log.warn("multiple #{distributon_type} provisionig profiles for bundle id: #{app.bundle_id}")
       profiles.each_with_index { |prof, index| Log.warn("#{index}. #{prof.name}") }
     end
+    profile_to_delete = profiles.first
 
-    profile = profiles.first
-    Log.done("#{distributon_type} profile: #{profile.name} (#{profile.uuid}) for bundle id (#{app.bundle_id}) already exist")
-
-    # ensure certificate is included
-    Log.debug("ensure #{certificate.name} is included in profile")
-    profile = ensure_profile_certificate(profile, certificate)
-
-    # add all available devices to the profile
-    if ['development', 'ad-hoc'].include?(distributon_type)
-      Log.debug('update profile devices')
-      profile.devices = Spaceship::Portal.device.all
-    end
-
-    profile = profile.update!
+    Log.warn("regenerating #{distributon_type} profile: #{profile_to_delete.name} (#{profile_to_delete.uuid})")
+    profile_to_delete.delete!
   end
+
+  profile = portal_profile_class.create!(bundle_id: app.bundle_id, certificate: certificate, name: "Bitrise #{distributon_type} - (#{app.bundle_id})")
 
   raise "failed to find or create provisioning profile for bundle id: #{app.bundle_id}" unless profile
   profile

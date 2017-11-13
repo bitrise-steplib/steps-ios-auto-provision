@@ -396,6 +396,6 @@ begin
 rescue => ex
   puts
   Log.error(ex.to_s)
-  Log.debug(ex.backtrace.join("\n").to_s)
+  Log.error(ex.backtrace.join("\n").to_s)
   exit 1
 end
