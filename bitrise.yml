@@ -79,6 +79,8 @@ workflows:
         - scheme: $BITRISE_SCHEME
         - output_tool: xcodebuild
     - deploy-to-bitrise-io:
+        inputs:
+        - notify_user_groups: none
     
   # ----------------------------------------------------------------
   # --- workflows to Share this step into a Step Library
