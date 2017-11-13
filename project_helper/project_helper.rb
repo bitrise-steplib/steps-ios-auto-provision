@@ -16,108 +16,12 @@ class ProjectHelper
     end
   end
 
-  private
-
-  def contained_projects
-    return [@project_path] unless @workspace_path
-
-    workspace = Xcodeproj::Workspace.new_from_xcworkspace(@workspace_path)
-    workspace_dir = File.dirname(@workspace_path)
-    project_paths = []
-    workspace.file_references.each do |ref|
-      pth = ref.path
-      next unless File.extname(pth) == '.xcodeproj'
-      next if pth.end_with?('Pods/Pods.xcodeproj')
-
-      project_path = File.expand_path(pth, workspace_dir)
-      project_paths << project_path
-    end
-
-    project_paths
-  end
-
-  def runnable_target?(target)
-    return false unless target.is_a?(Xcodeproj::Project::Object::PBXNativeTarget)
-
-    product_reference = target.product_reference
-    return false unless product_reference
-
-    product_reference.path.end_with?('.app', '.appex')
-  end
-
-  public
-
-  def xcodebuild_target_build_settings(project, target)
-    cmd = "xcodebuild -showBuildSettings -project \"#{project}\" -target \"#{target}\""
-    out = `#{cmd}`
-    raise "#{cmd} failed, out: #{out}" unless $CHILD_STATUS.success?
-
-    settings = {}
-    lines = out.split(/\n/)
-    lines.each do |line|
-      line = line.strip
-      next unless line.include?(' = ')
-      split = line.split(' = ')
-      next unless split.length == 2
-      settings[split[0]] = split[1]
-    end
-
-    settings
-  end
-
-  def find_bundle_id(build_settings)
-    bundle_id = build_settings['PRODUCT_BUNDLE_IDENTIFIER']
-
-    if bundle_id.to_s.empty?
-      info_plist_path = build_settings['INFOPLIST_FILE']
-      raise 'failed to to determine bundle id: xcodebuild -showBuildSettings does not contains PRODUCT_BUNDLE_IDENTIFIER nor INFOPLIST_FILE' if info_plist_path.to_s.empty?
-      info_plist = Plist.parse_xml(info_plist_path)
-      bundle_id = info_plist['CFBundleIdentifier']
-      raise 'failed to to determine bundle id: xcodebuild -showBuildSettings does not contains PRODUCT_BUNDLE_IDENTIFIER nor Info.plist' if bundle_id.to_s.empty? || bundle_id.to_s.include?('$')
-    end
-
-    bundle_id
-  end
-
-  def project_targets_map
-    project_targets = {}
-
-    project_paths = contained_projects
-    project_paths.each do |project_path|
-      targets = []
-
-      project = Xcodeproj::Project.open(project_path)
-      project.targets.each do |target|
-        next unless runnable_target?(target)
-
-        targets.push(target.name)
-      end
-
-      project_targets[project_path] = targets
-    end
-
-    project_targets
-  end
-
-  # 'iPhone Developer' should match to 'iPhone Developer: Bitrise Bot (ABCD)'
-  def codesign_identites_match?(identity1, identity2)
-    return true if identity1.downcase.include?(identity2.downcase)
-    return true if identity2.downcase.include?(identity1.downcase)
-    false
-  end
-
-  # 'iPhone Developer: Bitrise Bot (ABCD)' is exact compared to 'iPhone Developer'
-  def exact_codesign_identity(identity1, identity2)
-    return nil unless codesign_identites_match?(identity1, identity2)
-    identity1.length > identity2.length ? identity1 : identity2
-  end
-
   def codesign_identity(project_path)
     target_bundle_id_map = project_target_bundle_id_map[project_path]
     raise "unkown project path: #{project_path}" unless target_bundle_id_map
 
     codesign_identity = nil
-    target_bundle_id_map.each_key do |target, _|
+    target_bundle_id_map.each_key do |target|
       settings = xcodebuild_target_build_settings(project_path, target)
 
       identity = settings['CODE_SIGN_IDENTITY']
@@ -142,7 +46,7 @@ class ProjectHelper
     raise "unkown project path: #{project_path}" unless target_bundle_id_map
 
     team_id = nil
-    target_bundle_id_map.each_key do |target, _|
+    target_bundle_id_map.each_key do |target|
       settings = xcodebuild_target_build_settings(project_path, target)
 
       id = settings['DEVELOPMENT_TEAM']
@@ -169,7 +73,7 @@ class ProjectHelper
 
       targets.each do |target|
         settings = xcodebuild_target_build_settings(path, target)
-        bundle_id = find_bundle_id(settings)
+        bundle_id = find_bundle_id(settings, path)
         target_bundle_id[target] = bundle_id
       end
 
@@ -243,5 +147,108 @@ class ProjectHelper
     end
 
     project.save
+  end
+
+  private
+
+  def contained_projects
+    return [@project_path] unless @workspace_path
+
+    workspace = Xcodeproj::Workspace.new_from_xcworkspace(@workspace_path)
+    workspace_dir = File.dirname(@workspace_path)
+    project_paths = []
+    workspace.file_references.each do |ref|
+      pth = ref.path
+      next unless File.extname(pth) == '.xcodeproj'
+      next if pth.end_with?('Pods/Pods.xcodeproj')
+
+      project_path = File.expand_path(pth, workspace_dir)
+      project_paths << project_path
+    end
+
+    project_paths
+  end
+
+  def runnable_target?(target)
+    return false unless target.is_a?(Xcodeproj::Project::Object::PBXNativeTarget)
+
+    product_reference = target.product_reference
+    return false unless product_reference
+
+    product_reference.path.end_with?('.app', '.appex')
+  end
+
+  def project_targets_map
+    project_targets = {}
+
+    project_paths = contained_projects
+    project_paths.each do |project_path|
+      targets = []
+
+      project = Xcodeproj::Project.open(project_path)
+      project.targets.each do |target|
+        next unless runnable_target?(target)
+
+        targets.push(target.name)
+      end
+
+      project_targets[project_path] = targets
+    end
+
+    project_targets
+  end
+
+  def xcodebuild_target_build_settings(project, target)
+    cmd = "xcodebuild -showBuildSettings -project \"#{project}\" -target \"#{target}\""
+    out = `#{cmd}`
+    raise "#{cmd} failed, out: #{out}" unless $CHILD_STATUS.success?
+
+    settings = {}
+    lines = out.split(/\n/)
+    lines.each do |line|
+      line = line.strip
+      next unless line.include?(' = ')
+
+      split = line.split(' = ')
+      next unless split.length == 2
+
+      value = split[1].strip
+      next if value.empty?
+
+      key = split[0].strip
+      next if key.empty?
+
+      settings[key] = value
+    end
+
+    settings
+  end
+
+  def find_bundle_id(build_settings, project_path)
+    bundle_id = build_settings['PRODUCT_BUNDLE_IDENTIFIER']
+    return bundle_id if bundle_id
+
+    info_plist_path = build_settings['INFOPLIST_FILE']
+    raise 'failed to to determine bundle id: xcodebuild -showBuildSettings does not contains PRODUCT_BUNDLE_IDENTIFIER nor INFOPLIST_FILE' unless info_plist_path
+
+    info_plist_path = File.expand_path(info_plist_path, File.dirname(project_path))
+    info_plist = Plist.parse_xml(info_plist_path)
+    bundle_id = info_plist['CFBundleIdentifier']
+    raise 'failed to to determine bundle id: xcodebuild -showBuildSettings does not contains PRODUCT_BUNDLE_IDENTIFIER nor Info.plist' if bundle_id.to_s.empty? || bundle_id.to_s.include?('$')
+
+    bundle_id
+  end
+
+  # 'iPhone Developer' should match to 'iPhone Developer: Bitrise Bot (ABCD)'
+  def codesign_identites_match?(identity1, identity2)
+    return true if identity1.downcase.include?(identity2.downcase)
+    return true if identity2.downcase.include?(identity1.downcase)
+    false
+  end
+
+  # 'iPhone Developer: Bitrise Bot (ABCD)' is exact compared to 'iPhone Developer'
+  def exact_codesign_identity(identity1, identity2)
+    return nil unless codesign_identites_match?(identity1, identity2)
+    identity1.length > identity2.length ? identity1 : identity2
   end
 end
