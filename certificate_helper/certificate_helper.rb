@@ -45,4 +45,5 @@ def read_certificates(path, passphrase)
 
   certificates = [p12.certificate]
   certificates.concat(p12.ca_certs) if p12.ca_certs
+  certificates
 end
