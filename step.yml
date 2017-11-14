@@ -3,11 +3,13 @@ summary: Manages iOS Provisioning Profiles for your Xcode project
 description: |-
   Manages iOS Provisioning Profiles for your Xcode project:
 
-  - Ensure Application Identifier on Apple Developer Portal
+  - Ensure Application Identifier on the Apple Developer Portal
   - Ensure the project capabilities
-  - Ensure Provisioning Profiles
-  - Ensure Test Devices
+  - Ensure the Provisioning Profiles
+  - Ensure the Test Devices
   - Installs codesigning Certificates
+
+  Setup guide: https://blog.bitrise.io/ios-auto-provision-step
 website: https://github.com/bitrise-steplib/steps-ios-auto-provision
 source_code_url: https://github.com/bitrise-steplib/steps-ios-auto-provision
 support_url: https://github.com/bitrise-steplib/steps-ios-auto-provision/issues
@@ -18,9 +20,6 @@ host_os_tags:
 
 project_type_tags:
   - ios
-  - react-native
-  - cordova
-  - ionic
 
 type_tags:
   - code-sign
