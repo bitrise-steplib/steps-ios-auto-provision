@@ -4,9 +4,9 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 app:
   envs:
   # If you want to share this step into a StepLib
-  - BITRISE_STEP_ID: auto-provision
-  - BITRISE_STEP_VERSION: "0.0.1"
-  - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/bitrise-step-auto-provision
+  - BITRISE_STEP_ID: ios-auto-provision
+  - BITRISE_STEP_VERSION: "0.9.0"
+  - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/steps-ios-auto-provision.git
   - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
 
   # An example secret param, define it (A_SECRET_PARAM) in .bitrise.secrets.yml
