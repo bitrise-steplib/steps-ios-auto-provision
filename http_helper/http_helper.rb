@@ -48,7 +48,7 @@ def download_or_create_local_path(url, filename)
   pth
 end
 
-def download_profile(profile)
+def write_profile(profile)
   home_dir = ENV['HOME']
   raise 'failed to determine Xcode Provisioning Profiles dir: HOME env not set' if home_dir.to_s.empty?
 

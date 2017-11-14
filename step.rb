@@ -212,9 +212,9 @@ begin
     raise 'failed to determine project team id' unless team_id
 
     if !params.team_id.nil? && params.team_id != team_id
-      Log.warn("different team id defined: #{params.team_id} then the project's one: #{team_id}")
+      Log.warn("different team id defined: #{params.team_id} than the project's one: #{team_id}")
       Log.warn("using defined team id: #{params.team_id}")
-      Log.warn("droping project codesign identity: #{codesign_identity}")
+      Log.warn("dropping project codesign identity: #{codesign_identity}")
 
       team_id = params.team_id
       codesign_identity = nil
@@ -320,7 +320,7 @@ begin
         portal_profile = ensure_provisioning_profile(development_certificate_info.portal_certificate, app, 'development')
 
         Log.success("downloading development profile: #{portal_profile.name}")
-        profile_path = download_profile(portal_profile)
+        profile_path = write_profile(portal_profile)
 
         Log.debug("profile path: #{profile_path}")
 
@@ -337,7 +337,7 @@ begin
       portal_profile = ensure_provisioning_profile(production_certificate_info.portal_certificate, app, params.distributon_type)
 
       Log.success("downloading #{params.distributon_type} profile: #{portal_profile.name}")
-      profile_path = download_profile(portal_profile)
+      profile_path = write_profile(portal_profile)
 
       Log.debug("profile path: #{profile_path}")
 

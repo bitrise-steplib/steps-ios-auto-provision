@@ -95,7 +95,6 @@ def ensure_profile_certificate(profile, certificate)
 end
 
 def ensure_provisioning_profile(certificate, app, distributon_type)
-  portal_profile_class = nil
   case distributon_type
   when 'development'
     portal_profile_class = Spaceship::Portal.provisioning_profile.development
