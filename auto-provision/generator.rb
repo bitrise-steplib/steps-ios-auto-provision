@@ -64,7 +64,7 @@ def ensure_test_devices(test_devices)
     end
 
     unless registered_test_device
-      registered_test_device = Spaceship::Portal.device.create!(name: test_device.title, udid: test_device.uuid)
+      registered_test_device = Spaceship::Portal.device.create!(name: test_device.name, udid: test_device.uuid)
       Log.success("registering test device #{registered_test_device.name} (#{registered_test_device.udid})")
     end
 
