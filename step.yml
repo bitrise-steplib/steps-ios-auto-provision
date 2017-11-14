@@ -1,13 +1,13 @@
 title: iOS Auto Provision
-summary: Manages iOS Provisioning Profiles for your Xcode project
+summary: Automatically manages your iOS Provisioning Profiles for your Xcode project
 description: |-
-  Manages iOS Provisioning Profiles for your Xcode project:
+  Automatically manages your iOS Provisioning Profiles for your Xcode project:
 
-  - it ensures that Application Identifier exists on the Apple Developer Portal
-  - it ensures that the project Capabilities are set in the Application Identifier
+  - it ensures that the Application Identifier exists on the Apple Developer Portal
+  - it ensures that the project's Capabilities are set correctly in the Application Identifier
   - it ensures that the Provisioning Profiles exists on the Apple Developer Portal
-  - it ensure that the Test Devices exists on the Apple Developer Portal and are included in the Provisioning Profiles
-  - it installs the Codesigning Certificates into the Keychain
+  - it ensure that all the available Test Devices exists on the Apple Developer Portal and are included in the Provisioning Profile as well
+  - it installs all the Codesigning Certificates into the Keychain
 
   Setup guide: https://blog.bitrise.io/ios-auto-provision-step
 website: https://github.com/bitrise-steplib/steps-ios-auto-provision
