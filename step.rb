@@ -211,7 +211,7 @@ begin
     team_id = project_helper.team_id(project_path)
     raise 'failed to determine project team id' unless team_id
 
-    if !params.team_id.nil? && params.team_id != team_id
+    if !params.team_id.to_s.empty? && params.team_id != team_id
       Log.warn("different team id defined: #{params.team_id} than the project's one: #{team_id}")
       Log.warn("using defined team id: #{params.team_id}")
       Log.warn("dropping project codesign identity: #{codesign_identity}")
