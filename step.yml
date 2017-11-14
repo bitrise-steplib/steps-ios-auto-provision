@@ -83,7 +83,7 @@ inputs:
       If you leave it empty the project defined team will be used.
 
       Example: `1MZX23ABCD4`
-- distributon_type:
+- distributon_type: development
   opts:
     title: "Distribution type"
     description: |-
