@@ -109,13 +109,15 @@ begin
   # Developer Portal authentication
   Log.info('Developer Portal authentication')
 
-  # portal_data = get_developer_portal_data(params.build_url, params.build_api_token)
-  portal_data = mock_developer_portal_data
+  portal_data = get_developer_portal_data(params.build_url, params.build_api_token)
   portal_data.validate
 
-  Log.debug("session cookie: #{portal_data.session_cookies}\n")
-  session = convert_tfa_cookies(portal_data.session_cookies)
-  Log.debug("converted session cookie: #{session}\n")
+  session = nil
+  unless portal_data.session_cookies.to_s.empty?
+    Log.debug("session cookie: #{portal_data.session_cookies}\n")
+    session = convert_tfa_cookies(portal_data.session_cookies)
+    Log.debug("converted session cookie: #{session}\n")
+  end
 
   developer_portal_authentication(portal_data.apple_id, portal_data.password, session, params.team_id)
 
@@ -179,7 +181,7 @@ begin
   ###
 
   # Anlyzing project
-  Log.info('Anlyzing project')
+  Log.info('Analyzing project')
 
   project_helper = ProjectHelper.new(params.project_path)
 

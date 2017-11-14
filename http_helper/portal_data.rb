@@ -34,8 +34,10 @@ class PortalData
   end
 
   def validate
-    raise 'developer portal apple id not provided for this build' if @apple_id.empty?
-    raise 'developer portal password not provided for this build' if @password.empty?
+    raise 'developer portal apple id not provided for this build' if @apple_id.to_s.empty?
+    raise 'developer portal password not provided for this build' if @password.to_s.empty?
+
+    @test_devices.each(&:validate)
   end
 end
 
@@ -54,12 +56,16 @@ def get_developer_portal_data(build_url, build_api_token)
     http.request(request)
   end
 
-  # Log.debug(printable_response(response))
+  raise 'failed to get response' unless response
+  raise 'response has no body' unless response.body
 
-  developer_portal_data = JSON.parse(response.body) if response.body
-  error_message = developer_portal_data['error_msg'] if developer_portal_data
-  error_message ||= printable_response(response)
-  raise error_message unless response.code == '200'
+  developer_portal_data = JSON.parse(response.body)
+
+  unless response.code == '200'
+    error_message = developer_portal_data['error_msg']
+    error_message ||= printable_response(response)
+    raise error_message
+  end
 
   PortalData.new(developer_portal_data)
 end
