@@ -5,7 +5,7 @@ app:
   envs:
   # If you want to share this step into a StepLib
   - BITRISE_STEP_ID: ios-auto-provision
-  - BITRISE_STEP_VERSION: "0.9.0"
+  - BITRISE_STEP_VERSION: "0.9.1"
   - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/steps-ios-auto-provision.git
   - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
 
@@ -81,6 +81,20 @@ workflows:
     - deploy-to-bitrise-io:
         inputs:
         - notify_user_groups: none
+
+  # ----------------------------------------------------------------
+  # --- workflows to create Release
+  create-release:
+    steps:
+    - script:
+        title:
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -ex
+            go get -u github.com/bitrise-tools/releaseman
+            export CI=true
+            releaseman create --version $BITRISE_STEP_VERSION
     
   # ----------------------------------------------------------------
   # --- workflows to Share this step into a Step Library
