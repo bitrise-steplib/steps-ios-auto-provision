@@ -50,7 +50,7 @@ def get_developer_portal_data(build_url, build_api_token)
   request['BUILD_API_TOKEN'] = build_api_token
 
   http_object = Net::HTTP.new(uri.host, uri.port)
-  http_object.use_ssl = (uri.scheme == 'https')
+  http_object.use_ssl = true
 
   response = http_object.start do |http|
     http.request(request)

@@ -4,7 +4,7 @@ require 'tmpdir'
 require 'fileutils'
 require_relative '../log/log'
 
-def create_tmp_file(filename)
+def create_tmp_file_path(filename)
   File.join(Dir.tmpdir, filename)
 end
 
@@ -19,7 +19,7 @@ def download_to_path(url, path)
   uri = URI.parse(url)
   request = Net::HTTP::Get.new(uri.request_uri)
   http_object = Net::HTTP.new(uri.host, uri.port)
-  http_object.use_ssl = (uri.scheme == 'https')
+  http_object.use_ssl = true
   response = http_object.start do |http|
     http.request(request)
   end
@@ -36,13 +36,13 @@ def download_to_path(url, path)
   path
 end
 
-def download_to_tmp_file(url, filename)
+def download_or_create_local_path(url, filename)
   pth = nil
   if url.start_with?('file://')
     pth = url.sub('file://', '')
     raise "Certificate not exist at: #{pth}" unless File.exist?(pth)
   else
-    pth = create_tmp_file(filename)
+    pth = create_tmp_file_path(filename)
     download_to_path(url, pth)
   end
   pth

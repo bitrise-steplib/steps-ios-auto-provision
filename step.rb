@@ -136,7 +136,7 @@ begin
   certificate_infos = []
   certificate_urls.each_with_index do |url, idx|
     Log.debug("downloading certificate ##{idx + 1}")
-    path = download_to_tmp_file(url, "Certrificate#{idx}.p12")
+    path = download_or_create_local_path(url, "Certrificate#{idx}.p12")
     Log.debug("certificate path: #{path}")
 
     certificates = read_certificates(path, passphrases[idx])
