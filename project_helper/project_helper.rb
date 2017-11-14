@@ -44,7 +44,6 @@ class ProjectHelper
       end
 
       codesign_identity = exact_codesign_identity(codesign_identity, identity)
-
     end
     codesign_identity
   end

@@ -30,3 +30,8 @@ class Log
     puts(str.to_s) if @verbose
   end
 end
+
+def secure_value(value)
+  return '' if value.empty?
+  '***'
+end

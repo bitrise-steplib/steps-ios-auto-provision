@@ -84,11 +84,6 @@ class Params
   end
 end
 
-def secure_value(value)
-  return '' if value.empty?
-  '***'
-end
-
 def split_pipe_separated_list(list)
   separator_count = list.count('|')
   char_count = list.length
@@ -147,7 +142,7 @@ begin
       certificate_infos.push(certificate_info)
     end
   end
-  Log.success("#{certificate_infos.length} certificates downloaded")
+  Log.success("#{certificate_urls.length} certificates downloaded")
   ###
 
   # Identify Certificates on developer Portal
