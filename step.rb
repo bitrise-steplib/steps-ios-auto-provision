@@ -37,61 +37,64 @@ class Params
   attr_accessor :build_url
   attr_accessor :build_api_token
   attr_accessor :team_id
-  attr_accessor :certificate_urls
-  attr_accessor :passphrases
+  attr_accessor :certificate_urls_str
+  attr_accessor :passphrases_str
   attr_accessor :distributon_type
   attr_accessor :project_path
   attr_accessor :keychain_path
   attr_accessor :keychain_password
   attr_accessor :verbose_log
 
+  attr_accessor :certificate_urls
+  attr_accessor :passphrases
+
   def initialize
-    @build_url = ENV['build_url'] || ''
-    @build_api_token = ENV['build_api_token'] || ''
-    @team_id = ENV['team_id'] || ''
-    @certificate_urls = ENV['certificate_urls'] || ''
-    @passphrases = ENV['passphrases'] || ''
-    @distributon_type = ENV['distributon_type'] || ''
-    @project_path = ENV['project_path'] || ''
-    @keychain_path = ENV['keychain_path'] || ''
-    @keychain_password = ENV['keychain_password'] || ''
-    @verbose_log = ENV['verbose_log'] || ''
+    @build_url = ENV['build_url']
+    @build_api_token = ENV['build_api_token']
+    @team_id = ENV['team_id']
+    @certificate_urls_str = ENV['certificate_urls']
+    @passphrases_str = ENV['passphrases']
+    @distributon_type = ENV['distributon_type']
+    @project_path = ENV['project_path']
+    @keychain_path = ENV['keychain_path']
+    @keychain_password = ENV['keychain_password']
+    @verbose_log = ENV['verbose_log']
+
+    @certificate_urls = split_pipe_separated_list(@certificate_urls_str)
+    @passphrases = split_pipe_separated_list(@passphrases_str)
   end
 
   def print
     Log.info('Params:')
     Log.print("team_id: #{@team_id}")
-    Log.print("certificate_urls: #{secure_value(@certificate_urls)}")
-    Log.print("passphrases: #{secure_value(@passphrases)}")
+    Log.print("certificate_urls: #{Log.secure_value(@certificate_urls_str)}")
+    Log.print("passphrases: #{Log.secure_value(@passphrases_str)}")
     Log.print("distributon_type: #{@distributon_type}")
     Log.print("project_path: #{@project_path}")
     Log.print("build_url: #{@build_url}")
-    Log.print("build_api_token: #{secure_value(@build_api_token)}")
+    Log.print("build_api_token: #{Log.secure_value(@build_api_token)}")
     Log.print("keychain_path: #{@keychain_path}")
-    Log.print("keychain_password: #{secure_value(@keychain_password)}")
+    Log.print("keychain_password: #{Log.secure_value(@keychain_password)}")
     Log.print("verbose_log: #{@verbose_log}")
   end
 
   def validate
-    raise 'missing: build_url' if @build_url.empty?
-    raise 'missing: build_api_token' if @build_api_token.empty?
-    raise 'missing: certificate_urls' if @certificate_urls.empty?
-    raise 'missing: distributon_type' if @distributon_type.empty?
-    raise 'missing: project_path' if @project_path.empty?
-    raise 'missing: keychain_path' if @keychain_path.empty?
-    raise 'missing: keychain_password' if @keychain_password.empty?
-    raise 'missing: verbose_log' if @verbose_log.empty?
+    raise 'missing: build_url' if @build_url.nil?
+    raise 'missing: build_api_token' if @build_api_token.nil?
+    raise 'missing: certificate_urls' if @certificate_urls_str.nil?
+    raise 'missing: distributon_type' if @distributon_type.nil?
+    raise 'missing: project_path' if @project_path.nil?
+    raise 'missing: keychain_path' if @keychain_path.nil?
+    raise 'missing: keychain_password' if @keychain_password.nil?
+    raise 'missing: verbose_log' if @verbose_log.nil?
   end
-end
 
-def split_pipe_separated_list(list)
-  separator_count = list.count('|')
-  char_count = list.length
+  private
 
-  return [''] if char_count.zero?
-  return [list] unless list.include?('|')
-  return Array.new(separator_count + 1, '') if separator_count == char_count
-  list.split('|').map(&:strip)
+  def split_pipe_separated_list(list)
+    return [''] if list.to_s.empty?
+    list.split('|', -1)
+  end
 end
 
 begin
@@ -106,7 +109,8 @@ begin
   # Developer Portal authentication
   Log.info('Developer Portal authentication')
 
-  portal_data = get_developer_portal_data(params.build_url, params.build_api_token)
+  # portal_data = get_developer_portal_data(params.build_url, params.build_api_token)
+  portal_data = mock_developer_portal_data
   portal_data.validate
 
   Log.debug("session cookie: #{portal_data.session_cookies}\n")
@@ -121,10 +125,10 @@ begin
   # Download certificates
   Log.info('Downloading Certificates')
 
-  certificate_urls = split_pipe_separated_list(params.certificate_urls).reject(&:empty?)
+  certificate_urls = params.certificate_urls.reject(&:empty?)
   raise 'no certificates provider' if certificate_urls.to_a.empty?
 
-  passphrases = split_pipe_separated_list(params.passphrases)
+  passphrases = params.passphrases
   raise "certificates count (#{certificate_urls.length}) and passphrases count (#{passphrases.length}) should match" unless certificate_urls.length == passphrases.length
 
   certificate_infos = []
@@ -205,7 +209,7 @@ begin
     team_id = project_helper.team_id(project_path)
     raise 'failed to determine project team id' unless team_id
 
-    if !params.team_id.to_s.empty? && params.team_id != team_id
+    if !params.team_id.nil? && params.team_id != team_id
       Log.warn("different team id defined: #{params.team_id} then the project's one: #{team_id}")
       Log.warn("using defined team id: #{params.team_id}")
       Log.warn("droping project codesign identity: #{codesign_identity}")

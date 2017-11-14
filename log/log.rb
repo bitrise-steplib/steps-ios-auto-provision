@@ -29,9 +29,9 @@ class Log
   def self.debug(str)
     puts(str.to_s) if @verbose
   end
-end
 
-def secure_value(value)
-  return '' if value.empty?
-  '***'
+  def self.secure_value(value)
+    return '' if value.empty?
+    '***'
+  end
 end

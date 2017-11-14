@@ -70,12 +70,11 @@ class ProjectHelper
         next
       end
 
-      next unless team_id == id
+      next if team_id == id
 
       Log.warn("target team id: #{id} does not match to the already registered team id: #{team_id}")
       team_id = nil
       break
-
     end
     team_id
   end
