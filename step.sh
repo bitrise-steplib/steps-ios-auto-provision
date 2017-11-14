@@ -6,6 +6,7 @@ THIS_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export BUNDLE_GEMFILE="$THIS_SCRIPT_DIR/Gemfile"
 
 set +e
+echo '$' "bundle install"
 out=$(bundle install)
 if [ $? != 0 ]; then
     echo "bundle install failed"
@@ -14,4 +15,5 @@ if [ $? != 0 ]; then
 fi
 set -e
 
+echo '$' "bundle exec ruby "$THIS_SCRIPT_DIR/step.rb""
 bundle exec ruby "$THIS_SCRIPT_DIR/step.rb"
