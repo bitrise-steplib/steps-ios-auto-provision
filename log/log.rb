@@ -14,7 +14,7 @@ class Log
     puts(str.to_s)
   end
 
-  def self.done(str)
+  def self.success(str)
     puts("\e[32m#{str}\e[0m")
   end
 

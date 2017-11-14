@@ -25,18 +25,26 @@ class ProjectHelper
       settings = xcodebuild_target_build_settings(project_path, target)
 
       identity = settings['CODE_SIGN_IDENTITY']
+
       if identity.to_s.empty?
         Log.warn("no CODE_SIGN_IDENTITY build settings found for target: #{target}")
-      elsif codesign_identity.nil?
+        next
+      end
+
+      if codesign_identity.nil?
         codesign_identity = identity
-        Log.done("project codesign identity: #{codesign_identity}")
-      elsif !codesign_identites_match?(codesign_identity, identity)
+        Log.success("project codesign identity: #{codesign_identity}")
+        next
+      end
+
+      unless codesign_identites_match?(codesign_identity, identity)
         Log.warn("target codesign identity: #{identity} does not match to the already registered codesign identity: #{codesign_identity}")
         codesign_identity = nil
         break
-      else
-        codesign_identity = exact_codesign_identity(codesign_identity, identity)
       end
+
+      codesign_identity = exact_codesign_identity(codesign_identity, identity)
+
     end
     codesign_identity
   end
@@ -46,20 +54,29 @@ class ProjectHelper
     raise "unkown project path: #{project_path}" unless target_bundle_id_map
 
     team_id = nil
+
     target_bundle_id_map.each_key do |target|
       settings = xcodebuild_target_build_settings(project_path, target)
 
       id = settings['DEVELOPMENT_TEAM']
+
       if id.to_s.empty?
         Log.warn("no DEVELOPMENT_TEAM build settings found for target: #{target}")
-      elsif team_id.nil?
-        team_id = id
-        Log.done("project team id: #{team_id}")
-      elsif team_id != id
-        Log.warn("target team id: #{id} does not match to the already registered team id: #{team_id}")
-        team_id = nil
-        break
+        next
       end
+
+      if team_id.nil?
+        team_id = id
+        Log.success("project team id: #{team_id}")
+        next
+      end
+
+      next unless team_id == id
+
+      Log.warn("target team id: #{id} does not match to the already registered team id: #{team_id}")
+      team_id = nil
+      break
+
     end
     team_id
   end

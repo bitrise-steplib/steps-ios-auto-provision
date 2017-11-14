@@ -67,20 +67,20 @@ def sync_app_services(app, entitlements)
     next unless on_off_app_service
 
     service_name = entitlement_on_off_app_service_name_map[key]
-    Log.done("set #{service_name}: on")
+    Log.success("set #{service_name}: on")
     app = app.update_service(on_off_app_service.on)
   end
 
   # Data Protection
   data_protection_value = entitlements['com.apple.developer.default-data-protection'] || ''
   if data_protection_value == 'NSFileProtectionComplete'
-    Log.done('set Data Protection: complete')
+    Log.success('set Data Protection: complete')
     app = app.update_service(Spaceship::Portal.app_service.data_protection.complete)
   elsif data_protection_value == 'NSFileProtectionCompleteUnlessOpen'
-    Log.done('set Data Protection: unless_open')
+    Log.success('set Data Protection: unless_open')
     app = app.update_service(Spaceship::Portal.app_service.data_protection.unless_open)
   elsif data_protection_value == 'NSFileProtectionCompleteUntilFirstUserAuthentication'
-    Log.done('set Data Protection: until_first_auth')
+    Log.success('set Data Protection: until_first_auth')
     app = app.update_service(Spaceship::Portal.app_service.data_protection.until_first_auth)
   end
 
@@ -96,7 +96,7 @@ def sync_app_services(app, entitlements)
   end
 
   if uses_key_value_storage || uses_cloud_documents || uses_cloudkit
-    Log.done('set iCloud: on')
+    Log.success('set iCloud: on')
     app = app.update_service(Spaceship::Portal.app_service.icloud.on)
     app = app.update_service(Spaceship::Portal.app_service.cloud_kit.cloud_kit)
   end

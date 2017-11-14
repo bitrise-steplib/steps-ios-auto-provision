@@ -6,11 +6,11 @@ def ensure_app(bundle_id)
   if app.nil?
     normalized_bundle_id = bundle_id.tr('.', ' ')
     name = "Bitrise - (#{normalized_bundle_id})"
-    Log.done("registering app: #{name} with bundle id: (#{bundle_id})")
+    Log.success("registering app: #{name} with bundle id: (#{bundle_id})")
 
     app = Spaceship::Portal.app.create!(bundle_id: bundle_id, name: name)
   else
-    Log.done("app already registered: #{app.name} with bundle id: #{app.bundle_id}")
+    Log.success("app already registered: #{app.name} with bundle id: #{app.bundle_id}")
   end
 
   raise "failed to find or create app with bundle id: #{bundle_id}" unless app
@@ -47,7 +47,7 @@ end
 
 def ensure_test_devices(test_devices)
   if test_devices.to_a.empty?
-    Log.done('no test devices registered on bitrise')
+    Log.success('no test devices registered on bitrise')
     return
   end
 
@@ -59,13 +59,13 @@ def ensure_test_devices(test_devices)
       next unless portal_device.udid == test_device.uuid
 
       registered_test_device = portal_device
-      Log.done("test device #{registered_test_device.name} (#{registered_test_device.udid}) already registered")
+      Log.success("test device #{registered_test_device.name} (#{registered_test_device.udid}) already registered")
       break
     end
 
     unless registered_test_device
       registered_test_device = Spaceship::Portal.device.create!(name: test_device.title, udid: test_device.uuid)
-      Log.done("registering test device #{registered_test_device.name} (#{registered_test_device.udid})")
+      Log.success("registering test device #{registered_test_device.name} (#{registered_test_device.udid})")
     end
 
     raise 'failed to find or create device' unless registered_test_device
@@ -121,7 +121,7 @@ def ensure_provisioning_profile(certificate, app, distributon_type)
   end
 
   if profiles.empty?
-    Log.done("generating #{distributon_type} provisioning profile for bundle id: #{app.bundle_id}")
+    Log.success("generating #{distributon_type} provisioning profile for bundle id: #{app.bundle_id}")
   else
     # it's easier to just create a new one, than to:
     # - add test devices

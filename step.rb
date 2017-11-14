@@ -120,7 +120,7 @@ begin
 
   developer_portal_authentication(portal_data.apple_id, portal_data.password, session, params.team_id)
 
-  Log.done('authenticated')
+  Log.success('authenticated')
   ###
 
   # Download certificates
@@ -147,7 +147,7 @@ begin
       certificate_infos.push(certificate_info)
     end
   end
-  Log.done("#{certificate_infos.length} certificates downloaded")
+  Log.success("#{certificate_infos.length} certificates downloaded")
   ###
 
   # Identify Certificates on developer Portal
@@ -160,7 +160,7 @@ begin
 
     portal_certificate = find_development_portal_certificate(certificate_info.certificate)
     if portal_certificate
-      Log.done("development Certificate found: #{portal_certificate.name}")
+      Log.success("development Certificate found: #{portal_certificate.name}")
       raise 'multiple development certificates provided: step can handle only one development (and only one production) certificate' unless development_certificate_infos.empty?
 
       certificate_info.portal_certificate = portal_certificate
@@ -170,7 +170,7 @@ begin
     portal_certificate = find_production_portal_certificate(certificate_info.certificate)
     next unless portal_certificate
 
-    Log.done("production Certificate found: #{portal_certificate.name}")
+    Log.success("production Certificate found: #{portal_certificate.name}")
     raise 'multiple production certificates provided: step can handle only one production (and only one development) certificate' unless production_certificate_infos.empty?
 
     certificate_info.portal_certificate = portal_certificate
@@ -194,7 +194,7 @@ begin
   project_codesign_identity_map = {}
   project_team_id_map = {}
   project_target_bundle_id_map.each do |project_path, target_bundle_id|
-    Log.done("project: #{project_path}")
+    Log.success("project: #{project_path}")
 
     idx = 0
     target_bundle_id.each do |target, bundle_id|
@@ -240,7 +240,7 @@ begin
       codesign_settings.team_id = certificate_team_id(certificate_info.certificate)
       codesign_settings.development_certificate_info = certificate_info
       project_codesign_settings[path] = codesign_settings
-      Log.done("using: #{certificate_common_name(certificate_info.certificate)}")
+      Log.success("using: #{certificate_common_name(certificate_info.certificate)}")
       next
     end
 
@@ -249,7 +249,7 @@ begin
       codesign_settings.team_id = certificate_team_id(certificate_info.certificate)
       codesign_settings.production_certificate_info = certificate_info
       project_codesign_settings[path] = codesign_settings
-      Log.done("using: #{certificate_common_name(certificate_info.certificate)}")
+      Log.success("using: #{certificate_common_name(certificate_info.certificate)}")
       next
     end
 
@@ -265,12 +265,12 @@ begin
 
     if params.distributon_type == 'development'
       raise "development distribution defined but no uploaded identity found in team: #{codesign_settings.team_id}" if codesign_settings.development_certificate_info.nil?
-      Log.done('certificate already found')
+      Log.success('certificate already found')
       next
     end
 
     unless codesign_settings.production_certificate_info.nil?
-      Log.done("#{params.distributon_type} certificate already found")
+      Log.success("#{params.distributon_type} certificate already found")
       next
     end
 
@@ -278,7 +278,7 @@ begin
     raise "#{params.distributon_type} distribution defined but no uploaded identity found in team: #{codesign_settings.team_id}" unless certificate_info
 
     codesign_settings.production_certificate_info = certificate_info
-    Log.done("using: #{certificate_common_name(certificate_info.certificate)}")
+    Log.success("using: #{certificate_common_name(certificate_info.certificate)}")
     project_codesign_settings[path] = codesign_settings
   end
   ###
@@ -306,7 +306,7 @@ begin
     target_bundle_id.each do |target, bundle_id|
       entitlements = target_entitlements[target]
       puts
-      Log.done("checking target: #{target} (#{bundle_id}) with #{entitlements.length} services")
+      Log.success("checking target: #{target} (#{bundle_id}) with #{entitlements.length} services")
 
       Log.print("ensure App ID (#{bundle_id}) on Developer Portal")
       app = ensure_app(bundle_id)
@@ -318,7 +318,7 @@ begin
         Log.print('ensure Development Provisioning Profile on Developer Portal')
         portal_profile = ensure_provisioning_profile(development_certificate_info.portal_certificate, app, 'development')
 
-        Log.done("downloading development profile: #{portal_profile.name}")
+        Log.success("downloading development profile: #{portal_profile.name}")
         profile_path = download_profile(portal_profile)
 
         Log.debug("profile path: #{profile_path}")
@@ -335,7 +335,7 @@ begin
       Log.print('ensure Production Provisioning Profile on Developer Portal')
       portal_profile = ensure_provisioning_profile(production_certificate_info.portal_certificate, app, params.distributon_type)
 
-      Log.done("downloading #{params.distributon_type} profile: #{portal_profile.name}")
+      Log.success("downloading #{params.distributon_type} profile: #{portal_profile.name}")
       profile_path = download_profile(portal_profile)
 
       Log.debug("profile path: #{profile_path}")
@@ -361,7 +361,7 @@ begin
 
     target_bundle_id.each do |target, bundle_id|
       puts
-      Log.done("checking target: #{target} (#{bundle_id})")
+      Log.success("checking target: #{target} (#{bundle_id})")
 
       team_id = codesign_settings.team_id
       code_sign_identity = nil
@@ -391,7 +391,7 @@ begin
 
   keychain_helper.install_certificates(certificate_path_passphrase_map)
 
-  Log.done("#{certificate_path_passphrase_map.length} certificates installed")
+  Log.success("#{certificate_path_passphrase_map.length} certificates installed")
   ###
 rescue => ex
   puts
