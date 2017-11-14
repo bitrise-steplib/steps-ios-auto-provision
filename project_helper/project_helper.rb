@@ -26,12 +26,12 @@ class ProjectHelper
 
       identity = settings['CODE_SIGN_IDENTITY']
       if identity.to_s.empty?
-        log_warn("no CODE_SIGN_IDENTITY build settings found for target: #{target}")
+        Log.warn("no CODE_SIGN_IDENTITY build settings found for target: #{target}")
       elsif codesign_identity.nil?
         codesign_identity = identity
         Log.done("project codesign identity: #{codesign_identity}")
       elsif !codesign_identites_match?(codesign_identity, identity)
-        log_warn("target codesign identity: #{identity} does not match to the already registered codesign identity: #{codesign_identity}")
+        Log.warn("target codesign identity: #{identity} does not match to the already registered codesign identity: #{codesign_identity}")
         codesign_identity = nil
         break
       else
@@ -51,12 +51,12 @@ class ProjectHelper
 
       id = settings['DEVELOPMENT_TEAM']
       if id.to_s.empty?
-        log_warn("no DEVELOPMENT_TEAM build settings found for target: #{target}")
+        Log.warn("no DEVELOPMENT_TEAM build settings found for target: #{target}")
       elsif team_id.nil?
         team_id = id
         Log.done("project team id: #{team_id}")
       elsif team_id != id
-        log_warn("target team id: #{id} does not match to the already registered team id: #{team_id}")
+        Log.warn("target team id: #{id} does not match to the already registered team id: #{team_id}")
         team_id = nil
         break
       end
