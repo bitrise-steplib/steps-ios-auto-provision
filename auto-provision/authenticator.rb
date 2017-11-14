@@ -23,7 +23,7 @@ def convert_tfa_cookies(tfa_cookies)
     end
   end
 
-  raise 'invalid cookies: missing DES... cookie'
+  nil
 end
 
 def developer_portal_authentication(username, password, two_factor_session = nil, team_id = nil)
