@@ -1,6 +1,11 @@
-## Changelog (Current version: 0.9.1)
+## Changelog (Current version: 0.9.2)
 
 -----------------
+
+### 0.9.2 (2017 Nov 15)
+
+* [e4a08c1] prepare for 0.9.2
+* [6b549f6] check if certificate is downloadable (#4)
 
 ### 0.9.1 (2017 Nov 14)
 
@@ -10,4 +15,4 @@
 
 -----------------
 
-Updated: 2017 Nov 14
+Updated: 2017 Nov 15
