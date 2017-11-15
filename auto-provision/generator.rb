@@ -25,6 +25,10 @@ def find_development_portal_certificate(local_certificate)
   portal_development_certificates = Spaceship::Portal.certificate.development.all
   Log.debug('no development Certificates belongs to the account in this team') if portal_development_certificates.to_a.empty?
   portal_development_certificates.each do |cert|
+    unless cert.can_download
+      Log.debug("development Certificate: #{cert.name} is not downloadable, skipping...")
+      next
+    end
     portal_certificate = cert.download
     return cert if certificate_matches(local_certificate, portal_certificate)
   end
@@ -37,6 +41,10 @@ def find_production_portal_certificate(local_certificate)
   portal_production_certificates = Spaceship::Portal.certificate.production.all
   Log.debug('no production Certificates belongs to the account in this team') if portal_production_certificates.to_a.empty?
   portal_production_certificates.each do |cert|
+    unless cert.can_download
+      Log.debug("production Certificate: #{cert.name} is not downloadable, skipping...")
+      next
+    end
     portal_certificate = cert.download
     return cert if certificate_matches(local_certificate, portal_certificate)
   end
