@@ -1,6 +1,26 @@
 require 'openssl'
 require 'fastlane'
 
+def result_string(ex)
+  result = ex.preferred_error_info
+  return nil unless result
+
+  result.join(' ')
+end
+
+def run_and_handle_portal_function
+  yield
+rescue Spaceship::Client::UnexpectedResponse => ex
+  message = result_string(ex)
+  raise ex unless message
+
+  if message =~ /An App ID with Identifier .* is not available/i
+    message += "\nPossible solutions: https://stackoverflow.com/search?q=An+App+ID+with+Identifier+is+not+available"
+  end
+
+  raise message
+end
+
 def ensure_app(bundle_id)
   app = Spaceship::Portal.app.find(bundle_id)
   if app.nil?
@@ -8,7 +28,8 @@ def ensure_app(bundle_id)
     name = "Bitrise - (#{normalized_bundle_id})"
     Log.success("registering app: #{name} with bundle id: (#{bundle_id})")
 
-    app = Spaceship::Portal.app.create!(bundle_id: bundle_id, name: name)
+    app = nil
+    run_and_handle_portal_function { app = Spaceship::Portal.app.create!(bundle_id: bundle_id, name: name) }
   else
     Log.success("app already registered: #{app.name} with bundle id: #{app.bundle_id}")
   end
@@ -22,8 +43,10 @@ def certificate_matches(certificate1, certificate2)
 end
 
 def find_development_portal_certificate(local_certificate)
-  portal_development_certificates = Spaceship::Portal.certificate.development.all
+  portal_development_certificates = nil
+  run_and_handle_portal_function { portal_development_certificates = Spaceship::Portal.certificate.development.all }
   Log.debug('no development Certificates belongs to the account in this team') if portal_development_certificates.to_a.empty?
+
   portal_development_certificates.each do |cert|
     unless cert.can_download
       Log.debug("development Certificate: #{cert.name} is not downloadable, skipping...")
@@ -38,8 +61,10 @@ def find_development_portal_certificate(local_certificate)
 end
 
 def find_production_portal_certificate(local_certificate)
-  portal_production_certificates = Spaceship::Portal.certificate.production.all
+  portal_production_certificates = nil
+  run_and_handle_portal_function { portal_production_certificates = Spaceship::Portal.certificate.production.all }
   Log.debug('no production Certificates belongs to the account in this team') if portal_production_certificates.to_a.empty?
+
   portal_production_certificates.each do |cert|
     unless cert.can_download
       Log.debug("production Certificate: #{cert.name} is not downloadable, skipping...")
@@ -59,7 +84,8 @@ def ensure_test_devices(test_devices)
     return
   end
 
-  portal_devices = Spaceship::Portal.device.all(mac: false, include_disabled: true) || []
+  portal_devices = nil
+  run_and_handle_portal_function { portal_devices = Spaceship::Portal.device.all(mac: false, include_disabled: true) || [] }
   test_devices.each do |test_device|
     registered_test_device = nil
 
@@ -72,7 +98,8 @@ def ensure_test_devices(test_devices)
     end
 
     unless registered_test_device
-      registered_test_device = Spaceship::Portal.device.create!(name: test_device.name, udid: test_device.uuid)
+      registered_test_device = nil
+      run_and_handle_portal_function { registered_test_device = Spaceship::Portal.device.create!(name: test_device.name, udid: test_device.uuid) }
       Log.success("registering test device #{registered_test_device.name} (#{registered_test_device.udid})")
     end
 
@@ -102,21 +129,23 @@ def ensure_profile_certificate(profile, certificate)
   profile
 end
 
-def ensure_provisioning_profile(certificate, app, distributon_type)
+def ensure_provisioning_profile(certificate, app, distributon_type, allow_retry = true)
+  portal_profile_class = nil
   case distributon_type
   when 'development'
-    portal_profile_class = Spaceship::Portal.provisioning_profile.development
+    run_and_handle_portal_function { portal_profile_class = Spaceship::Portal.provisioning_profile.development }
   when 'app-store'
-    portal_profile_class = Spaceship::Portal.provisioning_profile.app_store
+    run_and_handle_portal_function { portal_profile_class = Spaceship::Portal.provisioning_profile.app_store }
   when 'ad-hoc'
-    portal_profile_class = Spaceship::Portal.provisioning_profile.ad_hoc
+    run_and_handle_portal_function { portal_profile_class = Spaceship::Portal.provisioning_profile.ad_hoc }
   when 'enterprise'
-    portal_profile_class = Spaceship::Portal.provisioning_profile.in_house
+    run_and_handle_portal_function { portal_profile_class = Spaceship::Portal.provisioning_profile.in_house }
   else
     raise "invalid distribution type provided: #{distributon_type}, available: [development, app-store, ad-hoc, enterprise]"
   end
 
-  profiles = portal_profile_class.all.select { |profile| profile.app.bundle_id == app.bundle_id }
+  profiles = nil
+  run_and_handle_portal_function { profiles = portal_profile_class.all.select { |profile| profile.app.bundle_id == app.bundle_id } }
   # Both app_store.all and ad_hoc.all return the same
   # This is the case since September 2016, since the API has changed
   # and there is no fast way to get the type when fetching the profiles
@@ -136,18 +165,31 @@ def ensure_provisioning_profile(certificate, app, distributon_type)
     # - update profile
     # update seems to revoking the certificate, even if it is not neccessary
     # it has the same effects anyway, including a new UUID of the provisioning profile
-
     if profiles.count > 1
       Log.warn("multiple #{distributon_type} provisionig profiles for bundle id: #{app.bundle_id}")
       profiles.each_with_index { |prof, index| Log.warn("#{index}. #{prof.name}") }
     end
-    profile_to_delete = profiles.first
 
-    Log.warn("regenerating #{distributon_type} profile: #{profile_to_delete.name} (#{profile_to_delete.uuid})")
-    profile_to_delete.delete!
+    profiles.each do |profile|
+      Log.warn("removing existing #{distributon_type} profile: #{profile.name}")
+      profile.delete!
+    end
   end
 
-  profile = portal_profile_class.create!(bundle_id: app.bundle_id, certificate: certificate, name: "Bitrise #{distributon_type} - (#{app.bundle_id})")
+  profile = nil
+  begin
+    profile_name = "Bitrise #{distributon_type} - (#{app.bundle_id})"
+    Log.warn("generating #{distributon_type} profile: #{profile_name}")
+    run_and_handle_portal_function { profile = portal_profile_class.create!(bundle_id: app.bundle_id, certificate: certificate, name: profile_name) }
+  rescue => ex
+    # Failed to remove already existing managed profile, try it again!
+    raise ex unless allow_retry
+    raise ex unless ex.to_s =~ /Multiple profiles found with the name '(.*)'.\s*Please remove the duplicate profiles and try again./i
+
+    Log.warn(ex.to_s)
+    log.warn('Failed to regenerate the profile, retying ...')
+    ensure_provisioning_profile(certificate, app, distributon_type, false)
+  end
 
   raise "failed to find or create provisioning profile for bundle id: #{app.bundle_id}" unless profile
   profile

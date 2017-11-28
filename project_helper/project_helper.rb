@@ -5,7 +5,7 @@ require 'English'
 
 # ProjectHelper ...
 class ProjectHelper
-  def initialize(project_or_workspace_path)
+  def initialize(project_or_workspace_path, scheme)
     extname = File.extname(project_or_workspace_path)
     case extname
     when '.xcodeproj'
@@ -15,59 +15,75 @@ class ProjectHelper
     else
       raise "unkown project extension: #{extname}, should be: .xcodeproj or .xcworkspace"
     end
+
+    @scheme_name = scheme
   end
 
-  def codesign_identity(project_path)
-    target_bundle_id_map = project_target_bundle_id_map[project_path]
-    raise "unkown project path: #{project_path}" unless target_bundle_id_map
+  def application_targets
+    result = read_application_targets
+    result[0].collect(&:name)
+  end
 
+  def archive_action_configuration
+    result = read_scheme
+    scheme = result[0]
+    archive_action = scheme.archive_action
+    return nil unless archive_action
+
+    archive_action.build_configuration
+  end
+
+  def project_codesign_identity(configuration)
     codesign_identity = nil
-    target_bundle_id_map.each_key do |target|
-      settings = xcodebuild_target_build_settings(project_path, target)
 
-      identity = settings['CODE_SIGN_IDENTITY']
+    result = read_application_targets
+    targets = result[0]
+    targets_project_path = result[1]
 
-      if identity.to_s.empty?
-        Log.warn("no CODE_SIGN_IDENTITY build settings found for target: #{target}")
+    targets.each do |target_name|
+      target_identity = target_codesign_identity(targets_project_path, target_name, configuration)
+      Log.debug("#{target_name} codesign identity: #{target_identity} ")
+
+      if target_identity.to_s.empty?
+        Log.warn("no CODE_SIGN_IDENTITY build settings found for target: #{target_name}")
         next
       end
 
       if codesign_identity.nil?
-        codesign_identity = identity
-        Log.success("project codesign identity: #{codesign_identity}")
+        codesign_identity = target_identity
         next
       end
 
-      unless codesign_identites_match?(codesign_identity, identity)
-        Log.warn("target codesign identity: #{identity} does not match to the already registered codesign identity: #{codesign_identity}")
+      unless codesign_identites_match?(codesign_identity, target_identity)
+        Log.warn("target codesign identity: #{target_identity} does not match to the already registered codesign identity: #{codesign_identity}")
         codesign_identity = nil
         break
       end
 
-      codesign_identity = exact_codesign_identity(codesign_identity, identity)
+      codesign_identity = exact_codesign_identity(codesign_identity, target_identity)
     end
+
     codesign_identity
   end
 
-  def team_id(project_path)
-    target_bundle_id_map = project_target_bundle_id_map[project_path]
-    raise "unkown project path: #{project_path}" unless target_bundle_id_map
-
+  def project_team_id(configuration)
     team_id = nil
 
-    target_bundle_id_map.each_key do |target|
-      settings = xcodebuild_target_build_settings(project_path, target)
+    result = read_application_targets
+    targets = result[0]
+    targets_project_path = result[1]
 
-      id = settings['DEVELOPMENT_TEAM']
+    targets.each do |target_name|
+      id = target_team_id(targets_project_path, target_name, configuration)
+      Log.debug("#{target_name} team id: #{id} ")
 
       if id.to_s.empty?
-        Log.warn("no DEVELOPMENT_TEAM build settings found for target: #{target}")
+        Log.warn("no DEVELOPMENT_TEAM build settings found for target: #{target_name}")
         next
       end
 
       if team_id.nil?
         team_id = id
-        Log.success("project team id: #{team_id}")
         next
       end
 
@@ -77,69 +93,54 @@ class ProjectHelper
       team_id = nil
       break
     end
+
     team_id
   end
 
-  def project_target_bundle_id_map
-    project_target_bundle_id = {}
+  def target_bundle_id(target_name, configuration)
+    result = read_application_targets
+    targets_project_path = result[1]
 
-    project_targets = project_targets_map
-    project_targets.each do |path, targets|
-      target_bundle_id = {}
-
-      targets.each do |target|
-        settings = xcodebuild_target_build_settings(path, target)
-        bundle_id = find_bundle_id(settings, path)
-        target_bundle_id[target] = bundle_id
-      end
-
-      project_target_bundle_id[path] = target_bundle_id
-    end
-
-    project_target_bundle_id
+    settings = xcodebuild_target_build_settings(targets_project_path, target_name, configuration)
+    find_bundle_id(settings, targets_project_path)
   end
 
-  def project_target_entitlements_map
-    project_target_entitlements = {}
+  def target_entitlements(target_name, configuration)
+    result = read_application_targets
+    targets_project_path = result[1]
 
-    project_targets = project_targets_map
-    project_targets.each do |path, targets|
-      target_entitlements = {}
+    settings = xcodebuild_target_build_settings(targets_project_path, target_name, configuration)
+    entitlements_path = settings['CODE_SIGN_ENTITLEMENTS']
+    return nil if entitlements_path.to_s.empty?
 
-      targets.each do |target|
-        entitlements = {}
-
-        settings = xcodebuild_target_build_settings(path, target)
-        entitlements_path = settings['CODE_SIGN_ENTITLEMENTS']
-        unless entitlements_path.to_s.empty?
-          project_dir = File.dirname(path)
-          entitlements_path = File.join(project_dir, entitlements_path)
-          entitlements = Plist.parse_xml(entitlements_path)
-        end
-
-        target_entitlements[target] = entitlements
-      end
-
-      project_target_entitlements[path] = target_entitlements
-    end
-
-    project_target_entitlements
+    project_dir = File.dirname(targets_project_path)
+    entitlements_path = File.join(project_dir, entitlements_path)
+    Plist.parse_xml(entitlements_path)
   end
 
-  def force_code_sign_properties(project_path, target, development_team, code_sign_identity, provisioning_profile_uuid)
-    project = Xcodeproj::Project.open(project_path)
+  def force_code_sign_properties(target_name, configuration, development_team, code_sign_identity, provisioning_profile_uuid)
+    result = read_application_targets
+    targets_project_path = result[1]
+
+    target_found = false
+    configuration_found = false
+
+    project = Xcodeproj::Project.open(targets_project_path)
     project.targets.each do |target_obj|
-      next unless target_obj.name == target
+      next unless target_obj.name == target_name
+      target_found = true
 
       # force manual code singing
       target_id = target_obj.uuid
       attributes = project.root_object.attributes['TargetAttributes']
       target_attributes = attributes[target_id]
       target_attributes['ProvisioningStyle'] = 'Manual'
-      Log.print('ProvisioningStyle: Manual')
 
       # apply code sign properties
       target_obj.build_configuration_list.build_configurations.each do |build_configuration|
+        next unless build_configuration.name == configuration
+        configuration_found = true
+
         build_settings = build_configuration.build_settings
 
         build_settings['CODE_SIGN_STYLE'] = 'Manual'
@@ -164,10 +165,124 @@ class ProjectHelper
       end
     end
 
+    raise "target (#{target_name}) not found in project: #{targets_project_path}" unless target_found
+    raise "configuration (#{configuration}) does not exist in project: #{targets_project_path}" unless configuration_found
+
     project.save
   end
 
   private
+
+  def read_application_targets
+    result = read_scheme
+    scheme = result[0]
+    scheme_container_project = result[1]
+
+    result = read_scheme_archiveable_target(scheme, scheme_container_project)
+    target = result[0]
+    target_container_project = result[1]
+
+    targets = []
+    targets = collect_dependent_targets(target, targets)
+    raise 'failed to collect scheme targets' if targets.empty?
+
+    [targets, target_container_project]
+  end
+
+  def target_codesign_identity(project_pth, target_name, configuration)
+    settings = xcodebuild_target_build_settings(project_pth, target_name, configuration)
+    settings['CODE_SIGN_IDENTITY']
+  end
+
+  def target_team_id(project_pth, target_name, configuration)
+    settings = xcodebuild_target_build_settings(project_pth, target_name, configuration)
+    settings['DEVELOPMENT_TEAM']
+  end
+
+  def shared_scheme_path(project_or_workspace_pth, scheme_name)
+    File.join(project_or_workspace_pth, 'xcshareddata', 'xcschemes', scheme_name + '.xcscheme')
+  end
+
+  def user_scheme_path(project_or_workspace_pth, scheme_name)
+    user_name = ENV['user']
+    File.join(project_or_workspace_pth, 'xcuserdata', user_name + '.xcuserdatad', 'xcschemes', scheme_name + '.xcscheme')
+  end
+
+  def read_scheme
+    project_paths = [@project_path]
+    if File.extname(@project_path) == '.xcworkspace'
+      project_paths += workspace_contained_projects(@project_path)
+    end
+
+    project_paths.each do |project_path|
+      scheme_pth = shared_scheme_path(project_path, @scheme_name)
+      scheme_pth = user_scheme_path(project_path, @scheme_name) unless File.exist?(scheme_pth)
+      next unless File.exist?(scheme_pth)
+
+      return [Xcodeproj::XCScheme.new(scheme_pth), project_path]
+    end
+
+    raise "project (#{@project}) does not contain scheme: #{@scheme_name}"
+  end
+
+  def read_scheme_archiveable_target(scheme, project_path)
+    build_action = scheme.build_action
+    return nil unless build_action
+
+    entries = build_action.entries || []
+    return nil if entries.empty?
+
+    entries = entries.select(&:build_for_archiving?) || []
+    return nil if entries.empty?
+
+    entries.each do |entry|
+      buildable_references = entry.buildable_references || []
+      next if buildable_references.empty?
+
+      buildable_references = buildable_references.reject do |r|
+        r.target_name.to_s.empty? || r.target_referenced_container.to_s.empty?
+      end
+      next if buildable_references.empty?
+
+      buildable_reference = entry.buildable_references.first
+
+      target_name = buildable_reference.target_name.to_s
+      container = buildable_reference.target_referenced_container.to_s.sub(/^container:/, '')
+      next if target_name.empty? || container.empty?
+
+      project_dir = File.dirname(project_path)
+      target_project_pth = File.expand_path(container, project_dir)
+      next unless File.exist?(target_project_pth)
+
+      project = Xcodeproj::Project.open(target_project_pth)
+      next unless project
+
+      target = project.targets.find { |t| t.name == target_name }
+      next unless target
+      next unless runnable_target?(target)
+
+      return [target, target_project_pth]
+    end
+
+    raise 'failed to find scheme archivable target'
+  end
+
+  def collect_dependent_targets(target, dependent_targets)
+    dependent_targets << target
+
+    dependencies = target.dependencies || []
+    return dependent_targets if dependencies.empty?
+
+    dependencies.each do |dependency|
+      dependent_target = dependency.target
+      next unless dependent_target
+      next unless runnable_target?(dependent_target)
+
+      collect_dependent_targets(dependent_target, dependent_targets)
+    end
+
+    dependent_targets
+  end
 
   def contained_projects
     return [@project_path] unless @workspace_path
@@ -216,8 +331,8 @@ class ProjectHelper
     project_targets
   end
 
-  def xcodebuild_target_build_settings(project, target)
-    cmd = "xcodebuild -showBuildSettings -project \"#{project}\" -target \"#{target}\""
+  def xcodebuild_target_build_settings(project, target, configuration)
+    cmd = "xcodebuild -showBuildSettings -project \"#{project}\" -target \"#{target}\" -configuration \"#{configuration}\""
     out = `#{cmd}`
     raise "#{cmd} failed, out: #{out}" unless $CHILD_STATUS.success?
 
@@ -242,6 +357,26 @@ class ProjectHelper
     settings
   end
 
+  def resolve_bundle_id(bundle_id, build_settings)
+    pattern = /(.*)\$\((.*)\)(.*)/
+    matches = bundle_id.match(pattern)
+    raise "failed to resolve bundle id (#{bundle_id}): does not conforms to: /(.*)$\(.*\)(.*)/" unless matches
+
+    captures = matches.captures
+    raise "failed to resolve bundle id (#{bundle_id}): does not conforms to: /(.*)$\(.*\)(.*)/" if captures.to_a.length != 3
+
+    prefix = captures[0]
+    suffix = captures[2]
+    env_key = captures[1]
+    split = env_key.split(':')
+    env_key = split[0] if split.length > 1
+
+    env_value = build_settings[env_key]
+    raise "failed to resolve bundle id (#{bundle_id}): build settings not found with key: (#{env_key})" if env_value.to_s.empty?
+
+    prefix + env_value + suffix
+  end
+
   def find_bundle_id(build_settings, project_path)
     bundle_id = build_settings['PRODUCT_BUNDLE_IDENTIFIER']
     return bundle_id if bundle_id
@@ -252,9 +387,12 @@ class ProjectHelper
     info_plist_path = File.expand_path(info_plist_path, File.dirname(project_path))
     info_plist = Plist.parse_xml(info_plist_path)
     bundle_id = info_plist['CFBundleIdentifier']
-    raise 'failed to to determine bundle id: xcodebuild -showBuildSettings does not contains PRODUCT_BUNDLE_IDENTIFIER nor Info.plist' if bundle_id.to_s.empty? || bundle_id.to_s.include?('$')
+    raise 'failed to to determine bundle id: xcodebuild -showBuildSettings does not contains PRODUCT_BUNDLE_IDENTIFIER nor Info.plist' if bundle_id.to_s.empty?
 
-    bundle_id
+    return bundle_id unless bundle_id.to_s.include?('$')
+
+    Log.warn("CFBundleIdentifier defined with build settings variable: #{bundle_id}, trying to resolve it...")
+    resolve_bundle_id(bundle_id, build_settings)
   end
 
   # 'iPhone Developer' should match to 'iPhone Developer: Bitrise Bot (ABCD)'

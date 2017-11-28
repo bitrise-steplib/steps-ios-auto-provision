@@ -28,15 +28,12 @@ class PortalData
 
     @test_devices = []
     test_devices_json = json['test_devices']
-    test_devices_json.each do |device_json|
-      @test_devices.push(TestDevice.new(device_json))
-    end
+    test_devices_json.each { |device_json| @test_devices.push(TestDevice.new(device_json)) } unless test_devices_json.to_s.empty?
   end
 
   def validate
     raise 'developer portal apple id not provided for this build' if @apple_id.to_s.empty?
     raise 'developer portal password not provided for this build' if @password.to_s.empty?
-
     @test_devices.each(&:validate)
   end
 end
@@ -44,6 +41,7 @@ end
 def get_developer_portal_data(build_url, build_api_token)
   url = "#{build_url}/apple_developer_portal_data.json"
   Log.debug("developer portal data url: #{url}")
+  Log.debug("build_api_token: #{build_api_token}")
   uri = URI.parse(url)
 
   request = Net::HTTP::Get.new(uri)

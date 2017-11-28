@@ -3,3 +3,4 @@ inherit_from: .rubocop_todo.yml
 Lint/RescueWithoutErrorClass:
   Exclude:
     - 'step.rb'
+    - 'auto-provision/generator.rb'

@@ -47,3 +47,30 @@ def read_certificates(path, passphrase)
   certificates.concat(p12.ca_certs) if p12.ca_certs
   certificates
 end
+
+def append_if_latest_certificate(new_certificate_info, certificate_infos)
+  new_certificate_common_name = certificate_common_name(new_certificate_info.certificate)
+
+  index = -1
+  certificate_infos.each_with_index { |info, idx| index = idx if certificate_common_name(info.certificate) == new_certificate_common_name }
+
+  return certificate_infos.push(new_certificate_info) if index == -1
+
+  Log.warn("multiple codesign identity uploaded with common name: #{new_certificate_common_name}")
+
+  cert_info = certificate_infos[index]
+  certificate_infos[index] = new_certificate_info if new_certificate_info.certificate.not_after > cert_info.certificate.not_after
+
+  certificate_infos
+end
+
+def map_certificates_infos_by_team_id(certificate_infos)
+  map = {}
+  certificate_infos.each do |certificate_info|
+    team_id = certificate_team_id(certificate_info.certificate)
+    infos = map[team_id] || []
+    infos.push(certificate_info)
+    map[team_id] = infos
+  end
+  map
+end

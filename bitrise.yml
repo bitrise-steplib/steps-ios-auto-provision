@@ -22,6 +22,7 @@ app:
   - BRANCH: entitlements
   - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
   - BITRISE_SCHEME: code-sign-test
+  - BITRISE_CONFIGURATION: 
 
 workflows:
   test:
@@ -70,6 +71,8 @@ workflows:
         - team_id: $TEAM_ID
         - distributon_type: $DISTRIBUTION_TYPE
         - project_path: $BITRISE_PROJECT_PATH
+        - scheme: $BITRISE_SCHEME
+        - configuration: $BITRISE_CONFIGURATION
         - verbose_log: "yes"
     - xcode-archive:
         title: Xcode archive
@@ -77,6 +80,7 @@ workflows:
         - export_method: $DISTRIBUTION_TYPE
         - project_path: $BITRISE_PROJECT_PATH
         - scheme: $BITRISE_SCHEME
+        - configuration: $BITRISE_CONFIGURATION
         - output_tool: xcodebuild
     - deploy-to-bitrise-io:
         inputs:
