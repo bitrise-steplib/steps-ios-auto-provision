@@ -1,6 +1,7 @@
 require 'xcodeproj'
 require 'json'
 require 'plist'
+require 'English'
 
 # ProjectHelper ...
 class ProjectHelper
