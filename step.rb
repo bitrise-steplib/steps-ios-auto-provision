@@ -193,25 +193,18 @@ begin
   # Anlyzing project
   Log.info('Analyzing project')
 
-  project_helper = ProjectHelper.new(params.project_path, params.scheme)
+  project_helper = ProjectHelper.new(params.project_path, params.scheme, params.configuration)
 
-  configuration = project_helper.archive_action_configuration
-  Log.print("scheme #{params.scheme} default configuration: #{configuration}")
-  unless params.configuration.empty?
-    configuration = params.configuration
-    Log.warn("configuration input defined: #{configuration}, using it...")
-  end
-
-  codesign_identity = project_helper.project_codesign_identity(configuration)
+  codesign_identity = project_helper.project_codesign_identity
   Log.print("project codesign identity: #{codesign_identity}")
 
-  team_id = project_helper.project_team_id(configuration)
+  team_id = project_helper.project_team_id
   Log.print("project team id: #{team_id}")
 
-  targets = project_helper.application_targets
+  targets = project_helper.targets.collect(&:name)
   targets.each_with_index do |target_name, idx|
-    bundle_id = project_helper.target_bundle_id(target_name, configuration)
-    entitlements = project_helper.target_entitlements(target_name, configuration) || []
+    bundle_id = project_helper.target_bundle_id(target_name)
+    entitlements = project_helper.target_entitlements(target_name) || []
 
     Log.print("target ##{idx}: #{target_name} (#{bundle_id}) with #{entitlements.length} services")
   end
@@ -307,8 +300,8 @@ begin
   production_certificate_info = codesign_settings.production_certificate_info
 
   targets.each do |target_name|
-    bundle_id = project_helper.target_bundle_id(target_name, configuration)
-    entitlements = project_helper.target_entitlements(target_name, configuration) || []
+    bundle_id = project_helper.target_bundle_id(target_name)
+    entitlements = project_helper.target_entitlements(target_name) || []
 
     puts
     Log.success("checking target: #{target_name} (#{bundle_id}) with #{entitlements.length} services")
@@ -355,7 +348,7 @@ begin
   Log.info('Apply code sign setting in project')
 
   targets.each do |target_name|
-    bundle_id = project_helper.target_bundle_id(target_name, configuration)
+    bundle_id = project_helper.target_bundle_id(target_name)
 
     puts
     Log.success("configure target: #{target_name} (#{bundle_id})")
@@ -374,7 +367,7 @@ begin
       raise "no codesign settings generated for target: #{target_name} (#{bundle_id})"
     end
 
-    project_helper.force_code_sign_properties(target_name, configuration, team_id, code_sign_identity, provisioning_profile)
+    project_helper.force_code_sign_properties(target_name, team_id, code_sign_identity, provisioning_profile)
   end
   ###
 
