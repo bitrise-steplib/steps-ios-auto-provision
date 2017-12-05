@@ -81,10 +81,10 @@ end
 
 def feature_enabled?(entitlement_key, app_features)
   feature_key = entitlement_on_off_feature_name_map[entitlement_key]
-  return false unless feature_key
+  raise 'not on-off app service key provided' unless feature_key
 
   feature_value = app_features[feature_key]
-  (feature_value && feature_value == true)
+  feature_value || false
 end
 
 def sync_app_services(app, entitlements)
@@ -109,9 +109,9 @@ def sync_app_services(app, entitlements)
   end
 
   # Data Protection
-  feature_value = app_features['dataProtection'] || ''
+  feature_value = app_features['dataProtection']
 
-  data_protection_value = entitlements['com.apple.developer.default-data-protection'] || ''
+  data_protection_value = entitlements['com.apple.developer.default-data-protection']
   if data_protection_value == 'NSFileProtectionComplete'
     if feature_value == 'complete'
       Log.print('Data Protection: complete already set')
@@ -147,14 +147,14 @@ def sync_app_services(app, entitlements)
   end
 
   if uses_key_value_storage || uses_cloud_documents || uses_cloudkit
-    if (app_features['cloudKitVersion'] || 1).to_i == 2
+    if app_features['cloudKitVersion'].to_i == 2
       Log.print('CloudKit: already set')
     else
       Log.success('set CloudKit: on')
       app = app.update_service(Spaceship::Portal.app_service.cloud_kit.cloud_kit)
     end
 
-    if (app_features['iCloud'] || false) == true
+    if app_features['iCloud']
       Log.print('iCloud: already set')
     else
       Log.success('set iCloud: on')
