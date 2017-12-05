@@ -4,7 +4,6 @@ require 'fastlane'
 def result_string(ex)
   result = ex.preferred_error_info
   return nil unless result
-
   result.join(' ')
 end
 
@@ -13,11 +12,6 @@ def run_and_handle_portal_function
 rescue Spaceship::Client::UnexpectedResponse => ex
   message = result_string(ex)
   raise ex unless message
-
-  if message =~ /An App ID with Identifier .* is not available/i
-    message += "\nPossible solutions: https://stackoverflow.com/search?q=An+App+ID+with+Identifier+is+not+available"
-  end
-
   raise message
 end
 
@@ -29,7 +23,15 @@ def ensure_app(bundle_id)
     Log.success("registering app: #{name} with bundle id: (#{bundle_id})")
 
     app = nil
-    run_and_handle_portal_function { app = Spaceship::Portal.app.create!(bundle_id: bundle_id, name: name) }
+    begin
+      run_and_handle_portal_function { app = Spaceship::Portal.app.create!(bundle_id: bundle_id, name: name) }
+    rescue => ex
+      message = ex.to_s
+      if message =~ /An App ID with Identifier .* is not available/i
+        raise message + "\nPossible solutions: https://stackoverflow.com/search?q=An+App+ID+with+Identifier+is+not+available"
+      end
+      raise ex
+    end
   else
     Log.success("app already registered: #{app.name} with bundle id: #{app.bundle_id}")
   end
@@ -145,7 +147,8 @@ def ensure_provisioning_profile(certificate, app, distributon_type, allow_retry 
   end
 
   profiles = nil
-  run_and_handle_portal_function { profiles = portal_profile_class.all.select { |profile| profile.app.bundle_id == app.bundle_id } }
+  profile_name = "Bitrise #{distributon_type} - (#{app.bundle_id})"
+  run_and_handle_portal_function { profiles = portal_profile_class.all.select { |profile| profile.app.bundle_id == app.bundle_id && profile.name == profile_name } }
   # Both app_store.all and ad_hoc.all return the same
   # This is the case since September 2016, since the API has changed
   # and there is no fast way to get the type when fetching the profiles
@@ -157,7 +160,7 @@ def ensure_provisioning_profile(certificate, app, distributon_type, allow_retry 
   end
 
   if profiles.empty?
-    Log.success("generating #{distributon_type} provisioning profile for bundle id: #{app.bundle_id}")
+    Log.success("generating #{distributon_type} profile: #{profile_name}")
   else
     # it's easier to just create a new one, than to:
     # - add test devices
@@ -166,7 +169,7 @@ def ensure_provisioning_profile(certificate, app, distributon_type, allow_retry 
     # update seems to revoking the certificate, even if it is not neccessary
     # it has the same effects anyway, including a new UUID of the provisioning profile
     if profiles.count > 1
-      Log.warn("multiple #{distributon_type} provisionig profiles for bundle id: #{app.bundle_id}")
+      Log.warn("multiple #{distributon_type} profiles found with name: #{profile_name}")
       profiles.each_with_index { |prof, index| Log.warn("#{index}. #{prof.name}") }
     end
 
@@ -178,7 +181,6 @@ def ensure_provisioning_profile(certificate, app, distributon_type, allow_retry 
 
   profile = nil
   begin
-    profile_name = "Bitrise #{distributon_type} - (#{app.bundle_id})"
     Log.warn("generating #{distributon_type} profile: #{profile_name}")
     run_and_handle_portal_function { profile = portal_profile_class.create!(bundle_id: app.bundle_id, certificate: certificate, name: profile_name) }
   rescue => ex
@@ -187,7 +189,8 @@ def ensure_provisioning_profile(certificate, app, distributon_type, allow_retry 
     raise ex unless ex.to_s =~ /Multiple profiles found with the name '(.*)'.\s*Please remove the duplicate profiles and try again./i
 
     Log.warn(ex.to_s)
-    log.warn('Failed to regenerate the profile, retying ...')
+    log.warn('failed to regenerate the profile, retrying in 5 sec ...')
+    sleep(5)
     ensure_provisioning_profile(certificate, app, distributon_type, false)
   end
 

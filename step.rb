@@ -276,7 +276,9 @@ begin
     raise 'Selected distribution type: development, but forgot to provide a Development type certificate.' \
 "Don't worry, it's really simple to fix! :)" \
 "Simply provide a Development type certificate (.p12) and we'll be building in no time!"
-  elsif params.distributon_type != 'development' && codesign_settings.production_certificate_info.nil?
+  end
+
+  if params.distributon_type != 'development' && codesign_settings.production_certificate_info.nil?
     raise "Selected distribution type: #{params.distributon_type}, but forgot to provide a Distribution type certificate." \
 "Don't worry, it's really simple to fix! :)" \
 "Simply provide a Distribution type certificate (.p12) and we'll be building in no time!"

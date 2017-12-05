@@ -79,14 +79,12 @@ def entitlement_on_off_feature_name_map
   }
 end
 
-def feature_enabled(entitlement_key, app_features)
-  enabled = false
+def feature_enabled?(entitlement_key, app_features)
   feature_key = entitlement_on_off_feature_name_map[entitlement_key]
-  if feature_key
-    feature_value = app_features[feature_key]
-    enabled = true if feature_value && feature_value == true
-  end
-  enabled
+  return false unless feature_key
+
+  feature_value = app_features[feature_key]
+  (feature_value && feature_value == true)
 end
 
 def sync_app_services(app, entitlements)
@@ -102,7 +100,7 @@ def sync_app_services(app, entitlements)
 
     service_name = entitlement_on_off_app_service_name_map[key]
 
-    if feature_enabled(key, app_features)
+    if feature_enabled?(key, app_features)
       Log.print("#{service_name} already enabled")
     else
       Log.success("set #{service_name}: on")

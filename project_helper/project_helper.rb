@@ -44,15 +44,9 @@ class ProjectHelper
     raise "archive action's configuration not found for scheme: #{scheme_name}" unless configuration_name
 
     if !configuration_name.to_s.empty? && configuration_name.to_s != default_configuration_name
-      configuration_found = false
       targets.each do |target_obj|
-        target_obj.build_configuration_list.build_configurations.each do |build_configuration|
-          if build_configuration.name == configuration_name.to_s
-            configuration_found = true
-            break
-          end
-        end
-        raise "build configuration (#{configuration_name}) not defined for target: #{target.name}" unless configuration_found
+        configurations = target_obj.build_configuration_list.build_configurations.find { |c| configuration_name.to_s == c.name }
+        raise "build configuration (#{configuration_name}) not defined for target: #{target.name}" if configurations.to_a.empt?
       end
 
       Log.warn("Using defined build configuration: #{configuration_name} instead of the scheme's default one: #{default_configuration_name}")
@@ -120,7 +114,28 @@ class ProjectHelper
   end
 
   def target_bundle_id(target_name)
-    settings = xcodebuild_target_build_settings(@targets_container_project_path, target_name, @configuration_name)
+    build_settings = xcodebuild_target_build_settings(@targets_container_project_path, target_name, @configuration_name)
+
+    bundle_id = build_settings['PRODUCT_BUNDLE_IDENTIFIER']
+    return bundle_id if bundle_id
+
+    Log.debug("PRODUCT_BUNDLE_IDENTIFIER env not found in 'xcodebuild -showBuildSettings -project \"#{@targets_container_project_path}\" -target \"#{target_name}\" -configuration \"#{@configuration_name}\"' command's output")
+    Log.debug("build settings:\n#{build_settings}")
+    Log.debug("checking the Info.plist file's CFBundleIdentifier property...")
+
+    info_plist_path = build_settings['INFOPLIST_FILE']
+    raise 'failed to to determine bundle id: xcodebuild -showBuildSettings does not contains PRODUCT_BUNDLE_IDENTIFIER nor INFOPLIST_FILE' unless info_plist_path
+
+    info_plist_path = File.expand_path(info_plist_path, File.dirname(project_path))
+    info_plist = Plist.parse_xml(info_plist_path)
+    bundle_id = info_plist['CFBundleIdentifier']
+    raise 'failed to to determine bundle id: xcodebuild -showBuildSettings does not contains PRODUCT_BUNDLE_IDENTIFIER nor Info.plist' if bundle_id.to_s.empty?
+
+    return bundle_id unless bundle_id.to_s.include?('$')
+
+    Log.warn("CFBundleIdentifier defined with variable: #{bundle_id}, trying to resolve it...")
+    resolve_bundle_id(bundle_id, build_settings)
+
     find_bundle_id(settings, @targets_container_project_path)
   end
 
@@ -355,6 +370,7 @@ class ProjectHelper
   end
 
   def resolve_bundle_id(bundle_id, build_settings)
+    # Bitrise.$(PRODUCT_NAME:rfc1034identifier)
     pattern = /(.*)\$\((.*)\)(.*)/
     matches = bundle_id.match(pattern)
     raise "failed to resolve bundle id (#{bundle_id}): does not conforms to: /(.*)$\(.*\)(.*)/" unless matches
@@ -366,30 +382,13 @@ class ProjectHelper
     suffix = captures[2]
     env_key = captures[1]
     split = env_key.split(':')
-    env_key = split[0] if split.length > 1
+    raise "failed to resolve bundle id (#{bundle_id}): failed to determine settings key" if split.empt?
 
+    env_key = split[0]
     env_value = build_settings[env_key]
     raise "failed to resolve bundle id (#{bundle_id}): build settings not found with key: (#{env_key})" if env_value.to_s.empty?
 
     prefix + env_value + suffix
-  end
-
-  def find_bundle_id(build_settings, project_path)
-    bundle_id = build_settings['PRODUCT_BUNDLE_IDENTIFIER']
-    return bundle_id if bundle_id
-
-    info_plist_path = build_settings['INFOPLIST_FILE']
-    raise 'failed to to determine bundle id: xcodebuild -showBuildSettings does not contains PRODUCT_BUNDLE_IDENTIFIER nor INFOPLIST_FILE' unless info_plist_path
-
-    info_plist_path = File.expand_path(info_plist_path, File.dirname(project_path))
-    info_plist = Plist.parse_xml(info_plist_path)
-    bundle_id = info_plist['CFBundleIdentifier']
-    raise 'failed to to determine bundle id: xcodebuild -showBuildSettings does not contains PRODUCT_BUNDLE_IDENTIFIER nor Info.plist' if bundle_id.to_s.empty?
-
-    return bundle_id unless bundle_id.to_s.include?('$')
-
-    Log.warn("CFBundleIdentifier defined with build settings variable: #{bundle_id}, trying to resolve it...")
-    resolve_bundle_id(bundle_id, build_settings)
   end
 
   # 'iPhone Developer' should match to 'iPhone Developer: Bitrise Bot (ABCD)'
