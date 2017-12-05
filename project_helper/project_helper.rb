@@ -21,40 +21,30 @@ class ProjectHelper
     end
 
     # ensure scheme exist
-    result = read_scheme(scheme_name)
-    scheme = result[0]
-    scheme_container_project_path = result[1]
+    scheme, scheme_container_project_path = read_scheme(scheme_name)
 
     # read scheme application targets
-    result = read_scheme_archiveable_target(scheme, scheme_container_project_path)
-    target = result[0]
-    targets_container_project_path = result[1]
-
-    targets = []
-    targets = collect_dependent_targets(target, targets)
-    raise 'failed to collect scheme targets' if targets.empty?
-
-    @targets = targets
-    @targets_container_project_path = targets_container_project_path
+    target, @targets_container_project_path = read_scheme_archivable_target(scheme, scheme_container_project_path)
+    @targets = collect_dependent_targets(target)
+    raise 'failed to collect scheme targets' if @targets.empty?
 
     # ensure configuration exist
     action = scheme.archive_action
     raise "archive action not defined for scheme: #{scheme_name}" unless action
     default_configuration_name = action.build_configuration
-    raise "archive action's configuration not found for scheme: #{scheme_name}" unless configuration_name
+    raise "archive action's configuration not found for scheme: #{scheme_name}" unless default_configuration_name
 
-    if !configuration_name.to_s.empty? && configuration_name.to_s != default_configuration_name
+    if configuration_name.empty?
+      @configuration_name = default_configuration_name
+    elsif configuration_name != default_configuration_name
       targets.each do |target_obj|
         configurations = target_obj.build_configuration_list.build_configurations.find { |c| configuration_name.to_s == c.name }
-        raise "build configuration (#{configuration_name}) not defined for target: #{target.name}" if configurations.to_a.empt?
+        raise "build configuration (#{configuration_name}) not defined for target: #{target.name}" if configurations.to_a.empty?
       end
 
       Log.warn("Using defined build configuration: #{configuration_name} instead of the scheme's default one: #{default_configuration_name}")
-    else
-      configuration_name = default_configuration_name
+      @configuration_name = configuration_name
     end
-
-    @configuration_name = configuration_name
   end
 
   def project_codesign_identity
@@ -212,13 +202,13 @@ class ProjectHelper
       scheme_pth = user_scheme_path(project_path, scheme_name) unless File.exist?(scheme_pth)
       next unless File.exist?(scheme_pth)
 
-      return [Xcodeproj::XCScheme.new(scheme_pth), project_path]
+      return Xcodeproj::XCScheme.new(scheme_pth), project_path
     end
 
     raise "project (#{@project_path}) does not contain scheme: #{scheme_name}"
   end
 
-  def read_scheme_archiveable_target(scheme, project_path)
+  def read_scheme_archivable_target(scheme, project_path)
     build_action = scheme.build_action
     return nil unless build_action
 
@@ -254,13 +244,13 @@ class ProjectHelper
       next unless target
       next unless runnable_target?(target)
 
-      return [target, target_project_pth]
+      return target, target_project_pth
     end
 
     raise 'failed to find scheme archivable target'
   end
 
-  def collect_dependent_targets(target, dependent_targets)
+  def collect_dependent_targets(target, dependent_targets = [])
     dependent_targets << target
 
     dependencies = target.dependencies || []
@@ -382,7 +372,7 @@ class ProjectHelper
     suffix = captures[2]
     env_key = captures[1]
     split = env_key.split(':')
-    raise "failed to resolve bundle id (#{bundle_id}): failed to determine settings key" if split.empt?
+    raise "failed to resolve bundle id (#{bundle_id}): failed to determine settings key" if split.empty?
 
     env_key = split[0]
     env_value = build_settings[env_key]

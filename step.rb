@@ -66,7 +66,7 @@ class Params
     @team_id = ENV['team_id']
     @certificate_urls_str = ENV['certificate_urls']
     @passphrases_str = ENV['passphrases']
-    @distribution_type = ENV['distribution_type']
+    @distribution_type = ENV['distribution_type'] || ENV['distributon_type']
     @project_path = ENV['project_path']
     @scheme = ENV['scheme']
     @configuration = ENV['configuration']
@@ -92,17 +92,15 @@ class Params
     Log.print("keychain_path: #{@keychain_path}")
     Log.print("keychain_password: #{Log.secure_value(@keychain_password)}")
     Log.print("verbose_log: #{@verbose_log}")
+
+    Log.error("\n'distributon_type' input is deprecated please use 'distribution_type'") if ENV['distributon_type']
   end
 
   def validate
     raise 'missing: build_url' if @build_url.nil?
     raise 'missing: build_api_token' if @build_api_token.nil?
     raise 'missing: certificate_urls' if @certificate_urls_str.nil?
-    if @distribution_type.nil?
-      @distribution_type = ENV['distributon_type']
-      raise 'missing: distribution_type' if @distribution_type.nil?
-      Log.warn("'distributon_type' input is deprecated please use 'distribution_type'")
-    end
+    raise 'missing: distribution_type' if @distribution_type.nil?
     raise 'missing: project_path' if @project_path.nil?
     raise 'missing: scheme' if @scheme.nil?
     raise 'missing: keychain_path' if @keychain_path.nil?

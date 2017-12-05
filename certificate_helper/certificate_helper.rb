@@ -51,10 +51,10 @@ end
 def append_if_latest_certificate(new_certificate_info, certificate_infos)
   new_certificate_common_name = certificate_common_name(new_certificate_info.certificate)
 
-  index = -1
-  certificate_infos.each_with_index { |info, idx| index = idx if certificate_common_name(info.certificate) == new_certificate_common_name }
+  match = certificate_infos.find { |info| certificate_common_name(info.certificate) == new_certificate_common_name }
+  index = certificate_infos.index(match)
 
-  return certificate_infos.push(new_certificate_info) if index == -1
+  return certificate_infos.push(new_certificate_info) unless index
 
   Log.warn("multiple codesign identity uploaded with common name: #{new_certificate_common_name}")
 
