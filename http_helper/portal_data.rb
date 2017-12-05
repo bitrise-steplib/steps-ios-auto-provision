@@ -2,16 +2,16 @@
 class PortalData
   # TestDevice
   class TestDevice
-    attr_accessor :uuid
+    attr_accessor :udid
     attr_accessor :name
 
     def initialize(json)
-      @uuid = json['device_identifier'] || ''
+      @udid = json['device_identifier'] || ''
       @name = json['title'] || ''
     end
 
     def validate
-      raise 'device uuid not porvided this build' if @uuid.empty?
+      raise 'device udid not porvided this build' if @udid.empty?
       raise 'device title not provided for this build' if @name.empty?
     end
   end

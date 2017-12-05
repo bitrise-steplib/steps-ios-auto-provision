@@ -49,7 +49,7 @@ class Params
   attr_accessor :team_id
   attr_accessor :certificate_urls_str
   attr_accessor :passphrases_str
-  attr_accessor :distributon_type
+  attr_accessor :distribution_type
   attr_accessor :project_path
   attr_accessor :scheme
   attr_accessor :configuration
@@ -66,7 +66,7 @@ class Params
     @team_id = ENV['team_id']
     @certificate_urls_str = ENV['certificate_urls']
     @passphrases_str = ENV['passphrases']
-    @distributon_type = ENV['distributon_type']
+    @distribution_type = ENV['distribution_type']
     @project_path = ENV['project_path']
     @scheme = ENV['scheme']
     @configuration = ENV['configuration']
@@ -83,7 +83,7 @@ class Params
     Log.print("team_id: #{@team_id}")
     Log.print("certificate_urls: #{Log.secure_value(@certificate_urls_str)}")
     Log.print("passphrases: #{Log.secure_value(@passphrases_str)}")
-    Log.print("distributon_type: #{@distributon_type}")
+    Log.print("distribution_type: #{@distribution_type}")
     Log.print("project_path: #{@project_path}")
     Log.print("scheme: #{@scheme}")
     Log.print("configuration: #{@configuration}")
@@ -98,7 +98,11 @@ class Params
     raise 'missing: build_url' if @build_url.nil?
     raise 'missing: build_api_token' if @build_api_token.nil?
     raise 'missing: certificate_urls' if @certificate_urls_str.nil?
-    raise 'missing: distributon_type' if @distributon_type.nil?
+    if @distribution_type.nil?
+      @distribution_type = ENV['distributon_type']
+      raise 'missing: distribution_type' if @distribution_type.nil?
+      Log.warn("'distributon_type' input is deprecated please use 'distribution_type'")
+    end
     raise 'missing: project_path' if @project_path.nil?
     raise 'missing: scheme' if @scheme.nil?
     raise 'missing: keychain_path' if @keychain_path.nil?
@@ -272,21 +276,21 @@ begin
     codesign_settings.production_certificate_info = certificate_info
   end
 
-  if params.distributon_type == 'development' && codesign_settings.development_certificate_info.nil?
+  if params.distribution_type == 'development' && codesign_settings.development_certificate_info.nil?
     raise 'Selected distribution type: development, but forgot to provide a Development type certificate.' \
 "Don't worry, it's really simple to fix! :)" \
 "Simply provide a Development type certificate (.p12) and we'll be building in no time!"
   end
 
-  if params.distributon_type != 'development' && codesign_settings.production_certificate_info.nil?
-    raise "Selected distribution type: #{params.distributon_type}, but forgot to provide a Distribution type certificate." \
+  if params.distribution_type != 'development' && codesign_settings.production_certificate_info.nil?
+    raise "Selected distribution type: #{params.distribution_type}, but forgot to provide a Distribution type certificate." \
 "Don't worry, it's really simple to fix! :)" \
 "Simply provide a Distribution type certificate (.p12) and we'll be building in no time!"
   end
   ###
 
   # Ensure test devices
-  if ['development', 'ad-hoc'].include?(params.distributon_type)
+  if ['development', 'ad-hoc'].include?(params.distribution_type)
     Log.info('Ensure test devices on Developer Portal')
     ensure_test_devices(portal_data.test_devices)
   end
@@ -327,13 +331,13 @@ begin
       bundle_id_development_profile[bundle_id] = profile_info
     end
 
-    next if params.distributon_type == 'development'
+    next if params.distribution_type == 'development'
     next unless production_certificate_info
 
     Log.print('ensure Production Provisioning Profile on Developer Portal')
-    portal_profile = ensure_provisioning_profile(production_certificate_info.portal_certificate, app, params.distributon_type)
+    portal_profile = ensure_provisioning_profile(production_certificate_info.portal_certificate, app, params.distribution_type)
 
-    Log.success("downloading #{params.distributon_type} profile: #{portal_profile.name}")
+    Log.success("downloading #{params.distribution_type} profile: #{portal_profile.name}")
     profile_path = write_profile(portal_profile)
 
     Log.debug("profile path: #{profile_path}")

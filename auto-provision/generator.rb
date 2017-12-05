@@ -92,7 +92,7 @@ def ensure_test_devices(test_devices)
     registered_test_device = nil
 
     portal_devices.each do |portal_device|
-      next unless portal_device.udid == test_device.uuid
+      next unless portal_device.udid == test_device.udid
 
       registered_test_device = portal_device
       Log.success("test device #{registered_test_device.name} (#{registered_test_device.udid}) already registered")
@@ -101,7 +101,7 @@ def ensure_test_devices(test_devices)
 
     unless registered_test_device
       registered_test_device = nil
-      run_and_handle_portal_function { registered_test_device = Spaceship::Portal.device.create!(name: test_device.name, udid: test_device.uuid) }
+      run_and_handle_portal_function { registered_test_device = Spaceship::Portal.device.create!(name: test_device.name, udid: test_device.udid) }
       Log.success("registering test device #{registered_test_device.name} (#{registered_test_device.udid})")
     end
 
@@ -131,9 +131,9 @@ def ensure_profile_certificate(profile, certificate)
   profile
 end
 
-def ensure_provisioning_profile(certificate, app, distributon_type, allow_retry = true)
+def ensure_provisioning_profile(certificate, app, distribution_type, allow_retry = true)
   portal_profile_class = nil
-  case distributon_type
+  case distribution_type
   when 'development'
     run_and_handle_portal_function { portal_profile_class = Spaceship::Portal.provisioning_profile.development }
   when 'app-store'
@@ -143,24 +143,24 @@ def ensure_provisioning_profile(certificate, app, distributon_type, allow_retry 
   when 'enterprise'
     run_and_handle_portal_function { portal_profile_class = Spaceship::Portal.provisioning_profile.in_house }
   else
-    raise "invalid distribution type provided: #{distributon_type}, available: [development, app-store, ad-hoc, enterprise]"
+    raise "invalid distribution type provided: #{distribution_type}, available: [development, app-store, ad-hoc, enterprise]"
   end
 
   profiles = nil
-  profile_name = "Bitrise #{distributon_type} - (#{app.bundle_id})"
+  profile_name = "Bitrise #{distribution_type} - (#{app.bundle_id})"
   run_and_handle_portal_function { profiles = portal_profile_class.all.select { |profile| profile.app.bundle_id == app.bundle_id && profile.name == profile_name } }
   # Both app_store.all and ad_hoc.all return the same
   # This is the case since September 2016, since the API has changed
   # and there is no fast way to get the type when fetching the profiles
   # Distinguish between App Store and Ad Hoc profiles
-  if distributon_type == 'app-store'
+  if distribution_type == 'app-store'
     profiles = profiles.reject(&:is_adhoc?)
-  elsif distributon_type == 'ad-hoc'
+  elsif distribution_type == 'ad-hoc'
     profiles = profiles.select(&:is_adhoc?)
   end
 
   if profiles.empty?
-    Log.success("generating #{distributon_type} profile: #{profile_name}")
+    Log.success("generating #{distribution_type} profile: #{profile_name}")
   else
     # it's easier to just create a new one, than to:
     # - add test devices
@@ -169,19 +169,19 @@ def ensure_provisioning_profile(certificate, app, distributon_type, allow_retry 
     # update seems to revoking the certificate, even if it is not neccessary
     # it has the same effects anyway, including a new UUID of the provisioning profile
     if profiles.count > 1
-      Log.warn("multiple #{distributon_type} profiles found with name: #{profile_name}")
+      Log.warn("multiple #{distribution_type} profiles found with name: #{profile_name}")
       profiles.each_with_index { |prof, index| Log.warn("#{index}. #{prof.name}") }
     end
 
     profiles.each do |profile|
-      Log.warn("removing existing #{distributon_type} profile: #{profile.name}")
+      Log.warn("removing existing #{distribution_type} profile: #{profile.name}")
       profile.delete!
     end
   end
 
   profile = nil
   begin
-    Log.warn("generating #{distributon_type} profile: #{profile_name}")
+    Log.warn("generating #{distribution_type} profile: #{profile_name}")
     run_and_handle_portal_function { profile = portal_profile_class.create!(bundle_id: app.bundle_id, certificate: certificate, name: profile_name) }
   rescue => ex
     # Failed to remove already existing managed profile, try it again!
@@ -191,7 +191,7 @@ def ensure_provisioning_profile(certificate, app, distributon_type, allow_retry 
     Log.warn(ex.to_s)
     log.warn('failed to regenerate the profile, retrying in 5 sec ...')
     sleep(5)
-    ensure_provisioning_profile(certificate, app, distributon_type, false)
+    ensure_provisioning_profile(certificate, app, distribution_type, false)
   end
 
   raise "failed to find or create provisioning profile for bundle id: #{app.bundle_id}" unless profile

@@ -83,7 +83,7 @@ inputs:
       If you leave it empty the project defined team will be used.
 
       Example: `1MZX23ABCD4`
-- distributon_type: development
+- distribution_type: development
   opts:
     title: "Distribution type"
     description: |-
@@ -140,3 +140,14 @@ inputs:
     value_options:
     - "yes"
     - "no"
+- distributon_type: development
+  opts:
+    title: "Distribution type"
+    description: |-
+      Describes how Xcode should sign your project.
+    value_options:
+    - "development"
+    - "app-store"
+    - "ad-hoc"
+    - "enterprise"
+    is_required: true
