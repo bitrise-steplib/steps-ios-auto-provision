@@ -15,7 +15,6 @@ app:
   - BITRISE_CERTIFICATE_URL: $BITRISE_CERTIFICATE_URL
   - BITRISE_CERTIFICATE_PASSPHRASE: $BITRISE_CERTIFICATE_PASSPHRASE
   - TEAM_ID: $TEAM_ID
-  - DISTRIBUTION_TYPE: app-store
   - BITRISE_KEYCHAIN_PASSWORD: $BITRISE_KEYCHAIN_PASSWORD
 
   - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
@@ -43,6 +42,7 @@ workflows:
     - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
     - BITRISE_SCHEME: ios-simple-objc
     - BITRISE_CONFIGURATION: 
+    - DISTRIBUTION_TYPE: development
     after_run:
     - _common
 
@@ -53,6 +53,7 @@ workflows:
     - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
     - BITRISE_SCHEME: code-sign-test
     - BITRISE_CONFIGURATION: 
+    - DISTRIBUTION_TYPE: app-store
     after_run:
     - _common
 
@@ -64,6 +65,7 @@ workflows:
     - BITRISE_SCHEME: iOSMinimalCocoaPodsSample
     - BITRISE_CONFIGURATION: 
     - INSTALL_PODS: "true"
+    - DISTRIBUTION_TYPE: app-store
     after_run:
     - _common
 
