@@ -206,7 +206,7 @@ begin
   targets = project_helper.targets.collect(&:name)
   targets.each_with_index do |target_name, idx|
     bundle_id = project_helper.target_bundle_id(target_name)
-    entitlements = project_helper.target_entitlements(target_name) || []
+    entitlements = project_helper.target_entitlements(target_name) || {}
 
     Log.print("target ##{idx}: #{target_name} (#{bundle_id}) with #{entitlements.length} services")
   end
@@ -305,7 +305,7 @@ begin
 
   targets.each do |target_name|
     bundle_id = project_helper.target_bundle_id(target_name)
-    entitlements = project_helper.target_entitlements(target_name) || []
+    entitlements = project_helper.target_entitlements(target_name) || {}
 
     puts
     Log.success("checking target: #{target_name} (#{bundle_id}) with #{entitlements.length} services")

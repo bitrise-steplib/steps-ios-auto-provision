@@ -73,6 +73,8 @@ class ProjectHelper
       codesign_identity = exact_codesign_identity(codesign_identity, target_identity)
     end
 
+    raise 'failed to determine project code sign identity' unless codesign_identity
+
     codesign_identity
   end
 
@@ -100,6 +102,8 @@ class ProjectHelper
       break
     end
 
+    raise 'failed to determine project development team' unless team_id
+
     team_id
   end
 
@@ -110,13 +114,12 @@ class ProjectHelper
     return bundle_id if bundle_id
 
     Log.debug("PRODUCT_BUNDLE_IDENTIFIER env not found in 'xcodebuild -showBuildSettings -project \"#{@targets_container_project_path}\" -target \"#{target_name}\" -configuration \"#{@configuration_name}\"' command's output")
-    Log.debug("build settings:\n#{build_settings}")
     Log.debug("checking the Info.plist file's CFBundleIdentifier property...")
 
     info_plist_path = build_settings['INFOPLIST_FILE']
     raise 'failed to to determine bundle id: xcodebuild -showBuildSettings does not contains PRODUCT_BUNDLE_IDENTIFIER nor INFOPLIST_FILE' unless info_plist_path
 
-    info_plist_path = File.expand_path(info_plist_path, File.dirname(project_path))
+    info_plist_path = File.expand_path(info_plist_path, File.dirname(@targets_container_project_path))
     info_plist = Plist.parse_xml(info_plist_path)
     bundle_id = info_plist['CFBundleIdentifier']
     raise 'failed to to determine bundle id: xcodebuild -showBuildSettings does not contains PRODUCT_BUNDLE_IDENTIFIER nor Info.plist' if bundle_id.to_s.empty?
