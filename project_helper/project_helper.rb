@@ -170,11 +170,18 @@ class ProjectHelper
         Log.print('PROVISIONING_PROFILE_SPECIFIER: \'\'')
 
         # code sign identity may presents as: CODE_SIGN_IDENTITY and CODE_SIGN_IDENTITY[sdk=iphoneos*]
+        code_sign_identity_set = false
         build_settings.each_key do |key|
           next unless key.include?('CODE_SIGN_IDENTITY')
 
           build_settings[key] = code_sign_identity
           Log.print("#{key}: #{code_sign_identity}")
+          code_sign_identity_set = true
+        end
+
+        unless code_sign_identity_set
+          build_settings['CODE_SIGN_IDENTITY'] = code_sign_identity
+          Log.print("CODE_SIGN_IDENTITY: #{code_sign_identity}")
         end
       end
     end
