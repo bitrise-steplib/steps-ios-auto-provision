@@ -1,6 +1,13 @@
-## Changelog (Current version: 0.9.3)
+## Changelog (Current version: 0.9.4)
 
 -----------------
+
+### 0.9.4 (2017 Dec 06)
+
+* [58bee2d] prepare for 0.9.4
+* [34345e1] test for custom configuration (#10)
+* [d82cd97] Resolved issue where to_a is used on wrong type (#9)
+* [803be57] Update (#8)
 
 ### 0.9.3 (2017 Dec 06)
 
