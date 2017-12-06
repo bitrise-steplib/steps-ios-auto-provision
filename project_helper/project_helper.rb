@@ -21,10 +21,10 @@ class ProjectHelper
     end
 
     # ensure scheme exist
-    scheme, scheme_container_project_path = read_scheme(scheme_name)
+    scheme, scheme_container_project_path = read_scheme_and_container_project(scheme_name)
 
     # read scheme application targets
-    target, @targets_container_project_path = read_scheme_archivable_target(scheme, scheme_container_project_path)
+    target, @targets_container_project_path = read_scheme_archivable_target_and_container_project(scheme, scheme_container_project_path)
     @targets = collect_dependent_targets(target)
     raise 'failed to collect scheme targets' if @targets.empty?
 
@@ -125,14 +125,12 @@ class ProjectHelper
 
     Log.warn("CFBundleIdentifier defined with variable: #{bundle_id}, trying to resolve it...")
     resolve_bundle_id(bundle_id, build_settings)
-
-    find_bundle_id(settings, @targets_container_project_path)
   end
 
   def target_entitlements(target_name)
     settings = xcodebuild_target_build_settings(@targets_container_project_path, target_name, @configuration_name)
     entitlements_path = settings['CODE_SIGN_ENTITLEMENTS']
-    return nil if entitlements_path.to_s.empty?
+    return if entitlements_path.to_s.empty?
 
     project_dir = File.dirname(@targets_container_project_path)
     entitlements_path = File.join(project_dir, entitlements_path)
@@ -148,7 +146,7 @@ class ProjectHelper
       next unless target_obj.name == target_name
       target_found = true
 
-      # force manual code singing
+      # force manual code signing
       target_id = target_obj.uuid
       attributes = project.root_object.attributes['TargetAttributes']
       target_attributes = attributes[target_id]
@@ -183,32 +181,52 @@ class ProjectHelper
       end
     end
 
-    raise "target (#{target_name}) not found in project: #{targets_project_path}" unless target_found
-    raise "configuration (#{@configuration_name}) does not exist in project: #{targets_project_path}" unless configuration_found
+    raise "target (#{target_name}) not found in project: #{@targets_container_project_path}" unless target_found
+    raise "configuration (#{@configuration_name}) does not exist in project: #{@targets_container_project_path}" unless configuration_found
 
     project.save
   end
 
   private
 
-  def read_scheme(scheme_name)
+  def read_scheme_and_container_project(scheme_name)
     project_paths = [@project_path]
     if File.extname(@project_path) == '.xcworkspace'
-      project_paths += workspace_contained_projects(@project_path)
+      project_paths += contained_projects
     end
 
     project_paths.each do |project_path|
-      scheme_pth = shared_scheme_path(project_path, scheme_name)
-      scheme_pth = user_scheme_path(project_path, scheme_name) unless File.exist?(scheme_pth)
-      next unless File.exist?(scheme_pth)
+      schema_path = shared_scheme_path(project_path, scheme_name)
+      schema_path = user_scheme_path(project_path, scheme_name) unless File.exist?(schema_path)
+      next unless File.exist?(schema_path)
 
-      return Xcodeproj::XCScheme.new(scheme_pth), project_path
+      return Xcodeproj::XCScheme.new(schema_path), project_path
     end
 
     raise "project (#{@project_path}) does not contain scheme: #{scheme_name}"
   end
 
-  def read_scheme_archivable_target(scheme, project_path)
+  def archivable_target_and_container_project(buildable_references, scheme_container_project_dir)
+    buildable_references.each do |reference|
+      next if reference.target_name.to_s.empty?
+      next if reference.target_referenced_container.to_s.empty?
+
+      container = reference.target_referenced_container.sub(/^container:/, '')
+      next if container.empty?
+
+      target_project_path = File.expand_path(container, scheme_container_project_dir)
+      next unless File.exist?(target_project_path)
+
+      project = Xcodeproj::Project.open(target_project_path)
+      target = project.targets.find { |t| t.name == reference.target_name }
+      next unless target
+      next unless runnable_target?(target)
+
+      return target, target_project_path
+    end
+  end
+
+  def read_scheme_archivable_target_and_container_project(scheme, scheme_container_project_path)
     build_action = scheme.build_action
     return nil unless build_action
 
@@ -218,33 +236,16 @@ class ProjectHelper
     entries = entries.select(&:build_for_archiving?) || []
     return nil if entries.empty?
 
+    scheme_container_project_dir = File.dirname(scheme_container_project_path)
+
     entries.each do |entry|
       buildable_references = entry.buildable_references || []
       next if buildable_references.empty?
 
-      buildable_references = buildable_references.reject do |r|
-        r.target_name.to_s.empty? || r.target_referenced_container.to_s.empty?
-      end
-      next if buildable_references.empty?
+      target, target_project_path = archivable_target_and_container_project(buildable_references, scheme_container_project_dir)
+      next if target.nil? || target_project_path.nil?
 
-      buildable_reference = entry.buildable_references.first
-
-      target_name = buildable_reference.target_name.to_s
-      container = buildable_reference.target_referenced_container.to_s.sub(/^container:/, '')
-      next if target_name.empty? || container.empty?
-
-      project_dir = File.dirname(project_path)
-      target_project_pth = File.expand_path(container, project_dir)
-      next unless File.exist?(target_project_pth)
-
-      project = Xcodeproj::Project.open(target_project_pth)
-      next unless project
-
-      target = project.targets.find { |t| t.name == target_name }
-      next unless target
-      next unless runnable_target?(target)
-
-      return target, target_project_pth
+      return target, target_project_path
     end
 
     raise 'failed to find scheme archivable target'
@@ -282,7 +283,7 @@ class ProjectHelper
   end
 
   def user_scheme_path(project_or_workspace_pth, scheme_name)
-    user_name = ENV['user']
+    user_name = ENV['USER']
     File.join(project_or_workspace_pth, 'xcuserdata', user_name + '.xcuserdatad', 'xcschemes', scheme_name + '.xcscheme')
   end
 
@@ -366,8 +367,6 @@ class ProjectHelper
     raise "failed to resolve bundle id (#{bundle_id}): does not conforms to: /(.*)$\(.*\)(.*)/" unless matches
 
     captures = matches.captures
-    raise "failed to resolve bundle id (#{bundle_id}): does not conforms to: /(.*)$\(.*\)(.*)/" if captures.to_a.length != 3
-
     prefix = captures[0]
     suffix = captures[2]
     env_key = captures[1]

@@ -189,7 +189,7 @@ def ensure_provisioning_profile(certificate, app, distribution_type, allow_retry
     raise ex unless ex.to_s =~ /Multiple profiles found with the name '(.*)'.\s*Please remove the duplicate profiles and try again./i
 
     Log.warn(ex.to_s)
-    log.warn('failed to regenerate the profile, retrying in 5 sec ...')
+    Log.warn('failed to regenerate the profile, retrying in 5 sec ...')
     sleep(5)
     ensure_provisioning_profile(certificate, app, distribution_type, false)
   end

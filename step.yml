@@ -76,7 +76,7 @@ inputs:
   opts:
     title: "The Developer Portal team id"
     description: |-
-      The Developer Portal team to manage the project's code singing files.
+      The Developer Portal team to manage the project's code signing files.
 
       __If your Developer Portal Account belongs to multiple development team, this input is required!__ Otherwise specify this input if you want to manage the Profiles with different team, then one set in your project.
 
