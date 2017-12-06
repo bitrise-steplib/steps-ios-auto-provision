@@ -314,7 +314,7 @@ begin
     Log.print("sync App ID (#{bundle_id}) Services")
     app = sync_app_services(app, entitlements)
 
-    if codesign_settings.development_certificate_info
+    if development_certificate_info
       Log.print('ensure Development Provisioning Profile on Developer Portal')
       portal_profile = ensure_provisioning_profile(development_certificate_info.portal_certificate, app, 'development')
 
@@ -325,6 +325,7 @@ begin
 
       profile_info = ProfileInfo.new(profile_path, portal_profile)
       bundle_id_development_profile[bundle_id] = profile_info
+      codesign_settings.bundle_id_development_profile = bundle_id_development_profile
     end
 
     next if params.distribution_type == 'development'
@@ -340,8 +341,6 @@ begin
 
     profile_info = ProfileInfo.new(profile_path, portal_profile)
     bundle_id_production_profile[bundle_id] = profile_info
-
-    codesign_settings.bundle_id_development_profile = bundle_id_development_profile
     codesign_settings.bundle_id_production_profile = bundle_id_production_profile
   end
   ###
@@ -359,11 +358,11 @@ begin
     code_sign_identity = nil
     provisioning_profile = nil
 
-    if codesign_settings.development_certificate_info
-      code_sign_identity = certificate_common_name(codesign_settings.development_certificate_info.certificate)
+    if development_certificate_info
+      code_sign_identity = certificate_common_name(development_certificate_info.certificate)
       provisioning_profile = codesign_settings.bundle_id_development_profile[bundle_id].portal_profile.uuid
-    elsif codesign_settings.production_certificate_info
-      code_sign_identity = certificate_common_name(codesign_settings.production_certificate_info.certificate)
+    elsif production_certificate_info
+      code_sign_identity = certificate_common_name(production_certificate_info.certificate)
       provisioning_profile = codesign_settings.bundle_id_production_profile[bundle_id].portal_profile.uuid
     else
       raise "no codesign settings generated for target: #{target_name} (#{bundle_id})"
