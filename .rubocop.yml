@@ -1,5 +1,10 @@
 inherit_from: .rubocop_todo.yml
 
+AllCops:
+  Exclude:
+    - '_tmp/**/*'
+
 Lint/RescueWithoutErrorClass:
   Exclude:
     - 'step.rb'
+    - 'auto-provision/generator.rb'

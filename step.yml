@@ -76,14 +76,14 @@ inputs:
   opts:
     title: "The Developer Portal team id"
     description: |-
-      The Developer Portal team to manage the project's code singing files.
+      The Developer Portal team to manage the project's code signing files.
 
       __If your Developer Portal Account belongs to multiple development team, this input is required!__ Otherwise specify this input if you want to manage the Profiles with different team, then one set in your project.
 
       If you leave it empty the project defined team will be used.
 
       Example: `1MZX23ABCD4`
-- distributon_type: development
+- distribution_type: development
   opts:
     title: "Distribution type"
     description: |-
@@ -101,6 +101,25 @@ inputs:
     description: |-
       A `.xcodeproj` or `.xcworkspace` path.
     is_required: true
+- scheme: $BITRISE_SCHEME
+  opts:
+    title: "Scheme name"
+    summary: ""
+    description: |-
+      The Scheme to use.
+    is_required: true
+- configuration:
+  opts:
+    title: "Configuration name"
+    summary: ""
+    description: |-
+      (optional) The configuration to use. By default your Scheme
+      defines which configuration (Debug, Release, ...) should be used,
+      but you can overwrite it with this option.
+      **Make sure that the Configuration you specify actually exists
+      in your Xcode Project**. If it does not, if you have a typo
+      in the value of this input Xcode will simply use the Configuration
+      specified by the Scheme and will silently ignore this parameter!
 - keychain_path: $HOME/Library/Keychains/login.keychain
   opts:
     category: Config
