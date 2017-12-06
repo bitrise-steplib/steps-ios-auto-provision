@@ -33,8 +33,8 @@ class ProjectHelper
       @configuration_name = default_configuration_name
     elsif configuration_name != default_configuration_name
       targets.each do |target_obj|
-        configurations = target_obj.build_configuration_list.build_configurations.find { |c| configuration_name.to_s == c.name }
-        raise "build configuration (#{configuration_name}) not defined for target: #{target.name}" if configurations.to_a.empty?
+        configuration = target_obj.build_configuration_list.build_configurations.find { |c| configuration_name.to_s == c.name }
+        raise "build configuration (#{configuration_name}) not defined for target: #{target.name}" if configuration.nil?
       end
 
       Log.warn("Using defined build configuration: #{configuration_name} instead of the scheme's default one: #{default_configuration_name}")
