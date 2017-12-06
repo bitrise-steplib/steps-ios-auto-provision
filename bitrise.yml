@@ -18,16 +18,10 @@ app:
   - DISTRIBUTION_TYPE: app-store
   - BITRISE_KEYCHAIN_PASSWORD: $BITRISE_KEYCHAIN_PASSWORD
 
-  - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-ios-multi-target.git
-  - BRANCH: entitlements
-  - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
-  - BITRISE_SCHEME: code-sign-test
-  - BITRISE_CONFIGURATION: 
+  - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
 
 workflows:
   test:
-    before_run:
-    - audit-this-step
     steps:
     - script:
         title:
@@ -37,18 +31,57 @@ workflows:
             set -e
             gem install rubocop --no-document
             rubocop
+    after_run:
+    - test_bundle_id
+    - test_entitlements
+    - test_workspace
+
+  test_bundle_id:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-ios-simple-objc.git
+    - BRANCH: bundle_id
+    - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
+    - BITRISE_SCHEME: ios-simple-objc
+    - BITRISE_CONFIGURATION: 
+    after_run:
+    - _common
+
+  test_entitlements:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-ios-multi-target.git
+    - BRANCH: entitlements
+    - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
+    - BITRISE_SCHEME: code-sign-test
+    - BITRISE_CONFIGURATION: 
+    after_run:
+    - _common
+
+  test_workspace:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-samples/ios-cocoapods-minimal-sample.git
+    - BRANCH: pod
+    - BITRISE_PROJECT_PATH: iOSMinimalCocoaPodsSample/iOSMinimalCocoaPodsSample.xcworkspace
+    - BITRISE_SCHEME: iOSMinimalCocoaPodsSample
+    - BITRISE_CONFIGURATION: 
+    - INSTALL_PODS: "true"
+    after_run:
+    - _common
+
+  _common:
+    steps:
     - script:
         title: Cleanup _tmp dir
         inputs:
         - content: |-
             #!/bin/bash
             set -ev
-            rm -rf ./_tmp
+            rm -rf "$ORIG_BITRISE_SOURCE_DIR/_tmp"
+            mkdir -p "$ORIG_BITRISE_SOURCE_DIR/_tmp"
     - change-workdir:
         title: Switch working dir to _tmp
         inputs:
-        - path: ./_tmp
-        - is_create_path: true
+        - path: $ORIG_BITRISE_SOURCE_DIR/_tmp
+        - is_create_path: "true"
     - git-clone:
         title: Git clone sample app
         run_if: true
@@ -60,6 +93,9 @@ workflows:
         - branch: $BRANCH
         - pull_request_id: ""
         - clone_depth: ""
+    - cocoapods-install:
+        run_if: '{{enveq "INSTALL_PODS" "true"}}'
+        title: CocoaPods install
     - path::./:
         title: Step Test
         run_if: true

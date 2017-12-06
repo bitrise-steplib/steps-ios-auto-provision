@@ -66,7 +66,7 @@ class Params
     @team_id = ENV['team_id']
     @certificate_urls_str = ENV['certificate_urls']
     @passphrases_str = ENV['passphrases']
-    @distribution_type = ENV['distribution_type'] || ENV['distributon_type']
+    @distribution_type = ENV['distribution_type']
     @project_path = ENV['project_path']
     @scheme = ENV['scheme']
     @configuration = ENV['configuration']
@@ -92,8 +92,6 @@ class Params
     Log.print("keychain_path: #{@keychain_path}")
     Log.print("keychain_password: #{Log.secure_value(@keychain_password)}")
     Log.print("verbose_log: #{@verbose_log}")
-
-    Log.error("\n'distributon_type' input is deprecated please use 'distribution_type'") if ENV['distributon_type']
   end
 
   def validate

@@ -140,14 +140,3 @@ inputs:
     value_options:
     - "yes"
     - "no"
-- distributon_type: development
-  opts:
-    title: "Distribution type"
-    description: |-
-      Describes how Xcode should sign your project.
-    value_options:
-    - "development"
-    - "app-store"
-    - "ad-hoc"
-    - "enterprise"
-    is_required: true

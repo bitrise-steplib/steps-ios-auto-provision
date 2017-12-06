@@ -11,14 +11,9 @@ class ProjectHelper
     raise "project not exist at: #{project_or_workspace_path}" unless File.exist?(project_or_workspace_path)
 
     extname = File.extname(project_or_workspace_path)
-    case extname
-    when '.xcodeproj'
-      @project_path = project_or_workspace_path
-    when '.xcworkspace'
-      @workspace_path = project_or_workspace_path
-    else
-      raise "unkown project extension: #{extname}, should be: .xcodeproj or .xcworkspace"
-    end
+    raise "unkown project extension: #{extname}, should be: .xcodeproj or .xcworkspace" unless ['.xcodeproj', '.xcworkspace'].include?(extname)
+
+    @project_path = project_or_workspace_path
 
     # ensure scheme exist
     scheme, scheme_container_project_path = read_scheme_and_container_project(scheme_name)
@@ -194,13 +189,10 @@ class ProjectHelper
 
   def read_scheme_and_container_project(scheme_name)
     project_paths = [@project_path]
-    if File.extname(@project_path) == '.xcworkspace'
-      project_paths += contained_projects
-    end
+    project_paths += contained_projects if workspace?
 
     project_paths.each do |project_path|
-      schema_path = shared_scheme_path(project_path, scheme_name)
-      schema_path = user_scheme_path(project_path, scheme_name) unless File.exist?(schema_path)
+      schema_path = File.join(project_path, 'xcshareddata', 'xcschemes', scheme_name + '.xcscheme')
       next unless File.exist?(schema_path)
 
       return Xcodeproj::XCScheme.new(schema_path), project_path
@@ -281,20 +273,16 @@ class ProjectHelper
     settings['DEVELOPMENT_TEAM']
   end
 
-  def shared_scheme_path(project_or_workspace_pth, scheme_name)
-    File.join(project_or_workspace_pth, 'xcshareddata', 'xcschemes', scheme_name + '.xcscheme')
-  end
-
-  def user_scheme_path(project_or_workspace_pth, scheme_name)
-    user_name = ENV['USER']
-    File.join(project_or_workspace_pth, 'xcuserdata', user_name + '.xcuserdatad', 'xcschemes', scheme_name + '.xcscheme')
+  def workspace?
+    extname = File.extname(@project_path)
+    extname == '.xcworkspace'
   end
 
   def contained_projects
-    return [@project_path] unless @workspace_path
+    return [@project_path] unless workspace?
 
-    workspace = Xcodeproj::Workspace.new_from_xcworkspace(@workspace_path)
-    workspace_dir = File.dirname(@workspace_path)
+    workspace = Xcodeproj::Workspace.new_from_xcworkspace(@project_path)
+    workspace_dir = File.dirname(@project_path)
     project_paths = []
     workspace.file_references.each do |ref|
       pth = ref.path
