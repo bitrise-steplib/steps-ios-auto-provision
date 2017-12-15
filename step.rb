@@ -225,7 +225,9 @@ begin
   team_development_certificate_infos = map_certificates_infos_by_team_id(development_certificate_infos)[team_id] || []
   team_production_certificate_infos = map_certificates_infos_by_team_id(production_certificate_infos)[team_id] || []
 
-  raise "no certificate uploaded for the desired team: #{team_id}" if team_development_certificate_infos.empty? && team_production_certificate_infos.empty?
+  if team_development_certificate_infos.empty? && team_production_certificate_infos.empty?
+    raise "no certificate uploaded for the desired team: #{team_id}"
+  end
 
   codesign_settings = CodesignSettings.new
   codesign_settings.team_id = team_id

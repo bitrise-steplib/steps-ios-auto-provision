@@ -335,9 +335,7 @@ class ProjectHelper
   end
 
   def xcodebuild_target_build_settings(target)
-    raise 'xcodebuild -showBuildSettings failed: project not specified' if @targets_container_project_path.to_s.empty?
     raise 'xcodebuild -showBuildSettings failed: target not specified' if target.to_s.empty?
-    raise 'xcodebuild -showBuildSettings failed: configuration not specified' if @configuration_name.to_s.empty?
 
     settings = @build_settings_by_target[target]
     return settings if settings
