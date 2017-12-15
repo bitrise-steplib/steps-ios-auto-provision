@@ -27,9 +27,7 @@ def ensure_app(bundle_id)
       run_and_handle_portal_function { app = Spaceship::Portal.app.create!(bundle_id: bundle_id, name: name) }
     rescue => ex
       message = ex.to_s
-      if message =~ /An App ID with Identifier .* is not available/i
-        raise message + "\nPossible solutions: https://stackoverflow.com/search?q=An+App+ID+with+Identifier+is+not+available"
-      end
+      raise message + "\nPossible solutions: https://stackoverflow.com/search?q=An+App+ID+with+Identifier+is+not+available" if message =~ /An App ID with Identifier .* is not available/i
       raise ex
     end
   else
