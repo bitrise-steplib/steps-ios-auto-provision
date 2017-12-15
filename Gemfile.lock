@@ -1,9 +1,30 @@
-GIT
-  remote: git://github.com/fastlane/fastlane.git
-  revision: 6376c417e6a070ba2e780d93be4b994455e9ebc9
-  branch: master
+GEM
+  remote: https://rubygems.org/
   specs:
-    fastlane (2.64.0)
+    CFPropertyList (2.3.6)
+    addressable (2.5.2)
+      public_suffix (>= 2.0.2, < 4.0)
+    babosa (1.0.2)
+    claide (1.0.2)
+    colored (1.2)
+    colored2 (3.1.2)
+    commander-fastlane (4.4.5)
+      highline (~> 1.7.2)
+    declarative (0.0.10)
+    declarative-option (0.1.0)
+    domain_name (0.5.20170404)
+      unf (>= 0.0.5, < 1.0.0)
+    dotenv (2.2.1)
+    excon (0.60.0)
+    faraday (0.13.1)
+      multipart-post (>= 1.2, < 3)
+    faraday-cookie_jar (0.0.6)
+      faraday (>= 0.7.4)
+      http-cookie (~> 1.0.0)
+    faraday_middleware (0.12.2)
+      faraday (>= 0.7.4, < 1.0)
+    fastimage (2.1.0)
+    fastlane (2.69.3)
       CFPropertyList (>= 2.3, < 3.0.0)
       addressable (>= 2.3, < 3.0.0)
       babosa (>= 1.0.2, < 2.0.0)
@@ -31,38 +52,11 @@ GIT
       slack-notifier (>= 1.3, < 2.0.0)
       terminal-notifier (>= 1.6.2, < 2.0.0)
       terminal-table (>= 1.4.5, < 2.0.0)
-      tty-screen (~> 0.5.0)
+      tty-screen (~> 0.6.3)
       word_wrap (~> 1.0.0)
       xcodeproj (>= 1.5.2, < 2.0.0)
       xcpretty (>= 0.2.4, < 1.0.0)
       xcpretty-travis-formatter (>= 0.0.3)
-
-GEM
-  remote: https://rubygems.org/
-  specs:
-    CFPropertyList (2.3.5)
-    addressable (2.5.2)
-      public_suffix (>= 2.0.2, < 4.0)
-    babosa (1.0.2)
-    claide (1.0.2)
-    colored (1.2)
-    colored2 (3.1.2)
-    commander-fastlane (4.4.5)
-      highline (~> 1.7.2)
-    declarative (0.0.10)
-    declarative-option (0.1.0)
-    domain_name (0.5.20170404)
-      unf (>= 0.0.5, < 1.0.0)
-    dotenv (2.2.1)
-    excon (0.59.0)
-    faraday (0.13.1)
-      multipart-post (>= 1.2, < 3)
-    faraday-cookie_jar (0.0.6)
-      faraday (>= 0.7.4)
-      http-cookie (~> 1.0.0)
-    faraday_middleware (0.12.2)
-      faraday (>= 0.7.4, < 1.0)
-    fastimage (2.1.0)
     gh_inspector (1.0.3)
     google-api-client (0.13.6)
       addressable (~> 2.5, >= 2.5.1)
@@ -79,7 +73,7 @@ GEM
       multi_json (~> 1.11)
       os (~> 0.9)
       signet (~> 0.7)
-    highline (1.7.8)
+    highline (1.7.10)
     http-cookie (1.0.3)
       domain_name (~> 0.5)
     httpclient (2.8.3)
@@ -98,9 +92,9 @@ GEM
     multi_xml (0.6.0)
     multipart-post (2.0.0)
     nanaimo (0.2.3)
-    openssl (2.0.6)
+    openssl (2.1.0)
     os (0.9.6)
-    plist (3.3.0)
+    plist (3.4.0)
     public_suffix (2.0.5)
     representable (3.0.4)
       declarative (< 0.1.0)
@@ -119,7 +113,7 @@ GEM
     terminal-notifier (1.8.0)
     terminal-table (1.8.0)
       unicode-display_width (~> 1.1, >= 1.1.1)
-    tty-screen (0.5.1)
+    tty-screen (0.6.3)
     uber (0.1.0)
     unf (0.1.4)
       unf_ext
@@ -140,7 +134,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  fastlane!
+  fastlane
   openssl
   plist
   xcodeproj
