@@ -29,7 +29,7 @@ class ProjectHelper
     default_configuration_name = action.build_configuration
     raise "archive action's configuration not found for scheme: #{scheme_name}" unless default_configuration_name
 
-    if configuration_name.empty?
+    if configuration_name.empty? || configuration_name == default_configuration_name
       @configuration_name = default_configuration_name
     elsif configuration_name != default_configuration_name
       targets.each do |target_obj|
@@ -40,13 +40,15 @@ class ProjectHelper
       Log.warn("Using defined build configuration: #{configuration_name} instead of the scheme's default one: #{default_configuration_name}")
       @configuration_name = configuration_name
     end
+
+    @build_settings_by_target = {}
   end
 
   def project_codesign_identity
     codesign_identity = nil
 
     @targets.each do |target_name|
-      target_identity = target_codesign_identity(@targets_container_project_path, target_name, @configuration_name)
+      target_identity = target_codesign_identity(target_name)
       Log.debug("#{target_name} codesign identity: #{target_identity} ")
 
       if target_identity.to_s.empty?
@@ -77,7 +79,7 @@ class ProjectHelper
     team_id = nil
 
     @targets.each do |target_name|
-      id = target_team_id(@targets_container_project_path, target_name, @configuration_name)
+      id = target_team_id(target_name)
       Log.debug("#{target_name} team id: #{id} ")
 
       if id.to_s.empty?
@@ -103,7 +105,7 @@ class ProjectHelper
   end
 
   def target_bundle_id(target_name)
-    build_settings = xcodebuild_target_build_settings(@targets_container_project_path, target_name, @configuration_name)
+    build_settings = xcodebuild_target_build_settings(target_name)
 
     bundle_id = build_settings['PRODUCT_BUNDLE_IDENTIFIER']
     return bundle_id if bundle_id
@@ -126,7 +128,7 @@ class ProjectHelper
   end
 
   def target_entitlements(target_name)
-    settings = xcodebuild_target_build_settings(@targets_container_project_path, target_name, @configuration_name)
+    settings = xcodebuild_target_build_settings(target_name)
     entitlements_path = settings['CODE_SIGN_ENTITLEMENTS']
     return if entitlements_path.to_s.empty?
 
@@ -270,13 +272,13 @@ class ProjectHelper
     dependent_targets
   end
 
-  def target_codesign_identity(project_pth, target_name, configuration)
-    settings = xcodebuild_target_build_settings(project_pth, target_name, configuration)
+  def target_codesign_identity(target_name)
+    settings = xcodebuild_target_build_settings(target_name)
     settings['CODE_SIGN_IDENTITY']
   end
 
-  def target_team_id(project_pth, target_name, configuration)
-    settings = xcodebuild_target_build_settings(project_pth, target_name, configuration)
+  def target_team_id(target_name)
+    settings = xcodebuild_target_build_settings(target_name)
     settings['DEVELOPMENT_TEAM']
   end
 
@@ -332,8 +334,24 @@ class ProjectHelper
     project_targets
   end
 
-  def xcodebuild_target_build_settings(project, target, configuration)
-    cmd = "xcodebuild -showBuildSettings -project \"#{project}\" -target \"#{target}\" -configuration \"#{configuration}\""
+  def xcodebuild_target_build_settings(target)
+    raise 'xcodebuild -showBuildSettings failed: target not specified' if target.to_s.empty?
+
+    settings = @build_settings_by_target[target]
+    return settings if settings
+
+    cmd = [
+      'xcodebuild',
+      '-showBuildSettings',
+      '-project',
+      "\"#{@targets_container_project_path}\"",
+      '-target',
+      "\"#{target}\"",
+      '-configuration',
+      "\"#{@configuration_name}\""
+    ].join(' ')
+
+    Log.debug("$ #{cmd}")
     out = `#{cmd}`
     raise "#{cmd} failed, out: #{out}" unless $CHILD_STATUS.success?
 
@@ -355,6 +373,7 @@ class ProjectHelper
       settings[key] = value
     end
 
+    @build_settings_by_target[target] = settings
     settings
   end
 
