@@ -1,6 +1,11 @@
-## Changelog (Current version: 0.9.4)
+## Changelog (Current version: 0.9.5)
 
 -----------------
+
+### 0.9.5 (2017 Dec 22)
+
+* [e70b0b7] prepare for 0.9.5
+* [752c583] fix custom configuration (#12)
 
 ### 0.9.4 (2017 Dec 06)
 
@@ -28,4 +33,4 @@
 
 -----------------
 
-Updated: 2017 Dec 06
+Updated: 2017 Dec 22
