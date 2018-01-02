@@ -358,14 +358,16 @@ begin
     code_sign_identity = nil
     provisioning_profile = nil
 
-    if development_certificate_info
+    if params.distribution_type == 'development'
       code_sign_identity = certificate_common_name(development_certificate_info.certificate)
       provisioning_profile = codesign_settings.bundle_id_development_profile[bundle_id].portal_profile.uuid
-    elsif production_certificate_info
+    else
       code_sign_identity = certificate_common_name(production_certificate_info.certificate)
       provisioning_profile = codesign_settings.bundle_id_production_profile[bundle_id].portal_profile.uuid
-    else
-      raise "no codesign settings generated for target: #{target_name} (#{bundle_id})"
+    end
+
+    if code_sign_identity.nil? || provisioning_profile.nil?
+      raise "no #{params.distribution_type} codesign settings generated for target: #{target_name} (#{bundle_id})"
     end
 
     project_helper.force_code_sign_properties(target_name, team_id, code_sign_identity, provisioning_profile)
