@@ -78,23 +78,39 @@ class ProjectHelper
   def project_team_id
     team_id = nil
 
-    @targets.each do |target_name|
-      id = target_team_id(target_name)
-      Log.debug("#{target_name} team id: #{id} ")
+    project = Xcodeproj::Project.open(@targets_container_project_path)
+    attributes = project.root_object.attributes['TargetAttributes']
 
-      if id.to_s.empty?
-        Log.warn("no DEVELOPMENT_TEAM build settings found for target: #{target_name}")
-        next
+    targets = project.targets.select { |t| @targets.include?(t.name) }
+    targets.each do |target|
+      target_name = target.name
+
+      current_team_id = target_team_id(target_name)
+      Log.debug("#{target_name} target build settings team id: #{current_team_id}")
+
+      unless current_team_id
+        Log.warn("no DEVELOPMENT_TEAM build settings found for target: #{target_name}, checking target attributes...")
+
+        target_attributes = attributes[target.uuid] if attributes
+        target_attributes_team_id = target_attributes['DevelopmentTeam'] if target_attributes
+        Log.debug("#{target_name} target attributes team id: #{target_attributes_team_id}")
+
+        unless target_attributes_team_id
+          Log.warn("no DevelopmentTeam target attribute found for target: #{target_name}")
+          next
+        end
+
+        current_team_id = target_attributes_team_id
       end
 
       if team_id.nil?
-        team_id = id
+        team_id = current_team_id
         next
       end
 
-      next if team_id == id
+      next if team_id == current_team_id
 
-      Log.warn("target team id: #{id} does not match to the already registered team id: #{team_id}")
+      Log.warn("target team id: #{current_team_id} does not match to the already registered team id: #{team_id}")
       team_id = nil
       break
     end
