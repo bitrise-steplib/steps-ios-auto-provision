@@ -178,6 +178,7 @@ begin
       Log.success("development Certificate identified: #{portal_certificate.name}")
       certificate_info.portal_certificate = portal_certificate
       development_certificate_infos.push(certificate_info)
+      next
     end
 
     portal_certificate = find_production_portal_certificate(certificate_info.certificate)
