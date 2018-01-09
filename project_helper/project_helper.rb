@@ -81,8 +81,7 @@ class ProjectHelper
     project = Xcodeproj::Project.open(@targets_container_project_path)
     attributes = project.root_object.attributes['TargetAttributes']
 
-    targets = project.targets.select { |t| @targets.include?(t.name) }
-    targets.each do |target|
+    @targets.each do |target|
       target_name = target.name
 
       current_team_id = target_team_id(target_name)
