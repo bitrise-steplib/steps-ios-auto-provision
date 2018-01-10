@@ -1,4 +1,4 @@
-require 'fastlane'
+require 'spaceship'
 
 def entitlement_on_off_app_service_map
   {

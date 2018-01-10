@@ -1,5 +1,5 @@
 require 'openssl'
-require 'fastlane'
+require 'spaceship'
 
 def result_string(ex)
   result = ex.preferred_error_info
