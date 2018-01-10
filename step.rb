@@ -153,10 +153,13 @@ begin
   certificate_infos = []
   certificate_urls.each_with_index do |url, idx|
     Log.debug("downloading certificate ##{idx + 1}")
+
     path = download_or_create_local_path(url, "Certrificate#{idx}.p12")
     Log.debug("certificate path: #{path}")
 
     certificates = read_certificates(path, passphrases[idx])
+    Log.debug("#{certificates.length} codesign identities included")
+
     certificates.each do |certificate|
       certificate_info = CertificateInfo.new(path, passphrases[idx], certificate)
       certificate_infos = append_if_latest_certificate(certificate_info, certificate_infos)

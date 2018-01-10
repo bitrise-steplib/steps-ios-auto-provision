@@ -55,21 +55,18 @@ inputs:
 - project_path: $BITRISE_PROJECT_PATH
   opts:
     title: "Xcode Project (or Workspace) path"
-    summary: ""
     description: |-
       A `.xcodeproj` or `.xcworkspace` path.
     is_required: true
 - scheme: $BITRISE_SCHEME
   opts:
     title: "Scheme name"
-    summary: ""
     description: |-
       The Scheme to use.
     is_required: true
 - configuration:
   opts:
     title: "Configuration name"
-    summary: ""
     description: |-
       (optional) The configuration to use. By default your Scheme
       defines which configuration (Debug, Release, ...) should be used,
