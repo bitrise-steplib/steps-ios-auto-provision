@@ -72,6 +72,11 @@ end
 def find_production_portal_certificate(local_certificate)
   portal_production_certificates = nil
   run_and_handle_portal_function { portal_production_certificates = Spaceship::Portal.certificate.production.all }
+
+  if portal_production_certificates.to_a.empty?
+    run_and_handle_portal_function { portal_production_certificates = Spaceship::Portal.certificate.in_house.all }
+  end
+  
   Log.debug('no production Certificates belongs to the account in this team') if portal_production_certificates.to_a.empty?
 
   portal_production_certificates.each do |cert|
