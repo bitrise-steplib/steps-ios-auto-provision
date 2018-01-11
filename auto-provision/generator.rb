@@ -41,14 +41,13 @@ def ensure_app(bundle_id)
 end
 
 def certificate_matches(certificate1, certificate2)
-  common_name_match = certificate_common_name(certificate1) == certificate_common_name(certificate2)
-  serial_match = certificate1.serial == certificate2.serial
+  return true if certificate1.serial == certificate2.serial
 
-  if common_name_match && !serial_match
+  if certificate_common_name(certificate1) == certificate_common_name(certificate2)
     Log.warn("provided an older version of #{certificate_common_name(certificate1)} certificate, please provide the most recent version of the certificate")
   end
 
-  serial_match
+  false
 end
 
 def find_development_portal_certificate(local_certificate)
