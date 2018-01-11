@@ -1,6 +1,11 @@
-## Changelog (Current version: 0.9.5)
+## Changelog (Current version: 0.9.6)
 
 -----------------
+
+### 0.9.6 (2018 Jan 11)
+
+* [7864183] prepare for 0.9.6
+* [5f69688] use DevelopmentTeam target attribute if DEVELOPMENT_TEAM build settin… (#14)
 
 ### 0.9.5 (2017 Dec 22)
 
@@ -33,4 +38,4 @@
 
 -----------------
 
-Updated: 2017 Dec 22
+Updated: 2018 Jan 11
