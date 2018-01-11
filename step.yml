@@ -30,18 +30,63 @@ is_skippable: false
 run_if: ""
 
 inputs:
-- build_url: $BITRISE_BUILD_URL
+- distribution_type: development
   opts:
-    title: "Bitrise build url"
-    description: "Bitrise build url"
+    title: "Distribution type"
+    description: |-
+      Describes how Xcode should sign your project.
+    value_options:
+    - "development"
+    - "app-store"
+    - "ad-hoc"
+    - "enterprise"
     is_required: true
-- build_api_token: $BITRISE_BUILD_API_TOKEN
+- team_id:
   opts:
-    title: "Bitrise build api token"
-    description: "Bitrise build api token"
+    title: "The Developer Portal team id"
+    description: |-
+      The Developer Portal team to manage the project's code signing files.
+
+      __If your Developer Portal Account belongs to multiple development team, this input is required!__ Otherwise specify this input if you want to manage the Profiles with different team, then one set in your project.
+
+      If you leave it empty the project defined team will be used.
+
+      Example: `1MZX23ABCD4`
+- project_path: $BITRISE_PROJECT_PATH
+  opts:
+    title: "Xcode Project (or Workspace) path"
+    description: |-
+      A `.xcodeproj` or `.xcworkspace` path.
     is_required: true
+- scheme: $BITRISE_SCHEME
+  opts:
+    title: "Scheme name"
+    description: |-
+      The Scheme to use.
+    is_required: true
+- configuration:
+  opts:
+    title: "Configuration name"
+    description: |-
+      (optional) The configuration to use. By default your Scheme
+      defines which configuration (Debug, Release, ...) should be used,
+      but you can overwrite it with this option.
+      **Make sure that the Configuration you specify actually exists
+      in your Xcode Project**. If it does not, if you have a typo
+      in the value of this input Xcode will simply use the Configuration
+      specified by the Scheme and will silently ignore this parameter!
+- verbose_log: "no"
+  opts:
+    category: Debug
+    title: "Enable verbose logging?"
+    description: Enable verbose logging?
+    is_required: true
+    value_options:
+    - "yes"
+    - "no"
 - certificate_urls: $BITRISE_CERTIFICATE_URL
   opts:
+    category: Debug
     title: "Certificate URL"
     description: |
       URLs of the certificates to download.
@@ -58,6 +103,7 @@ inputs:
     is_required: true
 - passphrases: $BITRISE_CERTIFICATE_PASSPHRASE
   opts:
+    category: Debug
     title: "Certificate passphrase"
     description: |
       Certificate passphrases.
@@ -72,71 +118,29 @@ inputs:
       passphrases: "|distribution-passphrase"
       ```
     is_required: true
-- team_id:
-  opts:
-    title: "The Developer Portal team id"
-    description: |-
-      The Developer Portal team to manage the project's code signing files.
-
-      __If your Developer Portal Account belongs to multiple development team, this input is required!__ Otherwise specify this input if you want to manage the Profiles with different team, then one set in your project.
-
-      If you leave it empty the project defined team will be used.
-
-      Example: `1MZX23ABCD4`
-- distribution_type: development
-  opts:
-    title: "Distribution type"
-    description: |-
-      Describes how Xcode should sign your project.
-    value_options:
-    - "development"
-    - "app-store"
-    - "ad-hoc"
-    - "enterprise"
-    is_required: true
-- project_path: $BITRISE_PROJECT_PATH
-  opts:
-    title: "Xcode Project (or Workspace) path"
-    summary: ""
-    description: |-
-      A `.xcodeproj` or `.xcworkspace` path.
-    is_required: true
-- scheme: $BITRISE_SCHEME
-  opts:
-    title: "Scheme name"
-    summary: ""
-    description: |-
-      The Scheme to use.
-    is_required: true
-- configuration:
-  opts:
-    title: "Configuration name"
-    summary: ""
-    description: |-
-      (optional) The configuration to use. By default your Scheme
-      defines which configuration (Debug, Release, ...) should be used,
-      but you can overwrite it with this option.
-      **Make sure that the Configuration you specify actually exists
-      in your Xcode Project**. If it does not, if you have a typo
-      in the value of this input Xcode will simply use the Configuration
-      specified by the Scheme and will silently ignore this parameter!
 - keychain_path: $HOME/Library/Keychains/login.keychain
   opts:
+    category: Debug
     category: Config
     title: Keychain path
     description: The Keychain path
     is_required: true
 - keychain_password: $BITRISE_KEYCHAIN_PASSWORD
   opts:
+    category: Debug
     category: Config
     title: Keychain's password
     description: The Keychain's password
     is_required: true
-- verbose_log: "no"
+- build_url: $BITRISE_BUILD_URL
   opts:
-    title: "Enable verbose logging?"
-    description: Enable verbose logging?
+    category: Debug
+    title: "Bitrise build url"
+    description: "Bitrise build url"
     is_required: true
-    value_options:
-    - "yes"
-    - "no"
+- build_api_token: $BITRISE_BUILD_API_TOKEN
+  opts:
+    category: Debug
+    title: "Bitrise build api token"
+    description: "Bitrise build api token"
+    is_required: true

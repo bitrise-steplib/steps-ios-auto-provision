@@ -1,4 +1,4 @@
-require 'fastlane'
+require 'spaceship'
 
 def convert_tfa_cookies(tfa_cookies)
   session_cookies_str = '---
