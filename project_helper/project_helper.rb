@@ -176,7 +176,16 @@ class ProjectHelper
         configuration_found = true
 
         build_settings = build_configuration.build_settings
+        build_settings.merge!({
+          'CODE_SIGN_STYLE' => 'Manual',
+          'DEVELOPMENT_TEAM' => development_team,
+          'CODE_SIGN_IDENTITY' => code_sign_identity,
+          'PROVISIONING_PROFILE_SPECIFIER' => '',
+          'PROVISIONING_PROFILE' => provisioning_profile_uuid
+        })
         build_settings.each_key do |key|
+          next if key == 'PROVISIONING_PROFILE_REQUIRED'
+
           if key.include?('CODE_SIGN_STYLE')
             build_settings[key] = 'Manual'
             Log.print("#{key}: #{build_settings[key]}")
