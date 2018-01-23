@@ -176,40 +176,20 @@ class ProjectHelper
         configuration_found = true
 
         build_settings = build_configuration.build_settings
-        build_settings.merge!(
+        codesign_settings = {
           'CODE_SIGN_STYLE' => 'Manual',
           'DEVELOPMENT_TEAM' => development_team,
+
           'CODE_SIGN_IDENTITY' => code_sign_identity,
+          'CODE_SIGN_IDENTITY[sdk=iphoneos*]' => code_sign_identity,
+
           'PROVISIONING_PROFILE_SPECIFIER' => '',
-          'PROVISIONING_PROFILE' => provisioning_profile_uuid
-        )
-        build_settings.each_key do |key|
-          next if key == 'PROVISIONING_PROFILE_REQUIRED'
+          'PROVISIONING_PROFILE' => provisioning_profile_uuid,
+          'PROVISIONING_PROFILE[sdk=iphoneos*]' => provisioning_profile_uuid
+        }
+        build_settings.merge!(codesign_settings)
 
-          if key.include?('CODE_SIGN_STYLE')
-            build_settings[key] = 'Manual'
-            Log.print("#{key}: #{build_settings[key]}")
-          end
-
-          if key.include?('DEVELOPMENT_TEAM')
-            build_settings[key] = development_team
-            Log.print("#{key}: #{build_settings[key]}")
-          end
-
-          if key.include?('PROVISIONING_PROFILE_SPECIFIER')
-            build_settings[key] = ''
-            Log.print("#{key}: #{build_settings[key]}")
-          elsif key.include?('PROVISIONING_PROFILE') # PROVISIONING_PROFILE / PROVISIONING_PROFILE[sdk=iphoneos*]
-            build_settings[key] = provisioning_profile_uuid
-            Log.print("#{key}: #{build_settings[key]}")
-          end
-
-          # CODE_SIGN_IDENTITY / CODE_SIGN_IDENTITY[sdk=iphoneos*]
-          if key.include?('CODE_SIGN_IDENTITY')
-            build_settings[key] = code_sign_identity
-            Log.print("#{key}: #{build_settings[key]}")
-          end
-        end
+        Log.print(JSON.pretty_generate(codesign_settings))
       end
     end
 
