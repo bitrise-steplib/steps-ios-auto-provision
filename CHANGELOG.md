@@ -1,6 +1,11 @@
-## Changelog (Current version: 0.9.6)
+## Changelog (Current version: 0.9.7)
 
 -----------------
+
+### 0.9.7 (2018 Jan 24)
+
+* [73704d1] prepare for 0.9.7
+* [aeb6e23] Force settings (#15)
 
 ### 0.9.6 (2018 Jan 11)
 
@@ -38,4 +43,4 @@
 
 -----------------
 
-Updated: 2018 Jan 11
+Updated: 2018 Jan 24
