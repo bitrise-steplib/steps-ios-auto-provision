@@ -2,6 +2,7 @@ require 'xcodeproj'
 require 'json'
 require 'plist'
 require 'English'
+require_relative '../log/log'
 
 # ProjectHelper ...
 class ProjectHelper
@@ -161,45 +162,34 @@ class ProjectHelper
       next unless target_obj.name == target_name
       target_found = true
 
-      # force manual code signing
+      # force target attributes
       target_id = target_obj.uuid
       attributes = project.root_object.attributes['TargetAttributes']
       target_attributes = attributes[target_id]
       target_attributes['ProvisioningStyle'] = 'Manual'
+      target_attributes['DevelopmentTeam'] = development_team
+      target_attributes['DevelopmentTeamName'] = ''
 
-      # apply code sign properties
+      # force target build settings
       target_obj.build_configuration_list.build_configurations.each do |build_configuration|
         next unless build_configuration.name == @configuration_name
         configuration_found = true
 
         build_settings = build_configuration.build_settings
+        codesign_settings = {
+          'CODE_SIGN_STYLE' => 'Manual',
+          'DEVELOPMENT_TEAM' => development_team,
 
-        build_settings['CODE_SIGN_STYLE'] = 'Manual'
-        Log.print('CODE_SIGN_STYLE: Manual')
+          'CODE_SIGN_IDENTITY' => code_sign_identity,
+          'CODE_SIGN_IDENTITY[sdk=iphoneos*]' => code_sign_identity,
 
-        build_settings['DEVELOPMENT_TEAM'] = development_team
-        Log.print("DEVELOPMENT_TEAM: #{development_team}")
+          'PROVISIONING_PROFILE_SPECIFIER' => '',
+          'PROVISIONING_PROFILE' => provisioning_profile_uuid,
+          'PROVISIONING_PROFILE[sdk=iphoneos*]' => provisioning_profile_uuid
+        }
+        build_settings.merge!(codesign_settings)
 
-        build_settings['PROVISIONING_PROFILE'] = provisioning_profile_uuid
-        Log.print("PROVISIONING_PROFILE: #{provisioning_profile_uuid}")
-
-        build_settings['PROVISIONING_PROFILE_SPECIFIER'] = ''
-        Log.print('PROVISIONING_PROFILE_SPECIFIER: \'\'')
-
-        # code sign identity may presents as: CODE_SIGN_IDENTITY and CODE_SIGN_IDENTITY[sdk=iphoneos*]
-        code_sign_identity_set = false
-        build_settings.each_key do |key|
-          next unless key.include?('CODE_SIGN_IDENTITY')
-
-          build_settings[key] = code_sign_identity
-          Log.print("#{key}: #{code_sign_identity}")
-          code_sign_identity_set = true
-        end
-
-        unless code_sign_identity_set
-          build_settings['CODE_SIGN_IDENTITY'] = code_sign_identity
-          Log.print("CODE_SIGN_IDENTITY: #{code_sign_identity}")
-        end
+        Log.print(JSON.pretty_generate(codesign_settings))
       end
     end
 

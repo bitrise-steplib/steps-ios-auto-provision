@@ -95,15 +95,15 @@ class Params
   end
 
   def validate
-    raise 'missing: build_url' if @build_url.nil?
-    raise 'missing: build_api_token' if @build_api_token.nil?
-    raise 'missing: certificate_urls' if @certificate_urls_str.nil?
-    raise 'missing: distribution_type' if @distribution_type.nil?
-    raise 'missing: project_path' if @project_path.nil?
-    raise 'missing: scheme' if @scheme.nil?
-    raise 'missing: keychain_path' if @keychain_path.nil?
-    raise 'missing: keychain_password' if @keychain_password.nil?
-    raise 'missing: verbose_log' if @verbose_log.nil?
+    raise 'missing: build_url' if @build_url.to_s.empty?
+    raise 'missing: build_api_token' if @build_api_token.to_s.empty?
+    raise 'missing: certificate_urls' if @certificate_urls_str.to_s.empty?
+    raise 'missing: distribution_type' if @distribution_type.to_s.empty?
+    raise 'missing: project_path' if @project_path.to_s.empty?
+    raise 'missing: scheme' if @scheme.to_s.empty?
+    raise 'missing: keychain_path' if @keychain_path.to_s.empty?
+    raise 'missing: keychain_password' if @keychain_password.to_s.empty?
+    raise 'missing: verbose_log' if @verbose_log.to_s.empty?
   end
 
   private
@@ -389,9 +389,10 @@ begin
   ###
 rescue => ex
   puts
+  Log.error('Error:')
   Log.error(ex.to_s)
   puts
-  Log.error('Stacktrace:')
+  Log.error('Stacktrace (for debugging):')
   Log.error(ex.backtrace.join("\n").to_s)
   exit 1
 end
