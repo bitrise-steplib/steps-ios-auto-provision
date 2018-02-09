@@ -2,7 +2,6 @@ require 'xcodeproj'
 require 'json'
 require 'plist'
 require 'English'
-require_relative '../log/log'
 
 # ProjectHelper ...
 class ProjectHelper
@@ -45,10 +44,34 @@ class ProjectHelper
     @build_settings_by_target = {}
   end
 
+  def uses_xcode_auto_codesigning?
+    main_target = @targets[0]
+
+    # target attributes
+    target_id = main_target.uuid
+
+    project = Xcodeproj::Project.open(@targets_container_project_path)
+    attributes = project.root_object.attributes['TargetAttributes']
+    target_attributes = attributes[target_id]
+    return true if target_attributes['ProvisioningStyle'] == 'Automatic'
+
+    # target build settings
+    main_target.build_configuration_list.build_configurations.each do |build_configuration|
+      next unless build_configuration.name == @configuration_name
+
+      build_settings = build_configuration.build_settings
+      return true if build_settings['CODE_SIGN_STYLE'] == 'Automatic'
+    end
+
+    false
+  end
+
   def project_codesign_identity
     codesign_identity = nil
 
-    @targets.each do |target_name|
+    @targets.each do |target|
+      target_name = target.name
+
       target_identity = target_codesign_identity(target_name)
       Log.debug("#{target_name} codesign identity: #{target_identity} ")
 

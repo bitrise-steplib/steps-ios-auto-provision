@@ -34,6 +34,7 @@ workflows:
             rubocop
     after_run:
     - test_bundle_id
+    - test_xcode_managed
     - test_entitlements
     - test_workspace
 
@@ -45,6 +46,17 @@ workflows:
     - BITRISE_SCHEME: ios-simple-objc
     - BITRISE_CONFIGURATION: Release
     - DISTRIBUTION_TYPE: development
+    after_run:
+    - _common
+
+  test_xcode_managed:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-ios-multi-target.git
+    - BRANCH: automatic
+    - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
+    - BITRISE_SCHEME: code-sign-test
+    - BITRISE_CONFIGURATION: 
+    - DISTRIBUTION_TYPE: app-store
     after_run:
     - _common
 
