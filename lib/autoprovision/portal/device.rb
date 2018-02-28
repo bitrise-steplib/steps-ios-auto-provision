@@ -26,7 +26,17 @@ module Portal
 
         unless registered_test_device
           registered_test_device = nil
-          run_and_handle_portal_function { registered_test_device = Spaceship::Portal.device.create!(name: test_device.name, udid: test_device.udid) }
+
+          begin
+            Spaceship::Portal.device.create!(name: test_device.name, udid: test_device.udid)
+          rescue Spaceship::Client::UnexpectedResponse => ex
+            message = result_string(ex)
+            raise ex unless message
+            raise message
+          rescue
+            raise "Failed to register device with name: #{test_device.name} udid: #{test_device.udid}"
+          end
+
           Log.success("registering test device #{registered_test_device.name} (#{registered_test_device.udid})")
         end
 
