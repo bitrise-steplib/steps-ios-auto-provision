@@ -165,7 +165,7 @@ class ProjectHelper
       # force target attributes
       target_id = target_obj.uuid
       attributes = project.root_object.attributes['TargetAttributes']
-      target_attributes = attributes[target_id]
+      target_attributes = attributes[target_id] || {}
       target_attributes['ProvisioningStyle'] = 'Manual'
       target_attributes['DevelopmentTeam'] = development_team
       target_attributes['DevelopmentTeamName'] = ''
