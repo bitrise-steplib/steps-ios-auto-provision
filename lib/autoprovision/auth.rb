@@ -1,31 +1,8 @@
 require 'json'
 
 require_relative 'common'
+require_relative 'auth_data'
 require_relative 'portal/auth'
-
-# PortalData
-class PortalData
-  attr_reader :apple_id
-  attr_reader :password
-  attr_reader :session_cookies
-  attr_reader :test_devices
-
-  def initialize(json)
-    @apple_id = json['apple_id']
-    @password = json['password']
-    @session_cookies = json['session_cookies']
-
-    @test_devices = []
-    test_devices_json = json['test_devices']
-    test_devices_json.each { |device_json| @test_devices.push(TestDevice.new(device_json)) } unless test_devices_json.to_s.empty?
-  end
-
-  def validate
-    raise 'developer portal apple id not provided for this build' if @apple_id.to_s.empty?
-    raise 'developer portal password not provided for this build' if @password.to_s.empty?
-    @test_devices.each(&:validate)
-  end
-end
 
 # Auth ...
 class Auth
@@ -60,7 +37,7 @@ class Auth
     portal_data_json = ENV['BITRISE_PORTAL_DATA_JSON']
     unless portal_data_json.nil?
       developer_portal_data = JSON.parse(portal_data_json)
-      return PortalData.new(developer_portal_data)
+      return AuthData.new(developer_portal_data)
     end
 
     url = "#{build_url}/apple_developer_portal_data.json"
@@ -89,7 +66,7 @@ class Auth
       raise error_message
     end
 
-    PortalData.new(developer_portal_data)
+    AuthData.new(developer_portal_data)
   end
 
   def convert_des_cookie(cookies_json_str)
