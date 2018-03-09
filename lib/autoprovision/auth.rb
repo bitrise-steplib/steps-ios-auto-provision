@@ -5,10 +5,10 @@ require_relative 'portal/auth'
 
 # PortalData
 class PortalData
-  attr_accessor :apple_id
-  attr_accessor :password
-  attr_accessor :session_cookies
-  attr_accessor :test_devices
+  attr_reader :apple_id
+  attr_reader :password
+  attr_reader :session_cookies
+  attr_reader :test_devices
 
   def initialize(json)
     @apple_id = json['apple_id']
@@ -42,7 +42,7 @@ class Auth
     max_age: 2592000
   '.freeze
 
-  attr_accessor :test_devices
+  attr_reader :test_devices
 
   def login(build_url, build_api_token, team_id)
     portal_data = get_developer_portal_data(build_url, build_api_token)

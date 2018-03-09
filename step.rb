@@ -89,7 +89,6 @@ begin
       puts
       Log.success("configure target: #{target_name} (#{bundle_id})")
 
-      team_id = cert_helper.team_id
       code_sign_identity = nil
       provisioning_profile = nil
 

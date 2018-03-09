@@ -5,7 +5,7 @@ require 'English'
 
 # ProjectHelper ...
 class ProjectHelper
-  attr_accessor :targets
+  attr_reader :targets
 
   def initialize(project_or_workspace_path, scheme_name, configuration_name)
     raise "project not exist at: #{project_or_workspace_path}" unless File.exist?(project_or_workspace_path)

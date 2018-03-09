@@ -2,9 +2,9 @@ require_relative 'portal/certificate'
 
 # CertificateInfo
 class CertificateInfo
-  attr_accessor :path
-  attr_accessor :passphrase
-  attr_accessor :certificate
+  attr_reader :path
+  attr_reader :passphrase
+  attr_reader :certificate
   attr_accessor :portal_certificate
 
   def initialize(path, passphrase, certificate)
@@ -16,13 +16,12 @@ end
 
 # CertificateHelper ...
 class CertificateHelper
-  attr_accessor :team_id
-  attr_accessor :development_certificate_info
-  attr_accessor :production_certificate_info
+  attr_reader :development_certificate_info
+  attr_reader :production_certificate_info
 
   def initialize
-    @development_certificate_infos = []
-    @production_certificate_infos = []
+    @all_development_certificate_infos = []
+    @all_production_certificate_infos = []
 
     @portal_certificate_by_id = {}
   end
@@ -48,18 +47,16 @@ class CertificateHelper
     end
     Log.success("#{urls.length} certificate files downloaded, #{certificate_infos.length} distinct codesign identities included")
 
-    @development_certificate_infos, @production_certificate_infos = identify_certificate_infos(certificate_infos)
+    @all_development_certificate_infos, @all_production_certificate_infos = identify_certificate_infos(certificate_infos)
   end
 
   def ensure_certificate(name, team_id, distribution_type)
-    team_development_certificate_infos = map_certificates_infos_by_team_id(@development_certificate_infos)[team_id] || []
-    team_production_certificate_infos = map_certificates_infos_by_team_id(@production_certificate_infos)[team_id] || []
+    team_development_certificate_infos = map_certificates_infos_by_team_id(@all_development_certificate_infos)[team_id] || []
+    team_production_certificate_infos = map_certificates_infos_by_team_id(@all_production_certificate_infos)[team_id] || []
 
     if team_development_certificate_infos.empty? && team_production_certificate_infos.empty?
       raise "no certificate uploaded for the desired team: #{team_id}"
     end
-
-    @team_id = team_id
 
     if name
       filtered_team_development_certificate_infos = team_development_certificate_infos.select do |certificate_info|
@@ -152,7 +149,7 @@ class CertificateHelper
     end
 
     development_certificate_infos = []
-    production_certificate_info = []
+    production_certificate_infos = []
     certificate_infos.each do |certificate_info|
       Log.debug("searching for Certificate: #{certificate_name_and_serial(certificate_info.certificate)}")
       found = false
@@ -176,15 +173,15 @@ class CertificateHelper
 
         Log.success("#{portal_cert.name} certificate found: #{certificate_name_and_serial(certificate_info.certificate)}")
         certificate_info.portal_certificate = portal_cert
-        production_certificate_info.push(certificate_info)
+        production_certificate_infos.push(certificate_info)
       end
     end
 
-    if development_certificate_infos.empty? && production_certificate_info.empty?
+    if development_certificate_infos.empty? && production_certificate_infos.empty?
       raise 'no development nor production certificate identified on development portal'
     end
 
-    [development_certificate_infos, production_certificate_info]
+    [development_certificate_infos, production_certificate_infos]
   end
 
   def download(portal_certificate)
@@ -296,7 +293,7 @@ class CertificateHelper
 
     raise printable_response(response) unless response.code == '200'
 
-    open(path, 'wb') do |file|
+    File.open(path, 'wb') do |file|
       file.write(response.body)
     end
 

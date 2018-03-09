@@ -1,7 +1,7 @@
 require 'spaceship'
 
-def result_string(ex)
-  result = ex.preferred_error_info
+def result_string(exception)
+  result = exception.preferred_error_info
   return nil unless result
   result.join(' ')
 end

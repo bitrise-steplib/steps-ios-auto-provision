@@ -2,8 +2,8 @@ require_relative 'portal/device'
 
 # TestDevice
 class TestDevice
-  attr_accessor :udid
-  attr_accessor :name
+  attr_reader :udid
+  attr_reader :name
 
   def initialize(json)
     @udid = json['device_identifier'] || ''
