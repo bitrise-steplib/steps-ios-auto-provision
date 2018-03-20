@@ -3,9 +3,9 @@ class TestDevice
   attr_reader :udid
   attr_reader :name
 
-  def initialize(json_data)
-    @udid = json_data['device_identifier'] || ''
-    @name = json_data['title'] || ''
+  def initialize(device_data)
+    @udid = device_data['device_identifier'] || ''
+    @name = device_data['title'] || ''
   end
 
   def validate

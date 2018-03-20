@@ -2,10 +2,10 @@ require 'json'
 
 require_relative 'common'
 require_relative 'auth_data'
-require_relative 'portal/auth'
+require_relative 'portal/auth_client'
 
-# Auth ...
-class Auth
+# AuthHelper ...
+class AuthHelper
   DES_COOKIE_TEMPLATE = '---
   - !ruby/object:HTTP::Cookie
     name: <DES_NAME>
@@ -28,7 +28,7 @@ class Auth
     @test_devices = portal_data.test_devices
 
     two_factor_session = convert_des_cookie(portal_data.session_cookies)
-    Portal::Auth.login(portal_data.apple_id, portal_data.password, two_factor_session, team_id)
+    Portal::AuthClient.login(portal_data.apple_id, portal_data.password, two_factor_session, team_id)
   end
 
   private

@@ -2,13 +2,11 @@ require 'English'
 
 # KeychainHelper
 class KeychainHelper
-  class << self
-    def create_keychain(keychain_path, keychain_password)
-      cmd = ['security', '-v', 'create-keychain', '-p', keychain_password, "\"#{keychain_path}\""].join(' ')
-      Log.debug("$ #{cmd}")
-      out = `#{cmd}`
-      raise "#{cmd} failed, out: #{out}" unless $CHILD_STATUS.success?
-    end
+  def self.create_keychain(keychain_path, keychain_password)
+    cmd = ['security', '-v', 'create-keychain', '-p', keychain_password, "\"#{keychain_path}\""].join(' ')
+    Log.debug("$ #{cmd}")
+    out = `#{cmd}`
+    raise "#{cmd} failed, out: #{out}" unless $CHILD_STATUS.success?
   end
 
   def initialize(keychain_path, keychain_password)
@@ -25,7 +23,7 @@ class KeychainHelper
       return
     end
 
-    create_keychain(keychain_path, keychain_password)
+    KeychainHelper.create_keychain(keychain_path, keychain_password)
     @keychain_path = keychain_path
     @keychain_password = keychain_password
   end

@@ -1,6 +1,6 @@
 require_relative 'profile_info'
-require_relative 'portal/profile'
-require_relative 'portal/app'
+require_relative 'portal/profile_client'
+require_relative 'portal/app_client'
 
 # ProfileHelper ...
 class ProfileHelper
@@ -47,7 +47,7 @@ class ProfileHelper
       entitlements = @project_helper.target_entitlements(target_name) || {}
 
       Log.print("checking xcode managed #{distribution_type} profile for target: #{target_name} (#{bundle_id}) with #{entitlements.length} services on developer portal")
-      portal_profile = Portal::ProfileHelper.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type)
+      portal_profile = Portal::ProfileClient.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type)
 
       Log.print("downloading development profile: #{portal_profile.name}")
       profile_path = write_profile(portal_profile)
@@ -67,13 +67,13 @@ class ProfileHelper
       entitlements = @project_helper.target_entitlements(target_name) || {}
 
       Log.print("checking app for target: #{target_name} (#{bundle_id}) on developer portal")
-      app = Portal::AppHelper.ensure_app(bundle_id)
+      app = Portal::AppClient.ensure_app(bundle_id)
 
       Log.debug('sync app services')
-      app = Portal::AppHelper.sync_app_services(app, entitlements)
+      app = Portal::AppClient.sync_app_services(app, entitlements)
 
       Log.print("ensure #{distribution_type} profile for target: #{target_name} on developer portal")
-      portal_profile = Portal::ProfileHelper.ensure_manual_profile(certificate, app, distribution_type)
+      portal_profile = Portal::ProfileClient.ensure_manual_profile(certificate, app, distribution_type)
 
       Log.print("downloading development profile: #{portal_profile.name}")
       profile_path = write_profile(portal_profile)

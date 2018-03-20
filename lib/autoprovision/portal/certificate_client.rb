@@ -3,8 +3,8 @@ require 'spaceship'
 require_relative 'common'
 
 module Portal
-  # CertificateHelper ...
-  class CertificateHelper
+  # CertificateClient ...
+  class CertificateClient
     def self.download_development_certificates
       development_certificates = []
       run_and_handle_portal_function { development_certificates = Spaceship::Portal.certificate.development.all }

@@ -1,5 +1,5 @@
 require_relative 'certificate_info'
-require_relative 'portal/certificate'
+require_relative 'portal/certificate_client'
 
 # CertificateHelper ...
 class CertificateHelper
@@ -121,14 +121,14 @@ class CertificateHelper
   def identify_certificate_infos(certificate_infos)
     Log.info('Identify Certificates on Developer Portal')
 
-    portal_development_certificates = Portal::CertificateHelper.download_development_certificates
+    portal_development_certificates = Portal::CertificateClient.download_development_certificates
     Log.debug('Development certificates on Apple Developer Portal:')
     portal_development_certificates.each do |cert|
       downloaded_portal_cert = download(cert)
       Log.debug("- #{cert.name}: #{certificate_name_and_serial(downloaded_portal_cert)} expire: #{downloaded_portal_cert.not_after}")
     end
 
-    portal_production_certificates = Portal::CertificateHelper.download_production_certificates
+    portal_production_certificates = Portal::CertificateClient.download_production_certificates
     Log.debug('Production certificates on Apple Developer Portal:')
     portal_production_certificates.each do |cert|
       downloaded_portal_cert = download(cert)

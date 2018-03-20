@@ -14,7 +14,7 @@ begin
   # Developer Portal authentication
   Log.info('Developer Portal authentication')
 
-  auth = Auth.new
+  auth = AuthHelper.new
   auth.login(params.build_url, params.build_api_token, params.team_id)
 
   Log.success('authenticated')
@@ -68,7 +68,7 @@ begin
   # Ensure test devices
   if ['development', 'ad-hoc'].include?(params.distribution_type)
     Log.info('Ensure test devices on Developer Portal')
-    DeviceHelper.new.ensure_test_devices(auth.test_devices)
+    Portal::DeviceClient.ensure_test_devices(auth.test_devices)
   end
   ###
 

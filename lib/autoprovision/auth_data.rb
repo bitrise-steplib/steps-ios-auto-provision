@@ -5,14 +5,14 @@ class AuthData
   attr_reader :session_cookies
   attr_reader :test_devices
 
-  def initialize(json_data)
-    @apple_id = json_data['apple_id']
-    @password = json_data['password']
-    @session_cookies = json_data['session_cookies']
+  def initialize(test_device_data)
+    @apple_id = test_device_data['apple_id']
+    @password = test_device_data['password']
+    @session_cookies = test_device_data['session_cookies']
 
     @test_devices = []
-    test_devices_json = json_data['test_devices']
-    test_devices_json.each { |device_json| @test_devices.push(TestDevice.new(device_json)) } unless test_devices_json.to_s.empty?
+    test_devices_json = test_device_data['test_devices']
+    test_devices_json.each { |device_data| @test_devices.push(TestDevice.new(device_data)) } unless test_devices_json.to_s.empty?
   end
 
   def validate

@@ -1,11 +1,11 @@
 require 'spaceship'
 
 require_relative 'common'
-require_relative 'app'
+require_relative 'app_client'
 
 module Portal
-  # ProfileHelper ...
-  class ProfileHelper
+  # ProfileClient ...
+  class ProfileClient
     def self.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type)
       profile_class = portal_profile_class(distribution_type)
       profiles = profile_class.all(mac: false, xcode: true)
@@ -15,7 +15,7 @@ module Portal
       if matching_profiles.empty?
         matching_profiles = xcode_managed_profiles.select do |profile|
           next unless File.fnmatch(profile.app.bundle_id, bundle_id)
-          next unless AppHelper.all_services_enabled?(profile.app, entitlements)
+          next unless AppClient.all_services_enabled?(profile.app, entitlements)
           true
         end
       end

@@ -3,8 +3,8 @@ require 'spaceship'
 require_relative 'common'
 
 module Portal
-  # AppHelper ...
-  class AppHelper
+  # AppClient ...
+  class AppClient
     ON_OFF_SERVICES_BY_KEY = {
       'com.apple.security.application-groups' =>               Spaceship::Portal.app_service.app_group,
       'com.apple.developer.in-app-payments' =>                 Spaceship::Portal.app_service.apple_pay,
@@ -84,7 +84,7 @@ module Portal
       entitlements.each_key do |key|
         on_off_app_service = ON_OFF_SERVICES_BY_KEY[key]
         next unless on_off_app_service
-        return false unless AppHelper.feature_enabled?(key, app_features)
+        return false unless AppClient.feature_enabled?(key, app_features)
       end
 
       # Data Protection
@@ -131,7 +131,7 @@ module Portal
 
         service_name = ON_OFF_SERVICE_NAME_BY_KEY[key]
 
-        if AppHelper.feature_enabled?(key, app_features)
+        if AppClient.feature_enabled?(key, app_features)
           Log.print("#{service_name} already enabled")
         else
           Log.success("set #{service_name}: on")

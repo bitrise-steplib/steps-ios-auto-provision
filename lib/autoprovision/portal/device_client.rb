@@ -3,8 +3,8 @@ require 'spaceship'
 require_relative 'common'
 
 module Portal
-  # DeviceHelper ...
-  class DeviceHelper
+  # DeviceClient ...
+  class DeviceClient
     def self.ensure_test_devices(test_devices)
       if test_devices.to_a.empty?
         Log.success('no test devices registered on bitrise')
