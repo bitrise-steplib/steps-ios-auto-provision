@@ -3,8 +3,3 @@ inherit_from: .rubocop_todo.yml
 AllCops:
   Exclude:
     - '_tmp/**/*'
-
-Style/RescueStandardError:
-  Exclude:
-    - 'step.rb'
-    - 'auto-provision/generator.rb'

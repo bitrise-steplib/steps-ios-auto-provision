@@ -27,7 +27,7 @@ class Log
   end
 
   def self.debug(str)
-    puts(str.to_s) if @verbose
+    puts("\e[90m#{str}\e[0m") if @verbose
   end
 
   def self.secure_value(value)
