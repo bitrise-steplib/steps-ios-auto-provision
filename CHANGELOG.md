@@ -1,6 +1,11 @@
-## Changelog (Current version: 0.9.7)
+## Changelog (Current version: 1.0.0)
 
 -----------------
+
+### 1.0.0 (2018 Mar 21)
+
+* [07a294e] prepare for 1.0.0
+* [4e66b7c] Team profile handling (#17)
 
 ### 0.9.7 (2018 Jan 24)
 
@@ -43,4 +48,4 @@
 
 -----------------
 
-Updated: 2018 Jan 24
+Updated: 2018 Mar 21
