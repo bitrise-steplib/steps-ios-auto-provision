@@ -25,7 +25,6 @@ module Portal
         end
 
         unless registered_test_device
-
           begin
             registered_test_device = device_client.create!(name: test_device.name, udid: test_device.udid)
           rescue Spaceship::Client::UnexpectedResponse => ex
@@ -40,8 +39,6 @@ module Portal
         end
 
         raise 'failed to find or create device' unless registered_test_device
-
-        registered_test_device.enable!
       end
 
       Log.success("every test devices (#{test_devices.length}) registered on bitrise are registered on developer portal")
