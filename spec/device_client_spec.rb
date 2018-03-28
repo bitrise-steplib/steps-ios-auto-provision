@@ -12,7 +12,6 @@ RSpec.describe 'DeviceClient' do
     fake_portal_device = double
     allow(fake_portal_device).to receive(:name).and_return(device.name)
     allow(fake_portal_device).to receive(:udid).and_return(device.udid)
-    allow(fake_portal_device).to receive(:enable!).and_return(nil)
 
     fake_portal_client = double
     allow(fake_portal_client).to receive(:all).and_return(nil)

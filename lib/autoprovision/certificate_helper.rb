@@ -1,4 +1,5 @@
 require_relative 'certificate_info'
+require_relative 'utils'
 require_relative 'portal/certificate_client'
 
 # CertificateHelper ...
@@ -104,18 +105,6 @@ class CertificateHelper
     else
       @production_certificate_info
     end
-  end
-
-  def certificate_common_name(certificate)
-    common_name = certificate.subject.to_a.find { |name, _, _| name == 'CN' }[1]
-    common_name = common_name.force_encoding('UTF-8')
-    common_name
-  end
-
-  private
-
-  def certificate_name_and_serial(certificate)
-    "#{certificate_common_name(certificate)} [#{certificate.serial}]"
   end
 
   def identify_certificate_infos(certificate_infos)
