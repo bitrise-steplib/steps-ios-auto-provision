@@ -33,7 +33,7 @@ module Portal
           next
         end
 
-        unless include_certificate?(profile, portal_certificate, distribution_type)
+        unless include_certificate?(profile, portal_certificate)
           Log.debug("Profile (#{profile.name}) matches to target: #{bundle_id}, but does not contain the provided certificate")
           next
         end
@@ -48,7 +48,7 @@ module Portal
           next
         end
 
-        unless include_certificate?(profile, certificate, distribution_type)
+        unless include_certificate?(profile, portal_certificate)
           Log.debug("Wildcard Profile (#{profile.name}) matches to target: #{bundle_id}, but does not contain the provided certificate")
           next
         end
