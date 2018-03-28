@@ -183,7 +183,7 @@ class CertificateHelper
   def certificate_matches(certificate1, certificate2)
     return true if certificate1.serial == certificate2.serial
 
-    if certificate_common_name(certificate1) == certificate_common_name(certificate2)
+    if certificate_common_name(certificate1) == certificate_common_name(certificate2) && certificate1.not_after < certificate2.not_after
       Log.warn("Provided an older version of #{certificate_common_name(certificate1)} certificate (serial: #{certificate1.serial} expire: #{certificate1.not_after}),\n" \
        "please download the most recent version from the Apple Developer Portal (serial: #{certificate2.serial} expire: #{certificate2.not_after}) and use it on Bitrise!")
     end
