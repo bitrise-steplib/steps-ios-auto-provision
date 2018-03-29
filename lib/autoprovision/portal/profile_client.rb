@@ -28,7 +28,7 @@ module Portal
       # and the profiles which does not contains the provided certificate (portal_certificate)
       filtered_full_matching_profiles = []
       full_matching_profiles.each do |profile|
-        if profile.expires < Time.new
+        if Time.parse(profile.expires.to_s) < Time.now
           Log.debug("Profile (#{profile.name}) matches to target: #{bundle_id}, but expired at: #{profile.expires}")
           next
         end
@@ -48,7 +48,7 @@ module Portal
 
       filtered_matching_profiles = []
       matching_profiles.each do |profile|
-        if profile.expires < Time.new
+        if Time.parse(profile.expires.to_s) < Time.now
           Log.debug("Profile (#{profile.name}) matches to target: #{bundle_id}, but expired at: #{profile.expires}")
           next
         end
