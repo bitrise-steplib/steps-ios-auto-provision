@@ -28,6 +28,11 @@ module Portal
       # and the profiles which does not contains the provided certificate (portal_certificate)
       filtered_full_matching_profiles = []
       full_matching_profiles.each do |profile|
+        if profile.expires < Time.new
+          Log.debug("Profile (#{profile.name}) matches to target: #{bundle_id}, but expired at: #{profile.expires}")
+          next
+        end
+
         unless AppClient.all_services_enabled?(profile.app, entitlements)
           Log.debug("Profile (#{profile.name}) matches to target: #{bundle_id}, but has missing services")
           next
@@ -43,6 +48,11 @@ module Portal
 
       filtered_matching_profiles = []
       matching_profiles.each do |profile|
+        if profile.expires < Time.new
+          Log.debug("Profile (#{profile.name}) matches to target: #{bundle_id}, but expired at: #{profile.expires}")
+          next
+        end
+
         unless AppClient.all_services_enabled?(profile.app, entitlements)
           Log.debug("Wildcard Profile (#{profile.name}) matches to target: #{bundle_id}, but has missing services")
           next
@@ -56,7 +66,14 @@ module Portal
         filtered_matching_profiles.push(profile)
       end
 
-      raise "failed to find Xcode managed provisioning profile for bundle id: #{bundle_id}" if filtered_full_matching_profiles.empty? && filtered_matching_profiles.empty?
+      if filtered_full_matching_profiles.empty? && filtered_matching_profiles.empty?
+        error_message = "Failed to find Xcode managed provisioning profile for bundle id: #{bundle_id}." \
+          'Please open your project in your local Xcode and generate and ipa file' \
+          'with the desired distribution type and by using Xcode managed codesigning.' \
+          'This will create / refresh the desired managed profiles.'
+        raise error_message
+      end
+
       # prefer the full bundle id match over the glob match
       return filtered_full_matching_profiles[0] unless filtered_full_matching_profiles.empty?
       filtered_matching_profiles[0]
