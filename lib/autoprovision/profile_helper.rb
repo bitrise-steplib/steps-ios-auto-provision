@@ -51,7 +51,7 @@ class ProfileHelper
       Log.print("checking xcode managed #{distribution_type} profile for target: #{target_name} (#{bundle_id}) with #{entitlements.length} services on developer portal")
       portal_profile = Portal::ProfileClient.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, certificate)
 
-      Log.print("downloading development profile: #{portal_profile.name}")
+      Log.print("downloading #{distribution_type} profile: #{portal_profile.name}")
       profile_path = write_profile(portal_profile)
       Log.debug("profile path: #{profile_path}")
 
@@ -79,7 +79,7 @@ class ProfileHelper
       Log.print("ensure #{distribution_type} profile for target: #{target_name} on developer portal")
       portal_profile = Portal::ProfileClient.ensure_manual_profile(certificate, app, distribution_type)
 
-      Log.print("downloading development profile: #{portal_profile.name}")
+      Log.print("downloading #{distribution_type} profile: #{portal_profile.name}")
       profile_path = write_profile(portal_profile)
       Log.debug("profile path: #{profile_path}")
 

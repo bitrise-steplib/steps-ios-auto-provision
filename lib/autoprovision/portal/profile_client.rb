@@ -127,7 +127,7 @@ module Portal
         Log.debug(ex.to_s)
         Log.debug('failed to regenerate the profile, retrying in 5 sec ...')
         sleep(5)
-        ensure_provisioning_profile(certificate, app, distribution_type, false)
+        ensure_manual_profile(certificate, app, distribution_type, false)
       end
 
       raise "failed to find or create provisioning profile for bundle id: #{app.bundle_id}" unless profile
