@@ -2,7 +2,7 @@ require_relative '../lib/autoprovision/portal/device_client'
 require_relative '../lib/autoprovision/test_device'
 require_relative '../log/log'
 
-RSpec.describe 'DeviceClient' do
+RSpec.describe '.ensure_test_devices' do
   it 'it registers new device' do
     device = TestDevice.new(
       'device_identifier' => '123456',

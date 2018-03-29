@@ -36,23 +36,31 @@ def test_project_dir
 end
 
 RSpec.describe 'ProjectHelper' do
-  let(:project) do
+  let(:project_with_target_attributes) do
     path = File.join(test_project_dir, 'foo.xcodeproj')
     project = Xcodeproj::Project.open(path)
     recreate_shared_schemes(project)
     project
   end
 
-  it 'new Xcode project uses auto signing' do
-    helper = ProjectHelper.new(project.path, 'foo', '')
-    expect(helper.uses_xcode_auto_codesigning?).to eq true
-  end
-
-  it 'detect auto signing without TargetAttributes' do
+  let(:project_without_target_attributes) do
+    project = project_with_target_attributes
     project.root_object.attributes['TargetAttributes'] = nil
     project.save
+    project
+  end
 
-    helper = ProjectHelper.new(project.path, 'foo', '')
-    expect(helper.uses_xcode_auto_codesigning?).to eq true
+  describe '#uses_xcode_auto_codesigning?' do
+    subject { ProjectHelper.new(project.path, 'foo', '').uses_xcode_auto_codesigning? }
+
+    context 'when new Xcode project uses auto signing with TargetAttributes' do
+      let(:project) { project_with_target_attributes }
+      it { is_expected.to eq true }
+    end
+
+    context 'when new Xcode project uses auto signing without TargetAttributes' do
+      let(:project) { project_without_target_attributes }
+      it { is_expected.to eq true }
+    end
   end
 end
