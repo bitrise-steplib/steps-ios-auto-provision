@@ -24,7 +24,7 @@ class ProfileHelper
       if @project_helper.uses_xcode_auto_codesigning?
         ensure_xcode_managed_profiles(distr_type)
       else
-        ensure_manual_profiles(@certificate_helper.certificate_info(distr_type).portal_certificate, distr_type)
+        ensure_manual_profiles(distr_type)
       end
     end
   end
@@ -40,6 +40,8 @@ class ProfileHelper
   private
 
   def ensure_xcode_managed_profiles(distribution_type)
+    certificate = @certificate_helper.certificate_info(distribution_type).portal_certificate
+
     targets = @project_helper.targets
     targets.each do |target|
       target_name = target.name
@@ -47,9 +49,9 @@ class ProfileHelper
       entitlements = @project_helper.target_entitlements(target_name) || {}
 
       Log.print("checking xcode managed #{distribution_type} profile for target: #{target_name} (#{bundle_id}) with #{entitlements.length} services on developer portal")
-      portal_profile = Portal::ProfileClient.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type)
+      portal_profile = Portal::ProfileClient.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, certificate)
 
-      Log.print("downloading development profile: #{portal_profile.name}")
+      Log.print("downloading #{distribution_type} profile: #{portal_profile.name}")
       profile_path = write_profile(portal_profile)
       Log.debug("profile path: #{profile_path}")
 
@@ -59,7 +61,9 @@ class ProfileHelper
     end
   end
 
-  def ensure_manual_profiles(certificate, distribution_type)
+  def ensure_manual_profiles(distribution_type)
+    certificate = @certificate_helper.certificate_info(distribution_type).portal_certificate
+
     targets = @project_helper.targets
     targets.each do |target|
       target_name = target.name
@@ -75,7 +79,7 @@ class ProfileHelper
       Log.print("ensure #{distribution_type} profile for target: #{target_name} on developer portal")
       portal_profile = Portal::ProfileClient.ensure_manual_profile(certificate, app, distribution_type)
 
-      Log.print("downloading development profile: #{portal_profile.name}")
+      Log.print("downloading #{distribution_type} profile: #{portal_profile.name}")
       profile_path = write_profile(portal_profile)
       Log.debug("profile path: #{profile_path}")
 

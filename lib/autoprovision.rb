@@ -4,5 +4,6 @@ require_relative 'autoprovision/profile_helper'
 
 require_relative 'autoprovision/project_helper'
 require_relative 'autoprovision/keychain_helper'
+require_relative 'autoprovision/utils'
 
 require_relative 'autoprovision/portal/device_client'

@@ -25,13 +25,26 @@ workflows:
     - audit-this-step
     steps:
     - script:
-        title:
+        title: bundle install
         inputs:
         - content: |-
             #!/bin/bash
             set -e
-            gem install rubocop --no-document
-            rubocop
+            bundle install
+    - script:
+        title: rubocop
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -e
+            bundle exec rubocop
+    - script:
+        title: rspec
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -e
+            bundle exec rspec
     after_run:
     - test_bundle_id
     - test_xcode_managed

@@ -1,27 +1,82 @@
 require 'spaceship'
 
-require_relative 'common'
 require_relative 'app_client'
 
 module Portal
   # ProfileClient ...
   class ProfileClient
-    def self.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type)
+    def self.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, portal_certificate)
       profile_class = portal_profile_class(distribution_type)
       profiles = profile_class.all(mac: false, xcode: true)
       xcode_managed_profiles = profiles.select(&:managed_by_xcode?)
-      matching_profiles = xcode_managed_profiles.select { |profile| profile.app.bundle_id == bundle_id }
 
-      if matching_profiles.empty?
-        matching_profiles = xcode_managed_profiles.select do |profile|
-          next unless File.fnmatch(profile.app.bundle_id, bundle_id)
-          next unless AppClient.all_services_enabled?(profile.app, entitlements)
-          true
+      # Separate matching profiles
+      # full_matching_profiles contains profiles which bundle id equals to the provided bundle_id
+      # matching_profiles contains profiles which bundle id glob matches to the provided bundle_id
+      full_matching_profiles = []
+      matching_profiles = []
+      xcode_managed_profiles.each do |profile|
+        if profile.app.bundle_id == bundle_id
+          full_matching_profiles.push(profile)
+          next
         end
+
+        matching_profiles.push(profile) if File.fnmatch(profile.app.bundle_id, bundle_id)
       end
 
-      raise "failed to find Xcode managed provisioning profile for bundle id: #{bundle_id}" if matching_profiles.empty?
-      matching_profiles[0]
+      # remove profiles which does not contains all of the provided services (entitlements)
+      # and the profiles which does not contains the provided certificate (portal_certificate)
+      filtered_full_matching_profiles = []
+      full_matching_profiles.each do |profile|
+        if Time.parse(profile.expires.to_s) < Time.now
+          Log.debug("Profile (#{profile.name}) matches to target: #{bundle_id}, but expired at: #{profile.expires}")
+          next
+        end
+
+        unless AppClient.all_services_enabled?(profile.app, entitlements)
+          Log.debug("Profile (#{profile.name}) matches to target: #{bundle_id}, but has missing services")
+          next
+        end
+
+        unless include_certificate?(profile, portal_certificate)
+          Log.debug("Profile (#{profile.name}) matches to target: #{bundle_id}, but does not contain the provided certificate")
+          next
+        end
+
+        filtered_full_matching_profiles.push(profile)
+      end
+
+      filtered_matching_profiles = []
+      matching_profiles.each do |profile|
+        if Time.parse(profile.expires.to_s) < Time.now
+          Log.debug("Profile (#{profile.name}) matches to target: #{bundle_id}, but expired at: #{profile.expires}")
+          next
+        end
+
+        unless AppClient.all_services_enabled?(profile.app, entitlements)
+          Log.debug("Wildcard Profile (#{profile.name}) matches to target: #{bundle_id}, but has missing services")
+          next
+        end
+
+        unless include_certificate?(profile, portal_certificate)
+          Log.debug("Wildcard Profile (#{profile.name}) matches to target: #{bundle_id}, but does not contain the provided certificate")
+          next
+        end
+
+        filtered_matching_profiles.push(profile)
+      end
+
+      if filtered_full_matching_profiles.empty? && filtered_matching_profiles.empty?
+        error_message = "Failed to find Xcode managed provisioning profile for bundle id: #{bundle_id}." \
+          'Please open your project in your local Xcode and generate and ipa file' \
+          'with the desired distribution type and by using Xcode managed codesigning.' \
+          'This will create / refresh the desired managed profiles.'
+        raise error_message
+      end
+
+      # prefer the full bundle id match over the glob match
+      return filtered_full_matching_profiles[0] unless filtered_full_matching_profiles.empty?
+      filtered_matching_profiles[0]
     end
 
     def self.ensure_manual_profile(certificate, app, distribution_type, allow_retry = true)
@@ -72,7 +127,7 @@ module Portal
         Log.debug(ex.to_s)
         Log.debug('failed to regenerate the profile, retrying in 5 sec ...')
         sleep(5)
-        ensure_provisioning_profile(certificate, app, distribution_type, false)
+        ensure_manual_profile(certificate, app, distribution_type, false)
       end
 
       raise "failed to find or create provisioning profile for bundle id: #{app.bundle_id}" unless profile
@@ -80,6 +135,13 @@ module Portal
     end
 
     private_class_method
+
+    def self.include_certificate?(profile, certificate)
+      profile.certificates.each do |portal_certificate|
+        return true if portal_certificate.id == certificate.id
+      end
+      false
+    end
 
     def self.portal_profile_class(distribution_type)
       case distribution_type

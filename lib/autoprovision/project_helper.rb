@@ -51,8 +51,8 @@ class ProjectHelper
     target_id = main_target.uuid
 
     project = Xcodeproj::Project.open(@targets_container_project_path)
-    attributes = project.root_object.attributes['TargetAttributes']
-    target_attributes = attributes[target_id]
+    attributes = project.root_object.attributes['TargetAttributes'] || {}
+    target_attributes = attributes[target_id] || {}
     return true if target_attributes['ProvisioningStyle'] == 'Automatic'
 
     # target build settings

@@ -1,4 +1,5 @@
 require_relative 'certificate_info'
+require_relative 'utils'
 require_relative 'portal/certificate_client'
 
 # CertificateHelper ...
@@ -106,18 +107,6 @@ class CertificateHelper
     end
   end
 
-  def certificate_common_name(certificate)
-    common_name = certificate.subject.to_a.find { |name, _, _| name == 'CN' }[1]
-    common_name = common_name.force_encoding('UTF-8')
-    common_name
-  end
-
-  private
-
-  def certificate_name_and_serial(certificate)
-    "#{certificate_common_name(certificate)} [#{certificate.serial}]"
-  end
-
   def identify_certificate_infos(certificate_infos)
     Log.info('Identify Certificates on Developer Portal')
 
@@ -183,7 +172,7 @@ class CertificateHelper
   def certificate_matches(certificate1, certificate2)
     return true if certificate1.serial == certificate2.serial
 
-    if certificate_common_name(certificate1) == certificate_common_name(certificate2)
+    if certificate_common_name(certificate1) == certificate_common_name(certificate2) && certificate1.not_after < certificate2.not_after
       Log.warn("Provided an older version of #{certificate_common_name(certificate1)} certificate (serial: #{certificate1.serial} expire: #{certificate1.not_after}),\n" \
        "please download the most recent version from the Apple Developer Portal (serial: #{certificate2.serial} expire: #{certificate2.not_after}) and use it on Bitrise!")
     end

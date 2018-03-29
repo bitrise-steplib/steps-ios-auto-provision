@@ -94,13 +94,13 @@ begin
 
       if cert_helper.development_certificate_info
         certificate = cert_helper.development_certificate_info.certificate
-        code_sign_identity = cert_helper.certificate_common_name(certificate)
+        code_sign_identity = certificate_common_name(certificate)
 
         portal_profile = profile_helper.profiles_by_bundle_id('development')[bundle_id].portal_profile
         provisioning_profile = portal_profile.uuid
       elsif cert_helper.production_certificate_info
         certificate = cert_helper.production_certificate_info.certificate
-        code_sign_identity = cert_helper.certificate_common_name(certificate)
+        code_sign_identity = certificate_common_name(certificate)
 
         portal_profile = profile_helper.profiles_by_bundle_id(params.distribution_type)[bundle_id].portal_profile
         provisioning_profile = portal_profile.uuid
