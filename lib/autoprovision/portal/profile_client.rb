@@ -8,6 +8,17 @@ module Portal
     def self.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, portal_certificate)
       profile_class = portal_profile_class(distribution_type)
       profiles = profile_class.all(mac: false, xcode: true)
+
+      # Both app_store.all and ad_hoc.all return the same
+      # This is the case since September 2016, since the API has changed
+      # and there is no fast way to get the type when fetching the profiles
+      # Distinguish between App Store and Ad Hoc profiles
+      if distribution_type == 'app-store'
+        profiles = profiles.reject(&:is_adhoc?)
+      elsif distribution_type == 'ad-hoc'
+        profiles = profiles.select(&:is_adhoc?)
+      end
+
       xcode_managed_profiles = profiles.select(&:managed_by_xcode?)
 
       # Separate matching profiles
