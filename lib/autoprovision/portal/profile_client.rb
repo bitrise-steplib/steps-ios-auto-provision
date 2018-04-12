@@ -106,6 +106,7 @@ module Portal
       profile = nil
       begin
         Log.debug("generating #{distribution_type} profile: #{profile_name}")
+        profile_class = portal_profile_class(distribution_type)
         run_and_handle_portal_function { profile = profile_class.create!(bundle_id: app.bundle_id, certificate: certificate, name: profile_name) }
       rescue => ex
         # Failed to remove already existing managed profile, try it again!
