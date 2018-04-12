@@ -6,27 +6,14 @@ module Portal
   # ProfileClient ...
   class ProfileClient
     def self.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, portal_certificate)
-      profile_class = portal_profile_class(distribution_type)
-      profiles = profile_class.all(mac: false, xcode: true)
-
-      # Both app_store.all and ad_hoc.all return the same
-      # This is the case since September 2016, since the API has changed
-      # and there is no fast way to get the type when fetching the profiles
-      # Distinguish between App Store and Ad Hoc profiles
-      if distribution_type == 'app-store'
-        profiles = profiles.reject(&:is_adhoc?)
-      elsif distribution_type == 'ad-hoc'
-        profiles = profiles.select(&:is_adhoc?)
-      end
-
-      xcode_managed_profiles = profiles.select(&:managed_by_xcode?)
+      profiles = ProfileClient.fetch_profiles(distribution_type, true)
 
       # Separate matching profiles
       # full_matching_profiles contains profiles which bundle id equals to the provided bundle_id
       # matching_profiles contains profiles which bundle id glob matches to the provided bundle_id
       full_matching_profiles = []
       matching_profiles = []
-      xcode_managed_profiles.each do |profile|
+      profiles.each do |profile|
         if profile.app.bundle_id == bundle_id
           full_matching_profiles.push(profile)
           next
@@ -91,20 +78,8 @@ module Portal
     end
 
     def self.ensure_manual_profile(certificate, app, distribution_type, allow_retry = true)
-      profile_class = portal_profile_class(distribution_type)
-
-      profiles = nil
-      profile_name = "Bitrise #{distribution_type} - (#{app.bundle_id})"
-      run_and_handle_portal_function { profiles = profile_class.all.select { |profile| profile.app.bundle_id == app.bundle_id && profile.name == profile_name } }
-      # Both app_store.all and ad_hoc.all return the same
-      # This is the case since September 2016, since the API has changed
-      # and there is no fast way to get the type when fetching the profiles
-      # Distinguish between App Store and Ad Hoc profiles
-      if distribution_type == 'app-store'
-        profiles = profiles.reject(&:is_adhoc?)
-      elsif distribution_type == 'ad-hoc'
-        profiles = profiles.select(&:is_adhoc?)
-      end
+      profiles = ProfileClient.fetch_profiles(distribution_type, false)
+      profiles = profiles.select { |profile| profile.app.bundle_id == app.bundle_id && profile.name == profile_name }
 
       if profiles.empty?
         Log.debug("generating #{distribution_type} profile: #{profile_name}")
@@ -146,6 +121,28 @@ module Portal
     end
 
     private_class_method
+
+    def self.fetch_profiles(distribution_type, xcode_managed)
+      profile_class = portal_profile_class(distribution_type)
+
+      profiles = []
+      run_and_handle_portal_function { profiles = profile_class.all(mac: false, xcode: xcode_managed) }
+
+      profiles = profiles.select(&:managed_by_xcode?) if xcode_managed
+      profiles = profiles.reject { |profile| profile.sub_platform.to_s == 'tvOS' }
+
+      # Both app_store.all and ad_hoc.all return the same
+      # This is the case since September 2016, since the API has changed
+      # and there is no fast way to get the type when fetching the profiles
+      # Distinguish between App Store and Ad Hoc profiles
+      if distribution_type == 'app-store'
+        profiles = profiles.reject(&:is_adhoc?)
+      elsif distribution_type == 'ad-hoc'
+        profiles = profiles.select(&:is_adhoc?)
+      end
+
+      profiles
+    end
 
     def self.include_certificate?(profile, certificate)
       profile.certificates.each do |portal_certificate|
