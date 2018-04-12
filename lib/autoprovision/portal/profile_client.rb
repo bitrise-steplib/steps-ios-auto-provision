@@ -5,8 +5,8 @@ require_relative 'app_client'
 module Portal
   # ProfileClient ...
   class ProfileClient
-    def self.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, portal_certificate)
-      profiles = ProfileClient.fetch_profiles(distribution_type, true)
+    def self.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, portal_certificate, platform)
+      profiles = ProfileClient.fetch_profiles(distribution_type, true, platform)
 
       # Separate matching profiles
       # full_matching_profiles contains profiles which bundle id equals to the provided bundle_id
@@ -77,10 +77,10 @@ module Portal
       filtered_matching_profiles[0]
     end
 
-    def self.ensure_manual_profile(certificate, app, distribution_type, allow_retry = true)
+    def self.ensure_manual_profile(certificate, app, distribution_type, platform, allow_retry = true)
       profile_name = "Bitrise #{distribution_type} - (#{app.bundle_id})"
 
-      profiles = ProfileClient.fetch_profiles(distribution_type, false)
+      profiles = ProfileClient.fetch_profiles(distribution_type, false, platform)
       profiles = profiles.select { |profile| profile.app.bundle_id == app.bundle_id && profile.name == profile_name }
 
       if profiles.empty?
@@ -116,7 +116,7 @@ module Portal
         Log.debug(ex.to_s)
         Log.debug('failed to regenerate the profile, retrying in 5 sec ...')
         sleep(5)
-        ensure_manual_profile(certificate, app, distribution_type, false)
+        ensure_manual_profile(certificate, app, distribution_type, platform, false)
       end
 
       raise "failed to find or create provisioning profile for bundle id: #{app.bundle_id}" unless profile
@@ -125,14 +125,20 @@ module Portal
 
     private_class_method
 
-    def self.fetch_profiles(distribution_type, xcode_managed)
+    def self.fetch_profiles(distribution_type, xcode_managed, platform)
       profile_class = portal_profile_class(distribution_type)
 
       profiles = []
       run_and_handle_portal_function { profiles = profile_class.all(mac: false, xcode: xcode_managed) }
 
       profiles = profiles.select(&:managed_by_xcode?) if xcode_managed
-      profiles = profiles.reject { |profile| profile.sub_platform.to_s == 'tvOS' }
+      profiles = profiles.reject do |profile|
+        if platform == 'tvos'
+          profile.sub_platform.to_s != 'tvOS'
+        else
+          profile.sub_platform.to_s == 'tvOS'
+        end
+      end
 
       # Both app_store.all and ad_hoc.all return the same
       # This is the case since September 2016, since the API has changed

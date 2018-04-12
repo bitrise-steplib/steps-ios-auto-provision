@@ -40,6 +40,7 @@ begin
   Log.print("project codesign identity: #{codesign_identity}")
   Log.print("project team id: #{team_id}")
   Log.print("uses xcode managed signing: #{project_helper.uses_xcode_auto_codesigning?}")
+  Log.print("main target's platform: #{project_helper.platform}")
 
   targets = project_helper.targets.collect(&:name)
   targets.each_with_index do |target_name, idx|
