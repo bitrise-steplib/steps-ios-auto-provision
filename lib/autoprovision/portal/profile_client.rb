@@ -78,6 +78,8 @@ module Portal
     end
 
     def self.ensure_manual_profile(certificate, app, distribution_type, allow_retry = true)
+      profile_name = "Bitrise #{distribution_type} - (#{app.bundle_id})"
+
       profiles = ProfileClient.fetch_profiles(distribution_type, false)
       profiles = profiles.select { |profile| profile.app.bundle_id == app.bundle_id && profile.name == profile_name }
 
