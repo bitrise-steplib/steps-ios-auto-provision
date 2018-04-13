@@ -137,9 +137,9 @@ module Portal
       profiles = profiles.reject do |profile|
         case platform
         when :tvos
-          !profile.sub_platform.to_s.casecmp('tvos')
+          profile.sub_platform.to_s.casecmp('tvos') == -1
         else
-          profile.sub_platform.to_s.casecmp('tvos')
+          profile.sub_platform.to_s.casecmp('tvos') == 0
         end
       end
 
