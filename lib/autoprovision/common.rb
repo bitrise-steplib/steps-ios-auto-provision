@@ -1,6 +1,7 @@
 def printable_response(response)
-  str = "response\n"
-  str += "status: #{response.code}\n"
-  str += "body: #{response.body}\n"
-  str
+  [
+    'response',
+    "status: #{response.code}",
+    "body: #{response.body}"
+  ].join("\n")
 end
