@@ -135,10 +135,11 @@ module Portal
 
       profiles = profiles.select(&:managed_by_xcode?) if xcode_managed
       profiles = profiles.reject do |profile|
-        if platform == 'tvos'
-          profile.sub_platform.to_s != 'tvOS'
+        case platform
+        when :tvos
+          !profile.sub_platform.to_s.casecmp('tvos')
         else
-          profile.sub_platform.to_s == 'tvOS'
+          profile.sub_platform.to_s.casecmp('tvos')
         end
       end
 
