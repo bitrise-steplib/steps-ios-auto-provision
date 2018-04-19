@@ -90,7 +90,7 @@ class CertificateHelper
       raise [
         'Selected distribution type: development, but forgot to provide a Development type certificate.',
         "Don't worry, it's really simple to fix! :)",
-        "Simply provide a Development type certificate (.p12) and we'll be building in no time!"
+        "Simply upload a Development type certificate (.p12) on the workflow editor's CodeSign tab and we'll be building in no time!"
       ].join("\n")
     end
 
@@ -98,7 +98,7 @@ class CertificateHelper
       raise [
         "Selected distribution type: #{distribution_type}, but forgot to provide a Distribution type certificate.",
         "Don't worry, it's really simple to fix! :)",
-        "Simply provide a Distribution type certificate (.p12) and we'll be building in no time!"
+        "Simply upload a Distribution type certificate (.p12) on the workflow editor's CodeSign tab and we'll be building in no time!"
       ].join("\n")
     end
   end
