@@ -5,17 +5,15 @@ require_relative 'app_client'
 module Portal
   # ProfileClient ...
   class ProfileClient
-    def self.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, portal_certificate)
-      profile_class = portal_profile_class(distribution_type)
-      profiles = profile_class.all(mac: false, xcode: true)
-      xcode_managed_profiles = profiles.select(&:managed_by_xcode?)
+    def self.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, portal_certificate, platform)
+      profiles = ProfileClient.fetch_profiles(distribution_type, true, platform)
 
       # Separate matching profiles
       # full_matching_profiles contains profiles which bundle id equals to the provided bundle_id
       # matching_profiles contains profiles which bundle id glob matches to the provided bundle_id
       full_matching_profiles = []
       matching_profiles = []
-      xcode_managed_profiles.each do |profile|
+      profiles.each do |profile|
         if profile.app.bundle_id == bundle_id
           full_matching_profiles.push(profile)
           next
@@ -67,10 +65,12 @@ module Portal
       end
 
       if filtered_full_matching_profiles.empty? && filtered_matching_profiles.empty?
-        error_message = "Failed to find Xcode managed provisioning profile for bundle id: #{bundle_id}." \
-          'Please open your project in your local Xcode and generate and ipa file' \
-          'with the desired distribution type and by using Xcode managed codesigning.' \
+        error_message = [
+          "Failed to find Xcode managed provisioning profile for bundle id: #{bundle_id}.",
+          'Please open your project in your local Xcode and generate and ipa file',
+          'with the desired distribution type and by using Xcode managed codesigning.',
           'This will create / refresh the desired managed profiles.'
+        ].join("\n")
         raise error_message
       end
 
@@ -79,21 +79,11 @@ module Portal
       filtered_matching_profiles[0]
     end
 
-    def self.ensure_manual_profile(certificate, app, distribution_type, allow_retry = true)
-      profile_class = portal_profile_class(distribution_type)
-
-      profiles = nil
+    def self.ensure_manual_profile(certificate, app, distribution_type, platform, allow_retry = true)
       profile_name = "Bitrise #{distribution_type} - (#{app.bundle_id})"
-      run_and_handle_portal_function { profiles = profile_class.all.select { |profile| profile.app.bundle_id == app.bundle_id && profile.name == profile_name } }
-      # Both app_store.all and ad_hoc.all return the same
-      # This is the case since September 2016, since the API has changed
-      # and there is no fast way to get the type when fetching the profiles
-      # Distinguish between App Store and Ad Hoc profiles
-      if distribution_type == 'app-store'
-        profiles = profiles.reject(&:is_adhoc?)
-      elsif distribution_type == 'ad-hoc'
-        profiles = profiles.select(&:is_adhoc?)
-      end
+
+      profiles = ProfileClient.fetch_profiles(distribution_type, false, platform)
+      profiles = profiles.select { |profile| profile.app.bundle_id == app.bundle_id && profile.name == profile_name }
 
       if profiles.empty?
         Log.debug("generating #{distribution_type} profile: #{profile_name}")
@@ -118,6 +108,7 @@ module Portal
       profile = nil
       begin
         Log.debug("generating #{distribution_type} profile: #{profile_name}")
+        profile_class = portal_profile_class(distribution_type)
         run_and_handle_portal_function { profile = profile_class.create!(bundle_id: app.bundle_id, certificate: certificate, name: profile_name) }
       rescue => ex
         # Failed to remove already existing managed profile, try it again!
@@ -127,7 +118,7 @@ module Portal
         Log.debug(ex.to_s)
         Log.debug('failed to regenerate the profile, retrying in 5 sec ...')
         sleep(5)
-        ensure_manual_profile(certificate, app, distribution_type, false)
+        ensure_manual_profile(certificate, app, distribution_type, platform, false)
       end
 
       raise "failed to find or create provisioning profile for bundle id: #{app.bundle_id}" unless profile
@@ -135,6 +126,34 @@ module Portal
     end
 
     private_class_method
+
+    def self.fetch_profiles(distribution_type, xcode_managed, platform)
+      profile_class = portal_profile_class(distribution_type)
+
+      profiles = []
+      run_and_handle_portal_function { profiles = profile_class.all(mac: false, xcode: xcode_managed) }
+
+      profiles = profiles.select(&:managed_by_xcode?) if xcode_managed
+      profiles = profiles.reject do |profile|
+        if platform == :tvos
+          profile.sub_platform.to_s.casecmp('tvos') == -1
+        else
+          profile.sub_platform.to_s.casecmp('tvos').zero?
+        end
+      end
+
+      # Both app_store.all and ad_hoc.all return the same
+      # This is the case since September 2016, since the API has changed
+      # and there is no fast way to get the type when fetching the profiles
+      # Distinguish between App Store and Ad Hoc profiles
+      if distribution_type == 'app-store'
+        profiles = profiles.reject(&:is_adhoc?)
+      elsif distribution_type == 'ad-hoc'
+        profiles = profiles.select(&:is_adhoc?)
+      end
+
+      profiles
+    end
 
     def self.include_certificate?(profile, certificate)
       profile.certificates.each do |portal_certificate|

@@ -87,15 +87,19 @@ class CertificateHelper
     end
 
     if distribution_type == 'development' && @development_certificate_info.nil?
-      raise "Selected distribution type: development, but forgot to provide a Development type certificate.\n" \
-  "Don't worry, it's really simple to fix! :)\n" \
-  "Simply provide a Development type certificate (.p12) and we'll be building in no time!"
+      raise [
+        'Selected distribution type: development, but forgot to provide a Development type certificate.',
+        "Don't worry, it's really simple to fix! :)",
+        "Simply upload a Development type certificate (.p12) on the workflow editor's CodeSign tab and we'll be building in no time!"
+      ].join("\n")
     end
 
     if distribution_type != 'development' && @production_certificate_info.nil?
-      raise "Selected distribution type: #{distribution_type}, but forgot to provide a Distribution type certificate.\n" \
-  "Don't worry, it's really simple to fix! :)\n" \
-  "Simply provide a Distribution type certificate (.p12) and we'll be building in no time!"
+      raise [
+        "Selected distribution type: #{distribution_type}, but forgot to provide a Distribution type certificate.",
+        "Don't worry, it's really simple to fix! :)",
+        "Simply upload a Distribution type certificate (.p12) on the workflow editor's CodeSign tab and we'll be building in no time!"
+      ].join("\n")
     end
   end
 
@@ -173,8 +177,10 @@ class CertificateHelper
     return true if certificate1.serial == certificate2.serial
 
     if certificate_common_name(certificate1) == certificate_common_name(certificate2) && certificate1.not_after < certificate2.not_after
-      Log.warn("Provided an older version of #{certificate_common_name(certificate1)} certificate (serial: #{certificate1.serial} expire: #{certificate1.not_after}),\n" \
-       "please download the most recent version from the Apple Developer Portal (serial: #{certificate2.serial} expire: #{certificate2.not_after}) and use it on Bitrise!")
+      Log.warn([
+        "Provided an older version of #{certificate_common_name(certificate1)} certificate (serial: #{certificate1.serial} expire: #{certificate1.not_after}),",
+        "please download the most recent version from the Apple Developer Portal (serial: #{certificate2.serial} expire: #{certificate2.not_after}) and use it on Bitrise!"
+      ].join("\n"))
     end
 
     false

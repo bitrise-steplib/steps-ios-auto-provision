@@ -22,9 +22,9 @@ class ProfileHelper
 
     distribution_types.each do |distr_type|
       if @project_helper.uses_xcode_auto_codesigning?
-        ensure_xcode_managed_profiles(distr_type)
+        ensure_xcode_managed_profiles(distr_type, @project_helper.platform)
       else
-        ensure_manual_profiles(distr_type)
+        ensure_manual_profiles(distr_type, @project_helper.platform)
       end
     end
   end
@@ -39,7 +39,7 @@ class ProfileHelper
 
   private
 
-  def ensure_xcode_managed_profiles(distribution_type)
+  def ensure_xcode_managed_profiles(distribution_type, platform)
     certificate = @certificate_helper.certificate_info(distribution_type).portal_certificate
 
     targets = @project_helper.targets
@@ -49,7 +49,7 @@ class ProfileHelper
       entitlements = @project_helper.target_entitlements(target_name) || {}
 
       Log.print("checking xcode managed #{distribution_type} profile for target: #{target_name} (#{bundle_id}) with #{entitlements.length} services on developer portal")
-      portal_profile = Portal::ProfileClient.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, certificate)
+      portal_profile = Portal::ProfileClient.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, certificate, platform)
 
       Log.print("downloading #{distribution_type} profile: #{portal_profile.name}")
       profile_path = write_profile(portal_profile)
@@ -61,7 +61,7 @@ class ProfileHelper
     end
   end
 
-  def ensure_manual_profiles(distribution_type)
+  def ensure_manual_profiles(distribution_type, platform)
     certificate = @certificate_helper.certificate_info(distribution_type).portal_certificate
 
     targets = @project_helper.targets
@@ -77,7 +77,7 @@ class ProfileHelper
       app = Portal::AppClient.sync_app_services(app, entitlements)
 
       Log.print("ensure #{distribution_type} profile for target: #{target_name} on developer portal")
-      portal_profile = Portal::ProfileClient.ensure_manual_profile(certificate, app, distribution_type)
+      portal_profile = Portal::ProfileClient.ensure_manual_profile(certificate, app, distribution_type, platform)
 
       Log.print("downloading #{distribution_type} profile: #{portal_profile.name}")
       profile_path = write_profile(portal_profile)

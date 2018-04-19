@@ -6,6 +6,7 @@ require 'English'
 # ProjectHelper ...
 class ProjectHelper
   attr_reader :targets
+  attr_reader :platform
 
   def initialize(project_or_workspace_path, scheme_name, configuration_name)
     raise "project not exist at: #{project_or_workspace_path}" unless File.exist?(project_or_workspace_path)
@@ -20,6 +21,8 @@ class ProjectHelper
 
     # read scheme application targets
     target, @targets_container_project_path = read_scheme_archivable_target_and_container_project(scheme, scheme_container_project_path)
+    @platform = target.platform_name
+
     @targets = collect_dependent_targets(target)
     raise 'failed to collect scheme targets' if @targets.empty?
 
