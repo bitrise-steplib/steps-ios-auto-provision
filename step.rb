@@ -58,6 +58,8 @@ begin
     team_id = params.team_id
     codesign_identity = nil
   end
+
+  raise 'failed to determine project development team' unless team_id
   ###
 
   # Matching project codesign identity with the uploaded certificates
