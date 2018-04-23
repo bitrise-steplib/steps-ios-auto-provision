@@ -54,9 +54,11 @@ class ProjectHelper
     target_id = main_target.uuid
 
     project = Xcodeproj::Project.open(@targets_container_project_path)
-    attributes = project.root_object.attributes['TargetAttributes'] || {}
-    target_attributes = attributes[target_id] || {}
-    return true if target_attributes['ProvisioningStyle'] == 'Automatic'
+    attributes = project.root_object.attributes['TargetAttributes']
+    if attributes
+      target_attributes = attributes[target_id] || {}
+      return true if target_attributes['ProvisioningStyle'] == 'Automatic'
+    end
 
     # target build settings
     main_target.build_configuration_list.build_configurations.each do |build_configuration|
@@ -106,7 +108,7 @@ class ProjectHelper
     team_id = nil
 
     project = Xcodeproj::Project.open(@targets_container_project_path)
-    attributes = project.root_object.attributes['TargetAttributes']
+    attributes = project.root_object.attributes['TargetAttributes'] || {}
 
     @targets.each do |target|
       target_name = target.name
@@ -140,8 +142,6 @@ class ProjectHelper
       team_id = nil
       break
     end
-
-    raise 'failed to determine project development team' unless team_id
 
     team_id
   end
@@ -191,10 +191,12 @@ class ProjectHelper
       # force target attributes
       target_id = target_obj.uuid
       attributes = project.root_object.attributes['TargetAttributes']
-      target_attributes = attributes[target_id]
-      target_attributes['ProvisioningStyle'] = 'Manual'
-      target_attributes['DevelopmentTeam'] = development_team
-      target_attributes['DevelopmentTeamName'] = ''
+      if attributes
+        target_attributes = attributes[target_id]
+        target_attributes['ProvisioningStyle'] = 'Manual'
+        target_attributes['DevelopmentTeam'] = development_team
+        target_attributes['DevelopmentTeamName'] = ''
+      end
 
       # force target build settings
       target_obj.build_configuration_list.build_configurations.each do |build_configuration|
