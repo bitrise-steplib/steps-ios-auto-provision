@@ -1,6 +1,13 @@
-## Changelog (Current version: 1.0.1)
+## Changelog (Current version: 1.0.2)
 
 -----------------
+
+### 1.0.2 (2018 Apr 23)
+
+* [86834cf] prepare for 1.0.2
+* [33c58d5] Disabled in CLI. (#26)
+* [0d0efc9] Team (#25)
+* [52249e4] Distinguish between App Store and Ad Hoc profiles (#24)
 
 ### 1.0.1 (2018 Mar 29)
 
@@ -53,4 +60,4 @@
 
 -----------------
 
-Updated: 2018 Mar 29
+Updated: 2018 Apr 23
