@@ -29,8 +29,13 @@ class CertificateHelper
 
       certificates.each do |certificate|
         Log.debug("- #{certificate_name_and_serial(certificate)}")
-        certificate_info = CertificateInfo.new(path, passes[idx], certificate)
-        certificate_infos = append_if_latest_certificate(certificate_info, certificate_infos)
+
+        if certificate.not_after < Time.now.utc
+          Log.error("[X] Certificate is not valid anymore - validity ended at: #{certificate.not_after}\n")
+        else
+          certificate_info = CertificateInfo.new(path, passes[idx], certificate)
+          certificate_infos = append_if_latest_certificate(certificate_info, certificate_infos)
+        end
       end
     end
     Log.success("#{urls.length} certificate files downloaded, #{certificate_infos.length} distinct codesign identities included")
