@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.0.2)
+## Changelog (Current version: 1.0.3)
 
 -----------------
+
+### 1.0.3 (2018 May 08)
+
+* [bc8b8f1] Prepare for 1.0.3
+* [a06084d] check certificate expiration (#27)
 
 ### 1.0.2 (2018 Apr 23)
 
@@ -60,4 +65,4 @@
 
 -----------------
 
-Updated: 2018 Apr 23
+Updated: 2018 May 08
