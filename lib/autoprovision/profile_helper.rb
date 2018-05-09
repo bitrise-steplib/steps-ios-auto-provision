@@ -8,11 +8,10 @@ class ProfileHelper
     @project_helper = project_helper
     @certificate_helper = certificate_helper
 
-    @managed_profiles = {}
-    @manual_profiles = {}
+    @profiles = {}
   end
 
-  def ensure_profiles(distribution_type)
+  def ensure_profiles(distribution_type, generate_profiles = false)
     distribution_types = [distribution_type]
     if distribution_type != 'development' && @certificate_helper.certificate_info('development')
       distribution_types = ['development'].concat(distribution_types)
@@ -22,7 +21,20 @@ class ProfileHelper
 
     distribution_types.each do |distr_type|
       if @project_helper.uses_xcode_auto_codesigning?
-        ensure_xcode_managed_profiles(distr_type, @project_helper.platform)
+        if generate_profiles
+          Log.warn('project uses Xcode managed signing, but generate_profiles set to true, trying to generate Provisioning Profiles')
+          begin
+            ensure_manual_profiles(distr_type, @project_helper.platform)
+          rescue => ex
+            Log.error('generate_profiles set to true, but failed to generate Provisioning Profiles with error:')
+            Log.error(ex.to_s)
+            Log.info("\nTrying to use Xcode managed Provisioning Profiles")
+
+            ensure_xcode_managed_profiles(distr_type, @project_helper.platform)
+          end
+        else
+          ensure_xcode_managed_profiles(distr_type, @project_helper.platform)
+        end
       else
         ensure_manual_profiles(distr_type, @project_helper.platform)
       end
@@ -30,11 +42,7 @@ class ProfileHelper
   end
 
   def profiles_by_bundle_id(distribution_type)
-    if @project_helper.uses_xcode_auto_codesigning?
-      @managed_profiles[distribution_type]
-    else
-      @manual_profiles[distribution_type]
-    end
+    @profiles[distribution_type]
   end
 
   private
@@ -56,8 +64,8 @@ class ProfileHelper
       Log.debug("profile path: #{profile_path}")
 
       profile_info = ProfileInfo.new(profile_path, portal_profile)
-      @managed_profiles[distribution_type] ||= {}
-      @managed_profiles[distribution_type][bundle_id] = profile_info
+      @profiles[distribution_type] ||= {}
+      @profiles[distribution_type][bundle_id] = profile_info
     end
   end
 
@@ -84,8 +92,8 @@ class ProfileHelper
       Log.debug("profile path: #{profile_path}")
 
       profile_info = ProfileInfo.new(profile_path, portal_profile)
-      @manual_profiles[distribution_type] ||= {}
-      @manual_profiles[distribution_type][bundle_id] = profile_info
+      @profiles[distribution_type] ||= {}
+      @profiles[distribution_type][bundle_id] = profile_info
     end
   end
 

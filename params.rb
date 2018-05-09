@@ -12,6 +12,7 @@ class Params
   attr_accessor :keychain_path
   attr_accessor :keychain_password
   attr_accessor :verbose_log
+  attr_accessor :generate_profiles
 
   attr_accessor :certificate_urls
   attr_accessor :passphrases
@@ -29,6 +30,7 @@ class Params
     @keychain_path = ENV['keychain_path']
     @keychain_password = ENV['keychain_password']
     @verbose_log = ENV['verbose_log']
+    @generate_profiles = ENV['generate_profiles']
 
     @certificate_urls = split_pipe_separated_list(@certificate_urls_str)
     @passphrases = split_pipe_separated_list(@passphrases_str)
@@ -48,6 +50,7 @@ class Params
     Log.print("keychain_path: #{@keychain_path}")
     Log.print("keychain_password: #{Log.secure_value(@keychain_password)}")
     Log.print("verbose_log: #{@verbose_log}")
+    Log.print("generate_profiles: #{@generate_profiles}")
   end
 
   def validate
@@ -60,6 +63,7 @@ class Params
     raise 'missing: keychain_path' if @keychain_path.to_s.empty?
     raise 'missing: keychain_password' if @keychain_password.to_s.empty?
     raise 'missing: verbose_log' if @verbose_log.to_s.empty?
+    raise 'missing: generate_profiles' if @generate_profiles.to_s.empty?
   end
 
   private

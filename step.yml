@@ -3,9 +3,15 @@ summary: Automatically manages your iOS Provisioning Profiles for your Xcode pro
 description: |-
   Automatically manages your iOS Provisioning Profiles for your Xcode project:
 
+  in case of Xcode managed codesigning:
+
+  - it downloads the Xcode managed Provisioning Profiles for the project
+
+  otherwise:
+
   - it ensures that the Application Identifier exists on the Apple Developer Portal
   - it ensures that the project's Capabilities are set correctly in the Application Identifier
-  - it ensures that the Provisioning Profiles exists on the Apple Developer Portal
+  - it ensures that the Provisioning Profiles exists on the Apple Developer Portal and are installed for the build
   - it ensure that all the available Test Devices exists on the Apple Developer Portal and are included in the Provisioning Profile as well
   - it installs all the Codesigning Certificates into the Keychain
 
@@ -75,6 +81,19 @@ inputs:
       in your Xcode Project**. If it does not, if you have a typo
       in the value of this input Xcode will simply use the Configuration
       specified by the Scheme and will silently ignore this parameter!
+- generate_profiles: "no"
+  opts:
+    title: Should the step try to generate Provisioning Profiles even if Xcode managed signing is enabled in the Xcode project?
+    description: |-
+      In case of Xcode projects, which uses Xcode managed signing, by default the step downloads and installs the Xcode managed Provisioning Profiles.
+
+      If this input is set to: `true`, the step will try to manage the Provisioning Profiles by itself (and does not use the Xcode managed Provisioning Profiles),  
+      the step will fall back to use the Xcode managed Provisioning Profiles in case of an issue.
+
+      _NOTE: this input has no effect in case of NON Xcode managed codesigning projects._
+    value_options:
+    - "yes"
+    - "no"
 - verbose_log: "no"
   opts:
     category: Debug
@@ -121,14 +140,12 @@ inputs:
 - keychain_path: $HOME/Library/Keychains/login.keychain
   opts:
     category: Debug
-    category: Config
     title: Keychain path
     description: The Keychain path
     is_required: true
 - keychain_password: $BITRISE_KEYCHAIN_PASSWORD
   opts:
     category: Debug
-    category: Config
     title: Keychain's password
     description: The Keychain's password
     is_required: true
