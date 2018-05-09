@@ -19,30 +19,31 @@ class ProfileHelper
 
     Log.debug("distribution_types: #{distribution_types}")
 
+    if @project_helper.uses_xcode_auto_codesigning? && generate_profiles
+      Log.warn('project uses Xcode managed signing, but generate_profiles set to true, trying to generate Provisioning Profiles')
+
+      begin
+        distribution_types.each { |distr_type| ensure_manual_profiles(distr_type, @project_helper.platform) }
+      rescue => ex
+        Log.error('generate_profiles set to true, but failed to generate Provisioning Profiles with error:')
+        Log.error(ex.to_s)
+        Log.info("\nTrying to use Xcode managed Provisioning Profiles")
+
+        ensure_profiles(distribution_type, false)
+      end
+
+      return false
+    end
+
     distribution_types.each do |distr_type|
       if @project_helper.uses_xcode_auto_codesigning?
-        if generate_profiles
-          Log.warn('project uses Xcode managed signing, but generate_profiles set to true, trying to generate Provisioning Profiles')
-          begin
-            ensure_manual_profiles(distr_type, @project_helper.platform)
-            return false
-          rescue => ex
-            Log.error('generate_profiles set to true, but failed to generate Provisioning Profiles with error:')
-            Log.error(ex.to_s)
-            Log.info("\nTrying to use Xcode managed Provisioning Profiles")
-
-            ensure_xcode_managed_profiles(distr_type, @project_helper.platform)
-            return true
-          end
-        else
-          ensure_xcode_managed_profiles(distr_type, @project_helper.platform)
-          return true
-        end
+        ensure_xcode_managed_profiles(distr_type, @project_helper.platform)
       else
         ensure_manual_profiles(distr_type, @project_helper.platform)
-        return false
       end
     end
+
+    @project_helper.uses_xcode_auto_codesigning?
   end
 
   def profiles_by_bundle_id(distribution_type)
