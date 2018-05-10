@@ -79,10 +79,10 @@ begin
   Log.info('Ensure Provisioning Profiles on Developer Portal')
 
   profile_helper = ProfileHelper.new(project_helper, cert_helper)
-  profile_helper.ensure_profiles(params.distribution_type)
+  xcode_managed_signing = profile_helper.ensure_profiles(params.distribution_type, params.generate_profiles == 'yes')
   ###
 
-  unless project_helper.uses_xcode_auto_codesigning?
+  unless xcode_managed_signing
     # Apply code sign setting in project
     Log.info('Apply code sign setting in project')
 

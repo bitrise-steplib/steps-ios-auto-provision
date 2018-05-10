@@ -1,15 +1,22 @@
 title: iOS Auto Provision
 summary: Automatically manages your iOS Provisioning Profiles for your Xcode project
 description: |-
-  Automatically manages your iOS Provisioning Profiles for your Xcode project:
+  ### Automatically manages your iOS Provisioning Profiles for your Xcode project.
 
-  - it ensures that the Application Identifier exists on the Apple Developer Portal
-  - it ensures that the project's Capabilities are set correctly in the Application Identifier
-  - it ensures that the Provisioning Profiles exists on the Apple Developer Portal
-  - it ensure that all the available Test Devices exists on the Apple Developer Portal and are included in the Provisioning Profile as well
-  - it installs all the Codesigning Certificates into the Keychain
+  __Setup guide__: [https://blog.bitrise.io/ios-auto-provision-step](https://blog.bitrise.io/ios-auto-provision-step)
 
-  Setup guide: https://blog.bitrise.io/ios-auto-provision-step
+  In case of __Xcode managed codesigning__ projects:
+
+  - downloads the __Xcode managed Provisioning Profiles__ and installs for the build
+  - installs the provided __Codesigning Certificates__ into the Keychain
+
+  In case of __Manual codesigning__ projects:
+
+  - ensures that the __Application Identifier__ exists on the Apple Developer Portal
+  - ensures that the __project's Capabilities__ are set correctly in the Application Identifier
+  - ensures that the __Provisioning Profiles__ exists on the Apple Developer Portal and are installed for the build
+  - ensure that all the available __Test Devices__ exists on the Apple Developer Portal and are included in the Provisioning Profiles
+  - installs the provided __Codesigning Certificates__ into the Keychain
 website: https://github.com/bitrise-steplib/steps-ios-auto-provision
 source_code_url: https://github.com/bitrise-steplib/steps-ios-auto-provision
 support_url: https://github.com/bitrise-steplib/steps-ios-auto-provision/issues
@@ -32,9 +39,8 @@ run_if: ".IsCI"
 inputs:
 - distribution_type: development
   opts:
-    title: "Distribution type"
-    description: |-
-      Describes how Xcode should sign your project.
+    title: Distribution type
+    description: Describes how Xcode should sign your project.
     value_options:
     - "development"
     - "app-store"
@@ -43,42 +49,51 @@ inputs:
     is_required: true
 - team_id:
   opts:
-    title: "The Developer Portal team id"
+    title: The Developer Portal team id
     description: |-
-      The Developer Portal team to manage the project's code signing files.
+      The Developer Portal team to manage the project's codesigning files.
 
-      __If your Developer Portal Account belongs to multiple development team, this input is required!__ Otherwise specify this input if you want to manage the Profiles with different team, then one set in your project.
+      __If your Developer Portal Account belongs to multiple development team, this input is required!__   
+      Otherwise specify this input if you want to manage the Provisioning Profiles with different team, then the one set in your project.
 
       If you leave it empty the project defined team will be used.
 
-      Example: `1MZX23ABCD4`
+      __Example:__ `1MZX23ABCD4`
 - project_path: $BITRISE_PROJECT_PATH
   opts:
-    title: "Xcode Project (or Workspace) path"
-    description: |-
-      A `.xcodeproj` or `.xcworkspace` path.
+    title: Xcode Project (or Workspace) path
+    description: A `.xcodeproj` or `.xcworkspace` path.
     is_required: true
 - scheme: $BITRISE_SCHEME
   opts:
-    title: "Scheme name"
-    description: |-
-      The Scheme to use.
+    title: Scheme name
+    description: The Xcode Scheme to use.
     is_required: true
 - configuration:
   opts:
-    title: "Configuration name"
+    title: Configuration name
     description: |-
-      (optional) The configuration to use. By default your Scheme
-      defines which configuration (Debug, Release, ...) should be used,
+      The Xcode Configuration to use. 
+      
+      By default your Scheme defines which Configuration (Debug, Release, ...) should be used,
       but you can overwrite it with this option.
-      **Make sure that the Configuration you specify actually exists
-      in your Xcode Project**. If it does not, if you have a typo
-      in the value of this input Xcode will simply use the Configuration
-      specified by the Scheme and will silently ignore this parameter!
+- generate_profiles: "no"
+  opts:
+    title: Should the step try to generate Provisioning Profiles even if Xcode managed signing is enabled in the Xcode project?
+    description: |-
+      In case of __Xcode managed codesigning__ projects, by default the step downloads and installs the Xcode managed Provisioning Profiles.
+
+      If this input is set to: `yes`, the step will try to manage the Provisioning Profiles by itself (__like in case of Manual codesigning projects__),  
+      the step will fall back to use the Xcode managed Provisioning Profiles in case of an issue.
+
+      __This input has no effect in case of Manual codesigning projects.__
+    value_options:
+    - "yes"
+    - "no"
 - verbose_log: "no"
   opts:
     category: Debug
-    title: "Enable verbose logging?"
+    title: Enable verbose logging?
     description: Enable verbose logging?
     is_required: true
     value_options:
@@ -87,60 +102,51 @@ inputs:
 - certificate_urls: $BITRISE_CERTIFICATE_URL
   opts:
     category: Debug
-    title: "Certificate URL"
+    title: Certificate URL
     description: |
       URLs of the certificates to download.
 
-      Multiple URLs can be specified, separated by a pipe (`|`) character.
+      Multiple URLs can be specified, separated by a pipe (`|`) character,  
+      you can specify a local path as well, using the `file://` scheme.
 
-      You can specify a local path as well, using the `file://` scheme.
+      __Provide a development certificate__ url, to ensure development code sign files for the project and __also provide a distribution certificate__ url, to ensure distribution code sign files for your project.
 
-      Provide a development certificate url, to ensure development code sign files for the project and also provide a distribution certificate url, to ensure distribution code sign files for your project.
-
-      Example: 
-
-      `file://./development/certificate/path|https://distribution/certificate/url`
+      __Example:__ `file://./development/certificate/path|https://distribution/certificate/url`
     is_required: true
 - passphrases: $BITRISE_CERTIFICATE_PASSPHRASE
   opts:
     category: Debug
-    title: "Certificate passphrase"
+    title: Certificate passphrase
     description: |
       Certificate passphrases.
 
       Multiple passphrases can be specified, separated by a pipe (`|`) character.
 
-      Specified certificate passphrase count should match the count of the certificate urls.
+      __Specified certificate passphrase count should match the count of the certificate urls.__
 
-      example: development certificate with empty passphrase, distribution certificate with non-empty passphrase
-
-      ```
-      passphrases: "|distribution-passphrase"
-      ```
+      __Example__ (1 certificate with empty passphrase, 1 certificate with non-empty passphrase): `|distribution-passphrase`
     is_required: true
 - keychain_path: $HOME/Library/Keychains/login.keychain
   opts:
     category: Debug
-    category: Config
     title: Keychain path
-    description: The Keychain path
+    description: The Keychain path.
     is_required: true
 - keychain_password: $BITRISE_KEYCHAIN_PASSWORD
   opts:
     category: Debug
-    category: Config
     title: Keychain's password
-    description: The Keychain's password
+    description: The Keychain's password.
     is_required: true
 - build_url: $BITRISE_BUILD_URL
   opts:
     category: Debug
-    title: "Bitrise build url"
-    description: "Bitrise build url"
+    title: Bitrise build url
+    description: Bitrise build url.
     is_required: true
 - build_api_token: $BITRISE_BUILD_API_TOKEN
   opts:
     category: Debug
-    title: "Bitrise build api token"
-    description: "Bitrise build api token"
+    title: Bitrise build api token
+    description: Bitrise build api token.
     is_required: true

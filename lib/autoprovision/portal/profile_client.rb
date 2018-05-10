@@ -66,7 +66,7 @@ module Portal
 
       if filtered_full_matching_profiles.empty? && filtered_matching_profiles.empty?
         error_message = [
-          "Failed to find Xcode managed provisioning profile for bundle id: #{bundle_id}.",
+          "Failed to find #{distribution_type} Xcode managed provisioning profile for bundle id: #{bundle_id}.",
           'Please open your project in your local Xcode and generate and ipa file',
           'with the desired distribution type and by using Xcode managed codesigning.',
           'This will create / refresh the desired managed profiles.'
