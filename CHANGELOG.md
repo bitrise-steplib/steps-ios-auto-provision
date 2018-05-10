@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.0.3)
+## Changelog (Current version: 1.1.0)
 
 -----------------
+
+### 1.1.0 (2018 May 10)
+
+* [b4ff44e] prepare for release
+* [700a8a9] allow to generate profiles in case of xcode managed signing (#28)
 
 ### 1.0.3 (2018 May 08)
 
@@ -65,4 +70,4 @@
 
 -----------------
 
-Updated: 2018 May 08
+Updated: 2018 May 10
