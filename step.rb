@@ -129,7 +129,7 @@ begin
 
   Log.success("#{certificate_path_passphrase_map.length} certificates installed")
 
-  `envman add --key "IOS_DISTRIBUTION_TYPE" --value #{params.distribution_type}`
+  `envman add --key "BITRISE_EXPORT_METHOD" --value #{params.distribution_type}`
   ###
 rescue => ex
   puts

@@ -151,6 +151,6 @@ inputs:
     description: Bitrise build api token.
     is_required: true
 outputs:
-  - IOS_DISTRIBUTION_TYPE:
+  - BITRISE_EXPORT_METHOD:
     opts:
       title: "The selected distribution type"

@@ -140,7 +140,7 @@ workflows:
         - content: |-
             #!/bin/bash
             set -ex
-            if [ "$IOS_DISTRIBUTION_TYPE" != "$DISTRIBUTION_TYPE" ]; then exit 1; fi
+            if [ "$BITRISE_EXPORT_METHOD" != "$DISTRIBUTION_TYPE" ]; then exit 1; fi
     - xcode-archive:
         title: Xcode archive
         inputs:
