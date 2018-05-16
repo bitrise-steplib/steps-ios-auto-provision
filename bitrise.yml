@@ -135,6 +135,9 @@ workflows:
         - configuration: $BITRISE_CONFIGURATION
         - verbose_log: "yes"
         - generate_profiles: "yes"
+    - script:
+        inputs:
+        - content: if [ "$IOS_DISTRIBUTION_TYPE" != "$DISTRIBUTION_TYPE" ]; then exit 1; fi
     - xcode-archive:
         title: Xcode archive
         inputs:
