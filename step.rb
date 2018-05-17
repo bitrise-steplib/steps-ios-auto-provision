@@ -128,6 +128,8 @@ begin
   keychain_helper.install_certificates(certificate_path_passphrase_map)
 
   Log.success("#{certificate_path_passphrase_map.length} certificates installed")
+
+  `envman add --key "BITRISE_EXPORT_METHOD" --value #{params.distribution_type}`
   ###
 rescue => ex
   puts

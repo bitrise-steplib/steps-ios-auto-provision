@@ -150,3 +150,7 @@ inputs:
     title: Bitrise build api token
     description: Bitrise build api token.
     is_required: true
+outputs:
+  - BITRISE_EXPORT_METHOD:
+    opts:
+      title: "The selected distribution type"
