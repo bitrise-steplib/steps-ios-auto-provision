@@ -136,10 +136,18 @@ workflows:
         - verbose_log: "yes"
         - generate_profiles: "yes"
     - script:
+        title: Output test
         inputs:
         - content: |-
             #!/bin/bash
-            set -ex
+            set -e
+            echo "BITRISE_EXPORT_METHOD: $BITRISE_EXPORT_METHOD"
+            echo "BITRISE_DEVELOPER_TEAM: $BITRISE_DEVELOPER_TEAM"
+            echo "BITRISE_DEVELOPMENT_CODESIGN_IDENTITY: $BITRISE_DEVELOPMENT_CODESIGN_IDENTITY"
+            echo "BITRISE_DEVELOPMENT_PROFILE: $BITRISE_DEVELOPMENT_PROFILE"
+            echo "BITRISE_PRODUCTION_CODESIGN_IDENTITY: $BITRISE_PRODUCTION_CODESIGN_IDENTITY"
+            echo "BITRISE_PRODUCTION_PROFILE: $BITRISE_PRODUCTION_PROFILE"
+
             if [ "$BITRISE_EXPORT_METHOD" != "$DISTRIBUTION_TYPE" ]; then exit 1; fi
     - xcode-archive:
         title: Xcode archive

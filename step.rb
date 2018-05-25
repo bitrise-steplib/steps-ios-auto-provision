@@ -128,8 +128,44 @@ begin
   keychain_helper.install_certificates(certificate_path_passphrase_map)
 
   Log.success("#{certificate_path_passphrase_map.length} certificates installed")
+  ###
 
-  `envman add --key "BITRISE_EXPORT_METHOD" --value #{params.distribution_type}`
+  # Export outputs
+  Log.info('Export outputs')
+
+  bundle_id = project_helper.target_bundle_id(project_helper.main_target)
+
+  outputs = {
+    'BITRISE_EXPORT_METHOD' => params.distribution_type,
+    'BITRISE_DEVELOPER_TEAM' => team_id
+  }
+
+  if cert_helper.development_certificate_info
+    certificate = cert_helper.development_certificate_info.certificate
+    code_sign_identity = certificate_common_name(certificate)
+
+    portal_profile = profile_helper.profiles_by_bundle_id('development')[bundle_id].portal_profile
+    provisioning_profile = portal_profile.uuid
+
+    outputs['BITRISE_DEVELOPMENT_CODESIGN_IDENTITY'] = code_sign_identity
+    outputs['BITRISE_DEVELOPMENT_PROFILE'] = provisioning_profile
+  end
+
+  if params.distribution_type != 'development' && cert_helper.production_certificate_info
+    certificate = cert_helper.production_certificate_info.certificate
+    code_sign_identity = certificate_common_name(certificate)
+
+    portal_profile = profile_helper.profiles_by_bundle_id(params.distribution_type)[bundle_id].portal_profile
+    provisioning_profile = portal_profile.uuid
+
+    outputs['BITRISE_PRODUCTION_CODESIGN_IDENTITY'] = code_sign_identity
+    outputs['BITRISE_PRODUCTION_PROFILE'] = provisioning_profile
+  end
+
+  outputs.each do |key, value|
+    `envman add --key "#{key}" --value "#{value}"`
+    Log.success("#{key}=#{value}")
+  end
   ###
 rescue => ex
   puts

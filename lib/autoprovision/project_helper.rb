@@ -5,6 +5,7 @@ require 'English'
 
 # ProjectHelper ...
 class ProjectHelper
+  attr_reader :main_target
   attr_reader :targets
   attr_reader :platform
 
@@ -20,10 +21,10 @@ class ProjectHelper
     scheme, scheme_container_project_path = read_scheme_and_container_project(scheme_name)
 
     # read scheme application targets
-    target, @targets_container_project_path = read_scheme_archivable_target_and_container_project(scheme, scheme_container_project_path)
-    @platform = target.platform_name
+    @main_target, @targets_container_project_path = read_scheme_archivable_target_and_container_project(scheme, scheme_container_project_path)
+    @platform = @main_target.platform_name
 
-    @targets = collect_dependent_targets(target)
+    @targets = collect_dependent_targets(@main_target)
     raise 'failed to collect scheme targets' if @targets.empty?
 
     # ensure configuration exist
@@ -37,7 +38,7 @@ class ProjectHelper
     elsif configuration_name != default_configuration_name
       targets.each do |target_obj|
         configuration = target_obj.build_configuration_list.build_configurations.find { |c| configuration_name.to_s == c.name }
-        raise "build configuration (#{configuration_name}) not defined for target: #{target.name}" unless configuration
+        raise "build configuration (#{configuration_name}) not defined for target: #{@main_target.name}" unless configuration
       end
 
       Log.warn("Using defined build configuration: #{configuration_name} instead of the scheme's default one: #{default_configuration_name}")
