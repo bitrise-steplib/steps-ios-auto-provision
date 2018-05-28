@@ -154,3 +154,18 @@ outputs:
   - BITRISE_EXPORT_METHOD:
     opts:
       title: "The selected distribution type"
+  - BITRISE_DEVELOPER_TEAM:
+    opts:
+      title: "The development team's ID"
+  - BITRISE_DEVELOPMENT_CODESIGN_IDENTITY:
+    opts:
+      title: "The development codesign identity's name"
+  - BITRISE_PRODUCTION_CODESIGN_IDENTITY:
+    opts:
+      title: "The production codesign identity's name"
+  - BITRISE_DEVELOPMENT_PROFILE:
+    opts:
+      title: "The development provisioning profile's udid"
+  - BITRISE_PRODUCTION_PROFILE:
+    opts:
+      title: "The production provisioning profile's udid"
