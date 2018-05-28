@@ -154,18 +154,44 @@ outputs:
   - BITRISE_EXPORT_METHOD:
     opts:
       title: "The selected distribution type"
+      description: |-
+        The selected distribution type.
+
+        One of: `development`, `app-store`, `ad-hoc` or `enterprise`
   - BITRISE_DEVELOPER_TEAM:
     opts:
       title: "The development team's ID"
+      description: |-
+        The development team's ID.
+
+        Example: `1MZX23ABCD4`
   - BITRISE_DEVELOPMENT_CODESIGN_IDENTITY:
     opts:
       title: "The development codesign identity's name"
+      description: |-
+        The development codesign identity's name.
+
+        Example: `iPhone Developer: Bitrise Bot (VV2J4SV8V4)`
   - BITRISE_PRODUCTION_CODESIGN_IDENTITY:
     opts:
       title: "The production codesign identity's name"
+    opts:
+      title: "The production codesign identity's name"
+      description: |-
+        The production codesign identity's name.
+
+        Example: `iPhone Distribution: Bitrise Bot (VV2J4SV8V4)`
   - BITRISE_DEVELOPMENT_PROFILE:
     opts:
-      title: "The development provisioning profile's udid"
+      title: "The main target's development provisioning profile's UUID"
+      description: |-
+        The main target's development provisioning profile's UUID.
+
+        Example: `c5be4123-1234-4f9d-9843-0d9be985a068`
   - BITRISE_PRODUCTION_PROFILE:
     opts:
-      title: "The production provisioning profile's udid"
+      title: "The main target's production provisioning profile's UUID"
+      description: |-
+        The main target's production provisioning profile's UUID.
+
+        Example: `c5be4123-1234-4f9d-9843-0d9be985a068`
