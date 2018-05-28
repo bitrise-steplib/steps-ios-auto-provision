@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.1.1)
+## Changelog (Current version: 1.1.2)
 
 -----------------
+
+### 1.1.2 (2018 May 28)
+
+* [94e8ceb] prepare for 1.1.2
+* [8426a2a] step.yml update (#33)
 
 ### 1.1.1 (2018 May 28)
 
