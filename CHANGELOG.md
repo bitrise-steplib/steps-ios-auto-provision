@@ -1,6 +1,12 @@
-## Changelog (Current version: 1.1.0)
+## Changelog (Current version: 1.1.1)
 
 -----------------
+
+### 1.1.1 (2018 May 28)
+
+* [d37bb4c] prepare for 1.1.1
+* [12e69b6] Gem update (#32)
+* [123fc49] added distribution type export (#30)
 
 ### 1.1.0 (2018 May 10)
 
@@ -70,4 +76,4 @@
 
 -----------------
 
-Updated: 2018 May 10
+Updated: 2018 May 28
