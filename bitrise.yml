@@ -5,7 +5,7 @@ app:
   envs:
   # If you want to share this step into a StepLib
   - BITRISE_STEP_ID: ios-auto-provision
-  - BITRISE_STEP_VERSION: "1.1.1"
+  - BITRISE_STEP_VERSION: "1.1.2"
   - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/steps-ios-auto-provision.git
   - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
 
