@@ -194,9 +194,11 @@ class ProjectHelper
       attributes = project.root_object.attributes['TargetAttributes']
       if attributes
         target_attributes = attributes[target_id]
-        target_attributes['ProvisioningStyle'] = 'Manual'
-        target_attributes['DevelopmentTeam'] = development_team
-        target_attributes['DevelopmentTeamName'] = ''
+        if target_attributes
+          target_attributes['ProvisioningStyle'] = 'Manual'
+          target_attributes['DevelopmentTeam'] = development_team
+          target_attributes['DevelopmentTeamName'] = ''
+        end
       end
 
       # force target build settings
