@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.1.2)
+## Changelog (Current version: 1.1.3)
 
 -----------------
+
+### 1.1.3 (2018 Jun 27)
+
+* [61efc50] Prepare for 1.1.3
+* [fe3acd4] target_attributes nil check (#34)
 
 ### 1.1.2 (2018 May 28)
 
@@ -81,4 +86,4 @@
 
 -----------------
 
-Updated: 2018 May 28
+Updated: 2018 Jun 27
