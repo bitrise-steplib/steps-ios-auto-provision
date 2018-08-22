@@ -11,6 +11,13 @@ begin
   Log.verbose = (params.verbose_log == 'yes')
   ###
 
+  # Unset SPACESHIP_AVOID_XCODE_API
+  orig_spaceship_avoid_xcode_api = ENV['SPACESHIP_AVOID_XCODE_API']
+  Log.debug("\noriginal SPACESHIP_AVOID_XCODE_API: #{orig_spaceship_avoid_xcode_api}")
+  ENV['SPACESHIP_AVOID_XCODE_API'] = nil
+  Log.debug('SPACESHIP_AVOID_XCODE_API cleared')
+  ###
+
   # Developer Portal authentication
   Log.info('Developer Portal authentication')
 
@@ -167,7 +174,13 @@ begin
     Log.success("#{key}=#{value}")
   end
   ###
+
+  # restore SPACESHIP_AVOID_XCODE_API
+  ENV['SPACESHIP_AVOID_XCODE_API'] = orig_spaceship_avoid_xcode_api
 rescue => ex
+  # restore SPACESHIP_AVOID_XCODE_API
+  ENV['SPACESHIP_AVOID_XCODE_API'] = orig_spaceship_avoid_xcode_api
+
   puts
   Log.error('Error:')
   Log.error(ex.to_s)

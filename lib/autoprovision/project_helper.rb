@@ -167,7 +167,9 @@ class ProjectHelper
     return bundle_id unless bundle_id.to_s.include?('$')
 
     Log.warn("CFBundleIdentifier defined with variable: #{bundle_id}, trying to resolve it...")
-    resolve_bundle_id(bundle_id, build_settings)
+    resolved = resolve_bundle_id(bundle_id, build_settings)
+    Log.warn("resolved CFBundleIdentifier: #{resolved}")
+    resolved
   end
 
   def target_entitlements(target_name)
