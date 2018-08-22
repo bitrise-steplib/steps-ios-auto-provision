@@ -196,8 +196,6 @@ module Portal
       app
     end
 
-    private_class_method
-
     def self.feature_enabled?(entitlement_key, app_features)
       feature_key = ON_OFF_FEATURE_NAME_BY_KEY[entitlement_key]
       raise 'not on-off app service key provided' unless feature_key

@@ -5,6 +5,8 @@ require_relative 'app_client'
 module Portal
   # ProfileClient ...
   class ProfileClient
+    @profiles = {}
+
     def self.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, portal_certificate, platform)
       profiles = ProfileClient.fetch_profiles(distribution_type, true, platform)
 
@@ -94,7 +96,7 @@ module Portal
         # - update profile
         # update seems to revoking the certificate, even if it is not neccessary
         # it has the same effects anyway, including a new UUID of the provisioning profile
-        if profiles.count > 1
+        if profiles.size > 1
           Log.debug("multiple #{distribution_type} profiles found with name: #{profile_name}")
           profiles.each_with_index { |prof, index| Log.debug("#{index}. #{prof.name}") }
         end
@@ -125,9 +127,10 @@ module Portal
       profile
     end
 
-    private_class_method
-
     def self.fetch_profiles(distribution_type, xcode_managed, platform)
+      cached = @profiles[platform].to_h[xcode_managed].to_h[distribution_type]
+      return cached unless cached.to_a.empty?
+
       profile_class = portal_profile_class(distribution_type)
 
       profiles = []
@@ -151,6 +154,12 @@ module Portal
       elsif distribution_type == 'ad-hoc'
         profiles = profiles.select(&:is_adhoc?)
       end
+
+      platform_profiles = @profiles[platform].to_h
+      managed_profiles = platform_profiles[xcode_managed].to_h
+      managed_profiles[distribution_type] = profiles
+      platform_profiles[xcode_managed] = managed_profiles
+      @profiles[platform] = platform_profiles
 
       profiles
     end
