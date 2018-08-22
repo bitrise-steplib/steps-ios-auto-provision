@@ -113,6 +113,7 @@ inputs:
 
       __Example:__ `file://./development/certificate/path|https://distribution/certificate/url`
     is_required: true
+    is_sensitive: true
 - passphrases: $BITRISE_CERTIFICATE_PASSPHRASE
   opts:
     category: Debug
@@ -126,6 +127,7 @@ inputs:
 
       __Example__ (1 certificate with empty passphrase, 1 certificate with non-empty passphrase): `|distribution-passphrase`
     is_required: true
+    is_sensitive: true
 - keychain_path: $HOME/Library/Keychains/login.keychain
   opts:
     category: Debug
@@ -138,18 +140,21 @@ inputs:
     title: Keychain's password
     description: The Keychain's password.
     is_required: true
+    is_sensitive: true
 - build_url: $BITRISE_BUILD_URL
   opts:
     category: Debug
     title: Bitrise build url
     description: Bitrise build url.
     is_required: true
+    is_sensitive: true
 - build_api_token: $BITRISE_BUILD_API_TOKEN
   opts:
     category: Debug
     title: Bitrise build api token
     description: Bitrise build api token.
     is_required: true
+    is_sensitive: true
 outputs:
   - BITRISE_EXPORT_METHOD:
     opts:
