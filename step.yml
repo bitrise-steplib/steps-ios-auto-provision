@@ -147,7 +147,6 @@ inputs:
     title: Bitrise build url
     description: Bitrise build url.
     is_required: true
-    is_sensitive: true
 - build_api_token: $BITRISE_BUILD_API_TOKEN
   opts:
     category: Debug
