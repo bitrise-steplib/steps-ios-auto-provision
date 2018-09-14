@@ -9,7 +9,75 @@ module Portal
 
     def self.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, portal_certificate, platform)
       profiles = ProfileClient.fetch_profiles(distribution_type, true, platform)
+      profile = ProfileClient.matching_profile(profiles, bundle_id, entitlements, portal_certificate)
 
+      unless profile
+        error_message = [
+          "Failed to find #{distribution_type} Xcode managed provisioning profile for bundle id: #{bundle_id}.",
+          'Please open your project in your local Xcode and generate and ipa file',
+          'with the desired distribution type and by using Xcode managed codesigning.',
+          'This will create / refresh the desired managed profiles.'
+        ].join("\n")
+        raise error_message
+      end
+
+      profile
+    end
+
+    def self.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, allow_retry = true)
+      profile_name = "Bitrise #{distribution_type} - (#{app.bundle_id})"
+
+      profiles = ProfileClient.fetch_profiles(distribution_type, false, platform)
+      profiles = profiles.select { |profile| profile.app.bundle_id == app.bundle_id && profile.name == profile_name }
+      existing_profile = ProfileClient.matching_profile(profiles, app.bundle_id, entitlements, certificate)
+
+      return existing_profile if existing_profile
+
+      if profiles.empty?
+        Log.debug("generating #{distribution_type} profile: #{profile_name}")
+      else
+        # it's easier to just create a new one, than to:
+        # - add test devices
+        # - add the certificate
+        # - update profile
+        # update seems to revoking the certificate, even if it is not neccessary
+        # it has the same effects anyway, including a new UUID of the provisioning profile
+        if profiles.size > 1
+          Log.debug("multiple #{distribution_type} profiles found with name: #{profile_name}")
+          profiles.each_with_index { |prof, index| Log.debug("#{index}. #{prof.name}") }
+        end
+
+        profiles.each do |profile|
+          Log.debug("removing existing #{distribution_type} profile: #{profile.name}")
+          profile.delete!
+        end
+      end
+
+      profile = nil
+      begin
+        Log.debug("generating #{distribution_type} profile: #{profile_name}")
+        profile_class = portal_profile_class(distribution_type)
+        run_and_handle_portal_function { profile = profile_class.create!(bundle_id: app.bundle_id, certificate: certificate, name: profile_name) }
+      rescue => ex
+        # Failed to remove already existing managed profile, or
+        # the profile already exist, may someone generated it during this step run
+        if ex.to_s =~ /Multiple profiles found with the name/i
+          Log.debug(ex.to_s)
+          Log.debug('failed to regenerate the profile, retrying in 2 sec ...')
+          sleep(2)
+          ProfileClient.clear_cache(distribution_type, false, platform)
+          ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, false)
+        else
+          raise ex unless allow_retry
+          raise ex unless ex.to_s =~ /Multiple profiles found with the name '(.*)'.\s*Please remove the duplicate profiles and try again./i
+        end
+      end
+
+      raise "failed to find or create provisioning profile for bundle id: #{app.bundle_id}" unless profile
+      profile
+    end
+
+    def self.matching_profile(profiles, bundle_id, entitlements, portal_certificate)
       # Separate matching profiles
       # full_matching_profiles contains profiles which bundle id equals to the provided bundle_id
       # matching_profiles contains profiles which bundle id glob matches to the provided bundle_id
@@ -46,6 +114,9 @@ module Portal
         filtered_full_matching_profiles.push(profile)
       end
 
+      # prefer the full bundle id match over the glob match
+      return filtered_full_matching_profiles[0] unless filtered_full_matching_profiles.empty?
+
       filtered_matching_profiles = []
       matching_profiles.each do |profile|
         if Time.parse(profile.expires.to_s) < Time.now
@@ -66,65 +137,12 @@ module Portal
         filtered_matching_profiles.push(profile)
       end
 
-      if filtered_full_matching_profiles.empty? && filtered_matching_profiles.empty?
-        error_message = [
-          "Failed to find #{distribution_type} Xcode managed provisioning profile for bundle id: #{bundle_id}.",
-          'Please open your project in your local Xcode and generate and ipa file',
-          'with the desired distribution type and by using Xcode managed codesigning.',
-          'This will create / refresh the desired managed profiles.'
-        ].join("\n")
-        raise error_message
-      end
-
-      # prefer the full bundle id match over the glob match
-      return filtered_full_matching_profiles[0] unless filtered_full_matching_profiles.empty?
-      filtered_matching_profiles[0]
+      filtered_matching_profiles[0] unless filtered_matching_profiles.empty?
+      nil
     end
 
-    def self.ensure_manual_profile(certificate, app, distribution_type, platform, allow_retry = true)
-      profile_name = "Bitrise #{distribution_type} - (#{app.bundle_id})"
-
-      profiles = ProfileClient.fetch_profiles(distribution_type, false, platform)
-      profiles = profiles.select { |profile| profile.app.bundle_id == app.bundle_id && profile.name == profile_name }
-
-      if profiles.empty?
-        Log.debug("generating #{distribution_type} profile: #{profile_name}")
-      else
-        # it's easier to just create a new one, than to:
-        # - add test devices
-        # - add the certificate
-        # - update profile
-        # update seems to revoking the certificate, even if it is not neccessary
-        # it has the same effects anyway, including a new UUID of the provisioning profile
-        if profiles.size > 1
-          Log.debug("multiple #{distribution_type} profiles found with name: #{profile_name}")
-          profiles.each_with_index { |prof, index| Log.debug("#{index}. #{prof.name}") }
-        end
-
-        profiles.each do |profile|
-          Log.debug("removing existing #{distribution_type} profile: #{profile.name}")
-          profile.delete!
-        end
-      end
-
-      profile = nil
-      begin
-        Log.debug("generating #{distribution_type} profile: #{profile_name}")
-        profile_class = portal_profile_class(distribution_type)
-        run_and_handle_portal_function { profile = profile_class.create!(bundle_id: app.bundle_id, certificate: certificate, name: profile_name) }
-      rescue => ex
-        # Failed to remove already existing managed profile, try it again!
-        raise ex unless allow_retry
-        raise ex unless ex.to_s =~ /Multiple profiles found with the name '(.*)'.\s*Please remove the duplicate profiles and try again./i
-
-        Log.debug(ex.to_s)
-        Log.debug('failed to regenerate the profile, retrying in 5 sec ...')
-        sleep(5)
-        ensure_manual_profile(certificate, app, distribution_type, platform, false)
-      end
-
-      raise "failed to find or create provisioning profile for bundle id: #{app.bundle_id}" unless profile
-      profile
+    def self.clear_cache(distribution_type, xcode_managed, platform)
+      @profiles[platform].to_h[xcode_managed].to_h[distribution_type] = nil
     end
 
     def self.fetch_profiles(distribution_type, xcode_managed, platform)

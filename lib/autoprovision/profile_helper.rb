@@ -90,7 +90,7 @@ class ProfileHelper
       app = Portal::AppClient.sync_app_services(app, entitlements)
 
       Log.print("ensure #{distribution_type} profile for target: #{target_name} on developer portal")
-      portal_profile = Portal::ProfileClient.ensure_manual_profile(certificate, app, distribution_type, platform)
+      portal_profile = Portal::ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform)
 
       Log.print("downloading #{distribution_type} profile: #{portal_profile.name}")
       profile_path = write_profile(portal_profile)
