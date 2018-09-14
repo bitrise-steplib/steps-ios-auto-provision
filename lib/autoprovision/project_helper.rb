@@ -22,11 +22,12 @@ class ProjectHelper
 
     # read scheme application targets
     @main_target, @targets_container_project_path = read_scheme_archivable_target_and_container_project(scheme, scheme_container_project_path)
+    raise "failed to find #{scheme_name} scheme's main archivable target" unless @main_target
     @platform = @main_target.platform_name
 
     @targets = collect_dependent_targets(@main_target)
     @targets = unique_targets(@targets) unless @targets.empty?
-    raise 'failed to collect scheme targets' if @targets.empty?
+    raise "failed to collect #{@main_target}'s dependent targets" if @targets.empty?
 
     # ensure configuration exist
     action = scheme.archive_action
@@ -300,7 +301,7 @@ class ProjectHelper
       return target, target_project_path
     end
 
-    raise 'failed to find scheme archivable target'
+    nil
   end
 
   def collect_dependent_targets(target, dependent_targets = [])
