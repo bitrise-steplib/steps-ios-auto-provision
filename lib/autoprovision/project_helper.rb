@@ -25,6 +25,7 @@ class ProjectHelper
     @platform = @main_target.platform_name
 
     @targets = collect_dependent_targets(@main_target)
+    @targets = unique_targets(@targets) unless @targets.empty?
     raise 'failed to collect scheme targets' if @targets.empty?
 
     # ensure configuration exist
@@ -233,6 +234,15 @@ class ProjectHelper
   end
 
   private
+
+  def unique_targets(targets)
+    names = {}
+    targets.reject do |target|
+      found = names.key?(target.name)
+      names[target.name] = true
+      found
+    end
+  end
 
   def read_scheme_and_container_project(scheme_name)
     project_paths = [@project_path]
