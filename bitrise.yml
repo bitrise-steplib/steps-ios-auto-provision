@@ -17,6 +17,9 @@ app:
   - TEAM_ID: $TEAM_ID
   - BITRISE_KEYCHAIN_PASSWORD: $BITRISE_KEYCHAIN_PASSWORD
 
+  - API_TOKEN: $API_TOKEN
+  - APP_SLUG: $APP_SLUG
+
   - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
 
 workflows:
@@ -45,10 +48,27 @@ workflows:
             #!/bin/bash
             set -e
             bundle exec rspec
+    - trigger-bitrise-workflow:
+        run_if: .IsCI
+        inputs:
+        - api_token: "$API_TOKEN"
+        - app_slug: "$APP_SLUG"
+        - workflow_id: test_entitlements
+    - trigger-bitrise-workflow:
+        run_if: .IsCI
+        inputs:
+        - api_token: "$API_TOKEN"
+        - app_slug: "$APP_SLUG"
+        - workflow_id: test_entitlements
+    - trigger-bitrise-workflow:
+        run_if: .IsCI
+        inputs:
+        - api_token: "$API_TOKEN"
+        - app_slug: "$APP_SLUG"
+        - workflow_id: test_entitlements
     after_run:
     - test_bundle_id
     - test_xcode_managed
-    - test_entitlements
     - test_workspace
 
   test_bundle_id:
