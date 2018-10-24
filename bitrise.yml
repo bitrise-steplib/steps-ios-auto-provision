@@ -114,7 +114,7 @@ workflows:
   test_workspace:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-samples/ios-cocoapods-minimal-sample.git
-    - BRANCH: pod
+    - BRANCH: master
     - BITRISE_PROJECT_PATH: iOSMinimalCocoaPodsSample/iOSMinimalCocoaPodsSample.xcworkspace
     - BITRISE_SCHEME: iOSMinimalCocoaPodsSample
     - BITRISE_CONFIGURATION: 
