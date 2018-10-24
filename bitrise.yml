@@ -181,6 +181,18 @@ workflows:
         inputs:
         - notify_user_groups: none
 
+  test_tvos:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-tvos-swift.git
+    - BRANCH: master
+    - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
+    - BITRISE_SCHEME: NPO Live
+    - BITRISE_CONFIGURATION: 
+    - INSTALL_PODS: "false"
+    - DISTRIBUTION_TYPE: app-store
+    after_run:
+    - _common
+
   # ----------------------------------------------------------------
   # --- workflows to create Release
   create-release:
