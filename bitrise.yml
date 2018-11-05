@@ -70,6 +70,10 @@ workflows:
     - test_bundle_id
     - test_xcode_managed
     - test_workspace
+    - test_tvos
+    - test_tvos_development
+    - test_tvos_managed
+    - test_tvos_development_managed
 
   test_bundle_id:
     envs:
@@ -79,6 +83,7 @@ workflows:
     - BITRISE_SCHEME: ios-simple-objc
     - BITRISE_CONFIGURATION: Release
     - DISTRIBUTION_TYPE: development
+    - GENERATE_PROFILES: "yes"
     after_run:
     - _common
 
@@ -90,6 +95,7 @@ workflows:
     - BITRISE_SCHEME: code-sign-test
     - BITRISE_CONFIGURATION: 
     - DISTRIBUTION_TYPE: app-store
+    - GENERATE_PROFILES: "yes"
     after_run:
     - _common
 
@@ -101,18 +107,72 @@ workflows:
     - BITRISE_SCHEME: code-sign-test
     - BITRISE_CONFIGURATION: 
     - DISTRIBUTION_TYPE: app-store
+    - GENERATE_PROFILES: "yes"
     after_run:
     - _common
 
   test_workspace:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-samples/ios-cocoapods-minimal-sample.git
-    - BRANCH: pod
+    - BRANCH: master
     - BITRISE_PROJECT_PATH: iOSMinimalCocoaPodsSample/iOSMinimalCocoaPodsSample.xcworkspace
     - BITRISE_SCHEME: iOSMinimalCocoaPodsSample
     - BITRISE_CONFIGURATION: 
     - INSTALL_PODS: "true"
     - DISTRIBUTION_TYPE: app-store
+    - GENERATE_PROFILES: "yes"
+    after_run:
+    - _common
+
+  test_tvos:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-tvos-swift.git
+    - BRANCH: master
+    - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
+    - BITRISE_SCHEME: NPO Live
+    - BITRISE_CONFIGURATION: 
+    - INSTALL_PODS: "false"
+    - DISTRIBUTION_TYPE: app-store
+    - GENERATE_PROFILES: "yes"
+    after_run:
+    - _common
+
+  test_tvos_development:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-tvos-swift.git
+    - BRANCH: master
+    - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
+    - BITRISE_SCHEME: NPO Live
+    - BITRISE_CONFIGURATION: 
+    - INSTALL_PODS: "false"
+    - DISTRIBUTION_TYPE: development
+    - GENERATE_PROFILES: "yes"
+    after_run:
+    - _common
+
+  test_tvos_managed:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-tvos-swift.git
+    - BRANCH: master
+    - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
+    - BITRISE_SCHEME: NPO Live
+    - BITRISE_CONFIGURATION: 
+    - INSTALL_PODS: "false"
+    - DISTRIBUTION_TYPE: app-store
+    - GENERATE_PROFILES: "no"
+    after_run:
+    - _common
+
+  test_tvos_development_managed:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-tvos-swift.git
+    - BRANCH: master
+    - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
+    - BITRISE_SCHEME: NPO Live
+    - BITRISE_CONFIGURATION: 
+    - INSTALL_PODS: "false"
+    - DISTRIBUTION_TYPE: development
+    - GENERATE_PROFILES: "no"
     after_run:
     - _common
 
@@ -154,7 +214,7 @@ workflows:
         - scheme: $BITRISE_SCHEME
         - configuration: $BITRISE_CONFIGURATION
         - verbose_log: "yes"
-        - generate_profiles: "yes"
+        - generate_profiles: $GENERATE_PROFILES
     - script:
         title: Output test
         inputs:
