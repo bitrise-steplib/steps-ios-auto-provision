@@ -6,18 +6,13 @@ require_relative 'portal/auth_client'
 
 # AuthHelper ...
 class AuthHelper
-  DES_COOKIE_TEMPLATE = '---
-  - !ruby/object:HTTP::Cookie
-    name: <DES_NAME>
-    value: <DES_VALUE>
-    domain: idmsa.apple.com
-    for_domain: true
-    path: "/"
-    secure: true
-    httponly: true
-    expires:
-    max_age: 2592000
-  '.freeze
+  COOKIE_TEMPLATE = '- !ruby/object:HTTP::Cookie
+  name: <NAME>
+  value: <VALUE>
+  domain: <DOMAIN>
+  for_domain: <FOR_DOMAIN>
+  path: "<PATH>"
+'.freeze
 
   attr_reader :test_devices
 
@@ -72,19 +67,24 @@ class AuthHelper
   def convert_des_cookie(cookies_json_str)
     Log.debug("session cookie: #{cookies_json_str}")
 
+    converted_cookies = ''
+
     cookies_json_str.each_value do |cookies|
       cookies.each do |cookie|
-        name = cookie['name']
-        value = cookie['value']
+        name = cookie['name'].to_s
+        value = cookie['value'].to_s
+        domain = cookie['domain'].to_s
+        for_domain = cookie['for_domain'] || 'true'
+        path = cookie['path'].to_s
 
-        next unless name.start_with?('DES')
+        converted_cookie = COOKIE_TEMPLATE.sub('<NAME>', name).sub('<VALUE>', value).sub('<DOMAIN>', domain).sub('<FOR_DOMAIN>', for_domain).sub('<PATH>', path)
 
-        converted_cookie = DES_COOKIE_TEMPLATE.sub('<DES_NAME>', name).sub('<DES_VALUE>', value).gsub!("\n", '\n')
-        Log.debug("converted session cookie: #{converted_cookie}")
-
-        return converted_cookie
+        converted_cookies = '---' + "\n" if converted_cookies.empty?
+        converted_cookies += converted_cookie + "\n"
       end
     end
-    nil
+
+    Log.debug("converted session cookies:\n#{converted_cookies}")
+    converted_cookies
   end
 end
