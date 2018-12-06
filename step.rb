@@ -67,6 +67,7 @@ begin
   end
 
   raise 'failed to determine project development team' unless team_id
+
   ###
 
   # Matching project codesign identity with the uploaded certificates

@@ -78,14 +78,13 @@ class AuthHelper
         path = cookie['path'].to_s
 
         converted_cookie = COOKIE_TEMPLATE.sub('<NAME>', name).sub('<VALUE>', value).sub('<DOMAIN>', domain).sub('<FOR_DOMAIN>', for_domain).sub('<PATH>', path)
-        
+
         converted_cookies = '---' + "\n" if converted_cookies.empty?
         converted_cookies += converted_cookie + "\n"
       end
     end
 
     Log.debug("converted session cookies:\n#{converted_cookies}")
-    return converted_cookies
+    converted_cookies
   end
-
 end
