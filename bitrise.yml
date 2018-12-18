@@ -70,7 +70,7 @@ workflows:
     - test_bundle_id
     - test_xcode_managed
     - test_workspace
-    - test_tvos
+    # - test_tvos
     - test_tvos_development
     - test_tvos_managed
     - test_tvos_development_managed
@@ -82,7 +82,7 @@ workflows:
     - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
     - BITRISE_SCHEME: ios-simple-objc
     - BITRISE_CONFIGURATION: Release
-    - DISTRIBUTION_TYPE: development
+    - DISTRIBUTION_TYPE: ad-hoc
     - GENERATE_PROFILES: "yes"
     after_run:
     - _common
