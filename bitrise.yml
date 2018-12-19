@@ -229,7 +229,7 @@ workflows:
             echo "BITRISE_PRODUCTION_PROFILE: $BITRISE_PRODUCTION_PROFILE"
 
             if [ "$BITRISE_EXPORT_METHOD" != "$DISTRIBUTION_TYPE" ]; then exit 1; fi
-    - git::https://github.com/bitrise-io/steps-xcode-archive.git@tv_os_profiles:
+    - xcode-archive:
         title: Xcode archive
         inputs:
         - export_method: $DISTRIBUTION_TYPE
