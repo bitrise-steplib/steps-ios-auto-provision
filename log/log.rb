@@ -30,6 +30,14 @@ class Log
     puts("\e[90m#{str}\e[0m") if @verbose
   end
 
+  def self.debug_exception(exc)
+    Log.debug('Error:')
+    Log.debug(exc.to_s)
+    puts
+    Log.debug('Stacktrace (for debugging):')
+    Log.debug(exc.backtrace.join("\n").to_s)
+  end
+
   def self.secure_value(value)
     return '' if value.empty?
     '***'
