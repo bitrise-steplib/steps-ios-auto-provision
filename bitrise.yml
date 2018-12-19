@@ -70,7 +70,7 @@ workflows:
     - test_bundle_id
     - test_xcode_managed
     - test_workspace
-    # - test_tvos
+    - test_tvos
     - test_tvos_development
     - test_tvos_managed
     - test_tvos_development_managed
@@ -229,7 +229,7 @@ workflows:
             echo "BITRISE_PRODUCTION_PROFILE: $BITRISE_PRODUCTION_PROFILE"
 
             if [ "$BITRISE_EXPORT_METHOD" != "$DISTRIBUTION_TYPE" ]; then exit 1; fi
-    - xcode-archive:
+    - git::https://github.com/bitrise-io/steps-xcode-archive.git@tv_os_profiles:
         title: Xcode archive
         inputs:
         - export_method: $DISTRIBUTION_TYPE
