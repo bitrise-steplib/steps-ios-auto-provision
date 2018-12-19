@@ -82,7 +82,7 @@ workflows:
     - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
     - BITRISE_SCHEME: ios-simple-objc
     - BITRISE_CONFIGURATION: Release
-    - DISTRIBUTION_TYPE: development
+    - DISTRIBUTION_TYPE: ad-hoc
     - GENERATE_PROFILES: "yes"
     after_run:
     - _common

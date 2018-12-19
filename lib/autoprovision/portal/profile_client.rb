@@ -59,18 +59,16 @@ module Portal
         profile_class = portal_profile_class(distribution_type)
         run_and_handle_portal_function { profile = profile_class.create!(bundle_id: app.bundle_id, certificate: certificate, name: profile_name, sub_platform: platform == :tvos ? 'tvOS' : nil) }
       rescue => ex
+        raise ex unless allow_retry
+        raise ex unless ex.to_s =~ /Multiple profiles found with the name/i
+
         # Failed to remove already existing managed profile, or
         # the profile already exist, may someone generated it during this step run
-        if ex.to_s =~ /Multiple profiles found with the name/i
-          Log.debug(ex.to_s)
-          Log.debug('failed to regenerate the profile, retrying in 2 sec ...')
-          sleep(2)
-          ProfileClient.clear_cache(distribution_type, false, platform)
-          ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, false)
-        else
-          raise ex unless allow_retry
-          raise ex unless ex.to_s =~ /Multiple profiles found with the name '(.*)'.\s*Please remove the duplicate profiles and try again./i
-        end
+        Log.debug_exception(ex)
+        Log.debug('failed to regenerate the profile, retrying in 2 sec ...')
+        sleep(2)
+        ProfileClient.clear_cache(distribution_type, false, platform)
+        ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, false)
       end
 
       raise "failed to find or create provisioning profile for bundle id: #{app.bundle_id}" unless profile
@@ -149,12 +147,14 @@ module Portal
       cached = @profiles[platform].to_h[xcode_managed].to_h[distribution_type]
       return cached unless cached.to_a.empty?
 
-      profile_class = portal_profile_class(distribution_type)
-
       profiles = []
-      run_and_handle_portal_function { profiles = profile_class.all(mac: false, xcode: xcode_managed) }
+      run_and_handle_portal_function { profiles = Spaceship::Portal.provisioning_profile.all(mac: false, xcode: xcode_managed) }
+      # Log.debug("all profiles (#{profiles.length}):")
+      # profiles.each do |profile|
+      #   Log.debug("#{profile.name}")
+      # end
 
-      profiles = profiles.select(&:managed_by_xcode?) if xcode_managed
+      # filter for sub_platform
       profiles = profiles.reject do |profile|
         if platform == :tvos
           profile.sub_platform.to_s.casecmp('tvos') == -1
@@ -162,20 +162,30 @@ module Portal
           profile.sub_platform.to_s.casecmp('tvos').zero?
         end
       end
+      # Log.debug("subplatform #{platform} profiles (#{profiles.length}):")
+      # profiles.each do |profile|
+      #   Log.debug("#{profile.name}")
+      # end
 
-      # Both app_store.all and ad_hoc.all return the same
-      # This is the case since September 2016, since the API has changed
-      # and there is no fast way to get the type when fetching the profiles
-      # Distinguish between App Store and Ad Hoc profiles
-      if distribution_type == 'app-store'
-        profiles = profiles.reject(&:is_adhoc?)
-      elsif distribution_type == 'ad-hoc'
-        profiles = profiles.select(&:is_adhoc?)
+      # filter for type
+      distribution_types = {
+        'development' => 'limited',
+        'app-store' => 'store',
+        'ad-hoc' => 'adhoc',
+        'enterprise' => 'inhouse'
+      }
+      profiles = profiles.select do |profile|
+        profile.distribution_method == distribution_types[distribution_type]
       end
+      # Log.debug("#{distribution_type} profiles (#{profiles.length}):")
+      # profiles.each do |profile|
+      #   Log.debug("#{profile.name}")
+      # end
 
       platform_profiles = @profiles[platform].to_h
       managed_profiles = platform_profiles[xcode_managed].to_h
       managed_profiles[distribution_type] = profiles
+
       platform_profiles[xcode_managed] = managed_profiles
       @profiles[platform] = platform_profiles
 
