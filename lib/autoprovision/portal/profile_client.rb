@@ -7,9 +7,9 @@ module Portal
   class ProfileClient
     @profiles = {}
 
-    def self.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, portal_certificate, platform)
+    def self.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, portal_certificate, platform, min_profile_days_valid)
       profiles = ProfileClient.fetch_profiles(distribution_type, true, platform)
-      profile = ProfileClient.matching_profile(profiles, bundle_id, entitlements, portal_certificate)
+      profile = ProfileClient.matching_profile(profiles, bundle_id, entitlements, portal_certificate, min_profile_days_valid)
 
       unless profile
         error_message = [
@@ -24,12 +24,12 @@ module Portal
       profile
     end
 
-    def self.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, allow_retry = true)
+    def self.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, min_profile_days_valid, allow_retry = true)
       profile_name = "Bitrise #{distribution_type} - (#{app.bundle_id})"
 
       profiles = ProfileClient.fetch_profiles(distribution_type, false, platform)
       profiles = profiles.select { |profile| profile.app.bundle_id == app.bundle_id && profile.name == profile_name }
-      existing_profile = ProfileClient.matching_profile(profiles, app.bundle_id, entitlements, certificate)
+      existing_profile = ProfileClient.matching_profile(profiles, app.bundle_id, entitlements, certificate, min_profile_days_valid)
 
       return existing_profile if existing_profile
 
@@ -68,14 +68,14 @@ module Portal
         Log.debug('failed to regenerate the profile, retrying in 2 sec ...')
         sleep(2)
         ProfileClient.clear_cache(distribution_type, false, platform)
-        ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, false)
+        ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, min_profile_days_valid, false)
       end
 
       raise "failed to find or create provisioning profile for bundle id: #{app.bundle_id}" unless profile
       profile
     end
 
-    def self.matching_profile(profiles, bundle_id, entitlements, portal_certificate)
+    def self.matching_profile(profiles, bundle_id, entitlements, portal_certificate, min_profile_days_valid = 0)
       # Separate matching profiles
       # full_matching_profiles contains profiles which bundle id equals to the provided bundle_id
       # matching_profiles contains profiles which bundle id glob matches to the provided bundle_id
@@ -90,12 +90,19 @@ module Portal
         matching_profiles.push(profile) if File.fnmatch(profile.app.bundle_id, bundle_id)
       end
 
+      # Increment the current time with days in seconds (1 day = 86400 secs) the profile has to be valid for
+      expire = Time.now + (min_profile_days_valid * 86_400)
+
       # remove profiles which does not contains all of the provided services (entitlements)
       # and the profiles which does not contains the provided certificate (portal_certificate)
       filtered_full_matching_profiles = []
       full_matching_profiles.each do |profile|
-        if Time.parse(profile.expires.to_s) < Time.now
-          Log.debug("Profile (#{profile.name}) matches to target: #{bundle_id}, but expired at: #{profile.expires}")
+        if Time.parse(profile.expires.to_s) < expire
+          if min_profile_days_valid > 0
+            Log.debug("Profile (#{profile.name}) matches to target: #{bundle_id}, but it's not valid for #{min_profile_days_valid} days")
+          else
+            Log.debug("Profile (#{profile.name}) matches to target: #{bundle_id}, but expired at: #{profile.expires}")
+          end
           next
         end
 
@@ -117,8 +124,12 @@ module Portal
 
       filtered_matching_profiles = []
       matching_profiles.each do |profile|
-        if Time.parse(profile.expires.to_s) < Time.now
-          Log.debug("Profile (#{profile.name}) matches to target: #{bundle_id}, but expired at: #{profile.expires}")
+        if Time.parse(profile.expires.to_s) < expire
+          if min_profile_days_valid > 0
+            Log.debug("Profile (#{profile.name}) matches to target: #{bundle_id}, but it's not valid for #{min_profile_days_valid} days")
+          else
+            Log.debug("Profile (#{profile.name}) matches to target: #{bundle_id}, but expired at: #{profile.expires}")
+          end
           next
         end
 

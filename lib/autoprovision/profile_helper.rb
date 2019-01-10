@@ -11,7 +11,7 @@ class ProfileHelper
     @profiles = {}
   end
 
-  def ensure_profiles(distribution_type, generate_profiles = false)
+  def ensure_profiles(distribution_type, generate_profiles = false, min_profile_days_valid = 0)
     distribution_types = [distribution_type]
     if distribution_type != 'development' && @certificate_helper.certificate_info('development')
       distribution_types = ['development'].concat(distribution_types)
@@ -23,13 +23,13 @@ class ProfileHelper
       Log.warn('project uses Xcode managed signing, but generate_profiles set to true, trying to generate Provisioning Profiles')
 
       begin
-        distribution_types.each { |distr_type| ensure_manual_profiles(distr_type, @project_helper.platform) }
+        distribution_types.each { |distr_type| ensure_manual_profiles(distr_type, @project_helper.platform, min_profile_days_valid) }
       rescue => ex
         Log.error('generate_profiles set to true, but failed to generate Provisioning Profiles with error:')
         Log.error(ex.to_s)
         Log.info("\nTrying to use Xcode managed Provisioning Profiles")
 
-        ensure_profiles(distribution_type, false)
+        ensure_profiles(distribution_type, false, min_profile_days_valid)
       end
 
       return false
@@ -37,9 +37,9 @@ class ProfileHelper
 
     distribution_types.each do |distr_type|
       if @project_helper.uses_xcode_auto_codesigning?
-        ensure_xcode_managed_profiles(distr_type, @project_helper.platform)
+        ensure_xcode_managed_profiles(distr_type, @project_helper.platform, min_profile_days_valid)
       else
-        ensure_manual_profiles(distr_type, @project_helper.platform)
+        ensure_manual_profiles(distr_type, @project_helper.platform, min_profile_days_valid)
       end
     end
 
@@ -52,7 +52,7 @@ class ProfileHelper
 
   private
 
-  def ensure_xcode_managed_profiles(distribution_type, platform)
+  def ensure_xcode_managed_profiles(distribution_type, platform, min_profile_days_valid = 0)
     certificate = @certificate_helper.certificate_info(distribution_type).portal_certificate
 
     targets = @project_helper.targets
@@ -62,7 +62,7 @@ class ProfileHelper
       entitlements = @project_helper.target_entitlements(target_name) || {}
 
       Log.print("checking xcode managed #{distribution_type} profile for target: #{target_name} (#{bundle_id}) with #{entitlements.length} services on developer portal")
-      portal_profile = Portal::ProfileClient.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, certificate, platform)
+      portal_profile = Portal::ProfileClient.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, certificate, platform, min_profile_days_valid)
 
       Log.print("downloading #{distribution_type} profile: #{portal_profile.name}")
       profile_path = write_profile(portal_profile)
@@ -74,7 +74,7 @@ class ProfileHelper
     end
   end
 
-  def ensure_manual_profiles(distribution_type, platform)
+  def ensure_manual_profiles(distribution_type, platform, min_profile_days_valid)
     certificate = @certificate_helper.certificate_info(distribution_type).portal_certificate
 
     targets = @project_helper.targets
@@ -90,7 +90,7 @@ class ProfileHelper
       app = Portal::AppClient.sync_app_services(app, entitlements)
 
       Log.print("ensure #{distribution_type} profile for target: #{target_name} on developer portal")
-      portal_profile = Portal::ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform)
+      portal_profile = Portal::ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, min_profile_days_valid)
 
       Log.print("downloading #{distribution_type} profile: #{portal_profile.name}")
       profile_path = write_profile(portal_profile)

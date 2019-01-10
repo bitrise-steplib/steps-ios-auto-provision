@@ -6,6 +6,7 @@ class Params
   attr_accessor :certificate_urls_str
   attr_accessor :passphrases_str
   attr_accessor :distribution_type
+  attr_accessor :min_profile_days_valid
   attr_accessor :project_path
   attr_accessor :scheme
   attr_accessor :configuration
@@ -22,6 +23,7 @@ class Params
     @build_api_token = ENV['build_api_token']
     @team_id = ENV['team_id']
     @certificate_urls_str = ENV['certificate_urls']
+    @min_profile_days_valid = ENV['min_profile_days_valid'].to_i
     @passphrases_str = ENV['passphrases']
     @distribution_type = ENV['distribution_type']
     @project_path = ENV['project_path']
@@ -40,6 +42,7 @@ class Params
     Log.info('Params:')
     Log.print("team_id: #{@team_id}")
     Log.print("certificate_urls: #{Log.secure_value(@certificate_urls_str)}")
+    Log.print("min_profile_days_valid: #{@min_profile_days_valid}")
     Log.print("passphrases: #{Log.secure_value(@passphrases_str)}")
     Log.print("distribution_type: #{@distribution_type}")
     Log.print("project_path: #{@project_path}")

@@ -53,7 +53,7 @@ inputs:
     description: |-
       The Developer Portal team to manage the project's code signing files.
 
-      __If your Developer Portal Account belongs to multiple development team, this input is required!__   
+      __If your Developer Portal Account belongs to multiple development team, this input is required!__
       Otherwise specify this input if you want to manage the Provisioning Profiles with a different team than the one set in your project.
 
       If you leave it empty the team defined by the project will be used.
@@ -73,8 +73,8 @@ inputs:
   opts:
     title: Configuration name
     description: |-
-      The Xcode Configuration to use. 
-      
+      The Xcode Configuration to use.
+
       By default your Scheme defines which Configuration (Debug, Release, ...) should be used,
       but you can overwrite it with this option.
 - generate_profiles: "no"
@@ -83,13 +83,21 @@ inputs:
     description: |-
       In the case of __Xcode managed code signing__ projects, by default the step downloads and installs the Xcode managed Provisioning Profiles.
 
-      If this input is set to: `yes`, the step will try to manage the Provisioning Profiles by itself (__like in the case of Manual code signing projects__),  
+      If this input is set to: `yes`, the step will try to manage the Provisioning Profiles by itself (__like in the case of Manual code signing projects__),
       the step will fall back to use the Xcode managed Provisioning Profiles if there is an issue.
 
       __This input has no effect in the case of Manual codesigning projects.__
     value_options:
     - "yes"
     - "no"
+- min_profile_days_valid: 0
+  opts:
+    title: Enter the minimum days the provisiong profile should be valid. (Default is 0)
+    description: |-
+      Sometimes you want to sign an app with a provisiong profile that is valid for at least 'x' days.
+      For example: An enterprise app won't open if your profile is expired. So with this parameter you can
+      have a provision profile that's at least valid for 'x' days. Default it just renews the profile when expired.
+    is_required: false
 - verbose_log: "no"
   opts:
     category: Debug
@@ -106,7 +114,7 @@ inputs:
     description: |
       URLs of the certificates to download.
 
-      Multiple URLs can be specified, separated by a pipe (`|`) character,  
+      Multiple URLs can be specified, separated by a pipe (`|`) character,
       you can specify a local path as well, using the `file://` scheme.
 
       __Provide a development certificate__ url, to ensure development code signing files for the project and __also provide a distribution certificate__ url, to ensure distribution code signing files for your project.
