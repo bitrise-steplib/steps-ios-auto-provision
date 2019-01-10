@@ -91,7 +91,7 @@ module Portal
       end
 
       # Increment the current time with days in seconds (1 day = 86400 secs) the profile has to be valid for
-      expire = Time.now + (min_profile_days_valid * 86400)
+      expire = Time.now + (min_profile_days_valid * 86_400)
 
       # remove profiles which does not contains all of the provided services (entitlements)
       # and the profiles which does not contains the provided certificate (portal_certificate)
