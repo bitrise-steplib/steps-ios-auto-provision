@@ -92,11 +92,13 @@ inputs:
     - "no"
 - min_profile_days_valid: 0
   opts:
-    title: Enter the minimum days the provisiong profile should be valid. (Default is 0)
+    title: The minimum days the Provisioning Profile should be valid
     description: |-
-      Sometimes you want to sign an app with a provisiong profile that is valid for at least 'x' days.
-      For example: An enterprise app won't open if your profile is expired. So with this parameter you can
-      have a provision profile that's at least valid for 'x' days. Default it just renews the profile when expired.
+      Sometimes you want to sign an app with a Provisioning Profile that is valid for at least 'x' days.
+
+      For example, an enterprise app won't open if your Provisioning Profile is expired. With this parameter, you can have a Provisioning Profile that's at least valid for 'x' days.
+      
+      By default (0) it just renews the Provisioning Profile when expired.
     is_required: false
 - verbose_log: "no"
   opts:
