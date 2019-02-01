@@ -1,7 +1,6 @@
 require 'spaceship'
 
 require_relative 'app_client'
-require_relative '../utils'
 
 module Portal
   # ProfileClient ...
