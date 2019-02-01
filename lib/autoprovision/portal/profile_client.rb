@@ -1,6 +1,7 @@
 require 'spaceship'
 
 require_relative 'app_client'
+require_relative '../utils'
 
 module Portal
   # ProfileClient ...
@@ -8,8 +9,8 @@ module Portal
     @profiles = {}
 
     def self.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, portal_certificate, platform, min_profile_days_valid)
-      profiles = ProfileClient.fetch_profiles(distribution_type, true, platform)
-      profile = ProfileClient.matching_profile(profiles, bundle_id, entitlements, portal_certificate, min_profile_days_valid)
+      profiles = ProfileClient.fetch_profiles(true, platform)
+      profile = ProfileClient.matching_profile(profiles, distribution_type, bundle_id, entitlements, portal_certificate, min_profile_days_valid)
 
       unless profile
         error_message = [
@@ -25,57 +26,114 @@ module Portal
     end
 
     def self.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, min_profile_days_valid, allow_retry = true)
+      all_profiles = ProfileClient.fetch_profiles(false, platform)
+
+      # search for the Bitrise managed profile
       profile_name = "Bitrise #{distribution_type} - (#{app.bundle_id})"
+      profile = all_profiles.select { |prof| prof.name == profile_name }.first
+      valid = !profile.nil?
 
-      profiles = ProfileClient.fetch_profiles(distribution_type, false, platform)
-      profiles = profiles.select { |profile| profile.app.bundle_id == app.bundle_id && profile.name == profile_name }
-      existing_profile = ProfileClient.matching_profile(profiles, app.bundle_id, entitlements, certificate, min_profile_days_valid)
-
-      return existing_profile if existing_profile
-
-      if profiles.empty?
-        Log.debug("generating #{distribution_type} profile: #{profile_name}")
-      else
-        # it's easier to just create a new one, than to:
-        # - add test devices
-        # - add the certificate
-        # - update profile
-        # update seems to revoking the certificate, even if it is not neccessary
-        # it has the same effects anyway, including a new UUID of the provisioning profile
-        if profiles.size > 1
-          Log.debug("multiple #{distribution_type} profiles found with name: #{profile_name}")
-          profiles.each_with_index { |prof, index| Log.debug("#{index}. #{prof.name}") }
-        end
-
-        profiles.each do |profile|
-          Log.debug("removing existing #{distribution_type} profile: #{profile.name}")
-          profile.delete!
+      # check the profile's bundle id
+      if valid
+        if profile.app.bundle_id != app.bundle_id
+          Log.debug("Profile (#{profile.name}) bundle id: #{profile.app.bundle_id}, should be: #{app.bundle_id}")
+          valid = false
         end
       end
 
-      profile = nil
+      # check the profile's distribution type
+      if valid
+        distribution_methods = {
+          'development' => 'limited',
+          'app-store' => 'store',
+          'ad-hoc' => 'adhoc',
+          'enterprise' => 'inhouse'
+        }
+        desired_distribution_method = distribution_methods[distribution_type]
+
+        unless profile.distribution_method == desired_distribution_method
+          Log.debug("Profile (#{profile.name}) distribution type: #{profile.distribution_method}, should be: #{desired_distribution_method}")
+          valid = false
+        end
+      end
+
+      # check the profile expiry
+      if valid
+        # Increment the current time with days in seconds (1 day = 86400 secs) the profile has to be valid for
+        expire = Time.now + (min_profile_days_valid * 86_400)
+
+        if Time.parse(profile.expires.to_s) < expire
+          if min_profile_days_valid > 0
+            Log.debug("Profile (#{profile.name}) is not valid for #{min_profile_days_valid} days")
+          else
+            Log.debug("Profile (#{profile.name}) expired at: #{profile.expires}")
+          end
+
+          valid = false
+        end
+      end
+
+      # check if project capabilities are enabled for the profile
+      if valid
+        unless AppClient.all_services_enabled?(profile.app, entitlements)
+          Log.debug("Profile (#{profile.name}) does not contain every required services")
+          valid = false
+        end
+      end
+
+      # check if the profile contains the given certificate
+      if valid
+        unless include_certificate?(profile, certificate)
+          Log.debug("Profile (#{profile.name}) does not contain certificate: #{certificate.name}")
+          valid = false
+        end
+      end
+
+      return profile if valid
+
+      # profile name needs to be unique
+      if !valid && !profile.nil?
+        profile.delete!
+        ProfileClient.clear_cache(false, platform)
+      end
+
       begin
-        Log.debug("generating #{distribution_type} profile: #{profile_name}")
+        Log.debug("generating profile: #{profile_name}")
         profile_class = portal_profile_class(distribution_type)
         run_and_handle_portal_function { profile = profile_class.create!(bundle_id: app.bundle_id, certificate: certificate, name: profile_name, sub_platform: platform == :tvos ? 'tvOS' : nil) }
       rescue => ex
         raise ex unless allow_retry
         raise ex unless ex.to_s =~ /Multiple profiles found with the name/i
 
-        # Failed to remove already existing managed profile, or
-        # the profile already exist, may someone generated it during this step run
+        # The profile already exist, paralell step run can produce this issue
         Log.debug_exception(ex)
-        Log.debug('failed to regenerate the profile, retrying in 2 sec ...')
+        Log.debug('failed to generate the profile, retrying in 2 sec ...')
         sleep(2)
-        ProfileClient.clear_cache(distribution_type, false, platform)
+        ProfileClient.clear_cache(false, platform)
         ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, min_profile_days_valid, false)
       end
 
       raise "failed to find or create provisioning profile for bundle id: #{app.bundle_id}" unless profile
+
       profile
     end
 
-    def self.matching_profile(profiles, bundle_id, entitlements, portal_certificate, min_profile_days_valid = 0)
+    def self.matching_profile(profiles, distribution_type, bundle_id, entitlements, portal_certificate, min_profile_days_valid = 0)
+      # filter for distribution type
+      distribution_methods = {
+        'development' => 'limited',
+        'app-store' => 'store',
+        'ad-hoc' => 'adhoc',
+        'enterprise' => 'inhouse'
+      }
+      profiles = profiles.select do |profile|
+        profile.distribution_method == distribution_methods[distribution_type]
+      end
+      Log.debug("#{distribution_type} profiles (#{profiles.length}):")
+      profiles.each do |profile|
+        Log.debug(profile.name)
+      end
+
       # Separate matching profiles
       # full_matching_profiles contains profiles which bundle id equals to the provided bundle_id
       # matching_profiles contains profiles which bundle id glob matches to the provided bundle_id
@@ -150,12 +208,12 @@ module Portal
       nil
     end
 
-    def self.clear_cache(distribution_type, xcode_managed, platform)
-      @profiles[platform].to_h[xcode_managed].to_h[distribution_type] = nil
+    def self.clear_cache(xcode_managed, platform)
+      @profiles[platform].to_h[xcode_managed] = nil
     end
 
-    def self.fetch_profiles(distribution_type, xcode_managed, platform)
-      cached = @profiles[platform].to_h[xcode_managed].to_h[distribution_type]
+    def self.fetch_profiles(xcode_managed, platform)
+      cached = @profiles[platform].to_h[xcode_managed]
       return cached unless cached.to_a.empty?
 
       profiles = []
@@ -178,26 +236,9 @@ module Portal
       #   Log.debug("#{profile.name}")
       # end
 
-      # filter for type
-      distribution_types = {
-        'development' => 'limited',
-        'app-store' => 'store',
-        'ad-hoc' => 'adhoc',
-        'enterprise' => 'inhouse'
-      }
-      profiles = profiles.select do |profile|
-        profile.distribution_method == distribution_types[distribution_type]
-      end
-      # Log.debug("#{distribution_type} profiles (#{profiles.length}):")
-      # profiles.each do |profile|
-      #   Log.debug("#{profile.name}")
-      # end
-
+      # update the cache
       platform_profiles = @profiles[platform].to_h
-      managed_profiles = platform_profiles[xcode_managed].to_h
-      managed_profiles[distribution_type] = profiles
-
-      platform_profiles[xcode_managed] = managed_profiles
+      platform_profiles[xcode_managed] = profiles
       @profiles[platform] = platform_profiles
 
       profiles
