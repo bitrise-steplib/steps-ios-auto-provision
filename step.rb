@@ -79,7 +79,14 @@ begin
   # Ensure test devices
   if ['development', 'ad-hoc'].include?(params.distribution_type)
     Log.info('Ensure test devices on Developer Portal')
-    Portal::DeviceClient.ensure_test_devices(auth.test_devices)
+    new_device_registered = Portal::DeviceClient.ensure_test_devices(auth.test_devices)
+  end
+  ###
+
+  # Fetch the fresh device list from Developer Portal if there was a new device registered
+  if new_device_registered 
+    Log.info('Fetch test devices on Developer Portal')
+    portal_devices = Portal::DeviceClient.fetch_devices()
   end
   ###
 
@@ -87,7 +94,7 @@ begin
   Log.info('Ensure Provisioning Profiles on Developer Portal')
 
   profile_helper = ProfileHelper.new(project_helper, cert_helper)
-  xcode_managed_signing = profile_helper.ensure_profiles(params.distribution_type, params.generate_profiles == 'yes', params.min_profile_days_valid)
+  xcode_managed_signing = profile_helper.ensure_profiles(params.distribution_type, params.generate_profiles == 'yes', params.min_profile_days_valid, portal_devices)
   ###
 
   unless xcode_managed_signing

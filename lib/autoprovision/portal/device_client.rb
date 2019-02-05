@@ -11,8 +11,10 @@ module Portal
         return
       end
 
-      portal_devices = nil
-      run_and_handle_portal_function { portal_devices = device_client.all(mac: false, include_disabled: true) || [] }
+      # TODO AKOS - use the fetch_devices() indead
+      portal_devices = self.fetch_devices()
+
+      new_device_registered = false
       test_devices.each do |test_device|
         registered_test_device = nil
 
@@ -25,6 +27,7 @@ module Portal
         end
 
         unless registered_test_device
+          new_device_registered = true
           begin
             registered_test_device = device_client.create!(name: test_device.name, udid: test_device.udid)
           rescue Spaceship::Client::UnexpectedResponse => ex
@@ -42,6 +45,13 @@ module Portal
       end
 
       Log.success("every test devices (#{test_devices.length}) registered on bitrise are registered on developer portal")
+      return new_device_registered
     end
+
+    def self.fetch_devices(device_client = Spaceship::Portal.device)
+      portal_devices = nil
+      run_and_handle_portal_function { portal_devices = device_client.all(mac: false, include_disabled: true) || [] }
+      return portal_devices
+    end  
   end
 end

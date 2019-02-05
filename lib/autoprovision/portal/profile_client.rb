@@ -24,7 +24,7 @@ module Portal
       profile
     end
 
-    def self.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, min_profile_days_valid, allow_retry = true)
+    def self.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, min_profile_days_valid, allow_retry = true, portal_devices)
       all_profiles = ProfileClient.fetch_profiles(false, platform)
 
       # search for the Bitrise managed profile
@@ -109,7 +109,7 @@ module Portal
         Log.debug('failed to generate the profile, retrying in 2 sec ...')
         sleep(2)
         ProfileClient.clear_cache(false, platform)
-        return ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, min_profile_days_valid, false)
+        return ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, min_profile_days_valid, false, portal_devices)
       end
 
       raise "failed to find or create provisioning profile for bundle id: #{app.bundle_id}" unless profile
