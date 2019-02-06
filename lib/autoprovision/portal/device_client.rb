@@ -11,7 +11,6 @@ module Portal
         return
       end
 
-      # TODO AKOS - use the fetch_devices() indead
       portal_devices = self.fetch_devices()
 
       new_device_registered = false
@@ -45,7 +44,7 @@ module Portal
       end
 
       Log.success("every test devices (#{test_devices.length}) registered on bitrise are registered on developer portal")
-      return new_device_registered
+      return new_device_registered, portal_devices
     end
 
     def self.fetch_devices(device_client = Spaceship::Portal.device)

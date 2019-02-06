@@ -88,6 +88,26 @@ module Portal
         end
       end
 
+      # check if the development and ad-hoc profile's device list is up to date
+      if valid && (profile.distribution_method == distribution_methods['development'] || profile.distribution_method == distribution_methods['ad-hoc'])
+        Log.info('Check the device list in the profile')  
+        
+        profile_device_udids = profile.devices.map { |device| device.udid }
+        if platform == :tvos
+          filtered_portal_device_udids = portal_devices.reject { |device| device.device_type != "tvOS" || device.status == "r" }.map { |device| device.udid}
+        else 
+          filtered_portal_device_udids = portal_devices.reject { |device| device.device_type == "tvOS" || device.status == "r" }.map { |device| device.udid}
+        end
+
+        if !(filtered_portal_device_udids - profile_device_udids).empty?
+          Log.warn("Profile (#{profile.name}) does not contain all the test devices") 
+          Log.print("Missing devices:\n#{(filtered_portal_device_udids - profile_device_udids).join("\n")}")
+          valid = false
+        else 
+          Log.print("Profile (#{profile.name}) contains all the test devices") 
+        end
+      end
+
       return profile if valid
 
       # profile name needs to be unique
@@ -97,7 +117,7 @@ module Portal
       end
 
       begin
-        Log.debug("generating profile: #{profile_name}")
+        Log.print("generating profile: #{profile_name}")
         profile_class = portal_profile_class(distribution_type)
         run_and_handle_portal_function { profile = profile_class.create!(bundle_id: app.bundle_id, certificate: certificate, name: profile_name, sub_platform: platform == :tvos ? 'tvOS' : nil) }
       rescue => ex

@@ -79,7 +79,7 @@ begin
   # Ensure test devices
   if ['development', 'ad-hoc'].include?(params.distribution_type)
     Log.info('Ensure test devices on Developer Portal')
-    new_device_registered = Portal::DeviceClient.ensure_test_devices(auth.test_devices)
+    new_device_registered, portal_devices = Portal::DeviceClient.ensure_test_devices(auth.test_devices)
   end
   ###
 
