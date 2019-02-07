@@ -94,8 +94,10 @@ module Portal
         
         profile_device_udids = profile.devices.map { |device| device.udid }
         if platform == :tvos
+          # Remove all the NON tvOS devices and the disabled ones
           filtered_portal_device_udids = portal_devices.reject { |device| device.device_type != "tvOS" || device.status == "r" }.map { |device| device.udid}
         else 
+          # Remove all the tvOS devices and the disabled ones
           filtered_portal_device_udids = portal_devices.reject { |device| device.device_type == "tvOS" || device.status == "r" }.map { |device| device.udid}
         end
 
