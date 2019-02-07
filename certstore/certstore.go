@@ -30,7 +30,7 @@ func New() (*Store, error) {
 	return &Store{}, nil
 }
 
-// Download downloads a certificate and opens
+// Download downloads a certificate and opens.
 func (s Store) Download(certificateURL, passphrase string) ([]certificateutil.CertificateInfoModel, error) {
 	tmpDir, err := pathutil.NormalizedOSTempDirPath("certstore")
 	if err != nil {
@@ -49,7 +49,7 @@ func (s Store) Download(certificateURL, passphrase string) ([]certificateutil.Ce
 	return certs, err
 }
 
-// Add adds Certificate to the Store
+// Add adds Certificate to the Store.
 func (s Store) Add(cert certificateutil.CertificateInfoModel) {
 	for i, c := range s.Certificates {
 		if c.CommonName == cert.CommonName {
@@ -60,9 +60,9 @@ func (s Store) Add(cert certificateutil.CertificateInfoModel) {
 	}
 }
 
-// ToP12 creates a p12 file from a certificate
+// ToP12 creates a p12 file from a Certificate.
 func (s Store) ToP12(cert certificateutil.CertificateInfoModel) (string, error) {
-	b, err := pkcs12.Encode(rand.Reader, nil, &cert.Certificate, nil, "")
+	b, err := pkcs12.Encode(rand.Reader, cert.PrivateKey, &cert.Certificate, nil, "test")
 	if err != nil {
 		return "", err
 	}
@@ -78,7 +78,7 @@ func (s Store) ToP12(cert certificateutil.CertificateInfoModel) (string, error) 
 	return pth, err
 }
 
-// Find ...
+// Find returns a Certificates matching to the given filters.
 func (s Store) Find(name, team string, distribution bool) ([]certificateutil.CertificateInfoModel, error) {
 	certs := s.Certificates
 
