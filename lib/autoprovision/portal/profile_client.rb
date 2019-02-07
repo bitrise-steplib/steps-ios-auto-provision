@@ -90,23 +90,23 @@ module Portal
 
       # check if the development and ad-hoc profile's device list is up to date
       if valid && (profile.distribution_method == distribution_methods['development'] || profile.distribution_method == distribution_methods['ad-hoc'])
-        Log.info('Check the device list in the profile')  
-        
-        profile_device_udids = profile.devices.map { |device| device.udid }
-        if platform == :tvos
-          # Remove all the NON tvOS devices and the disabled ones
-          filtered_portal_device_udids = portal_devices.reject { |device| device.device_type != "tvOS" || device.status == "r" }.map { |device| device.udid}
-        else 
-          # Remove all the tvOS devices and the disabled ones
-          filtered_portal_device_udids = portal_devices.reject { |device| device.device_type == "tvOS" || device.status == "r" }.map { |device| device.udid}
-        end
+        Log.info('Check the device list in the profile')
+
+        profile_device_udids = profile.devices.map(&:udid)
+        filtered_portal_device_udids = if platform == :tvos
+                                         # Remove all the NON tvOS devices and the disabled ones
+                                         portal_devices.reject { |device| device.device_type != 'tvOS' || device.status == 'r' }.map(&:udid)
+                                       else
+                                         # Remove all the tvOS devices and the disabled ones
+                                         portal_devices.reject { |device| device.device_type == 'tvOS' || device.status == 'r' }.map(&:udid)
+                                       end
 
         if !(filtered_portal_device_udids - profile_device_udids).empty?
-          Log.warn("Profile (#{profile.name}) does not contain all the test devices") 
+          Log.warn("Profile (#{profile.name}) does not contain all the test devices")
           Log.print("Missing devices:\n#{(filtered_portal_device_udids - profile_device_udids).join("\n")}")
           valid = false
-        else 
-          Log.print("Profile (#{profile.name}) contains all the test devices") 
+        else
+          Log.print("Profile (#{profile.name}) contains all the test devices")
         end
       end
 

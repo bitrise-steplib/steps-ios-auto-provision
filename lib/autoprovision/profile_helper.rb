@@ -11,7 +11,7 @@ class ProfileHelper
     @profiles = {}
   end
 
-  def ensure_profiles(distribution_type, generate_profiles = false, min_profile_days_valid = 0, portal_devices)
+  def ensure_profiles(distribution_type, portal_devices, generate_profiles = false, min_profile_days_valid = 0)
     distribution_types = [distribution_type]
     if distribution_type != 'development' && @certificate_helper.certificate_info('development')
       distribution_types = ['development'].concat(distribution_types)
@@ -29,7 +29,7 @@ class ProfileHelper
         Log.error(ex.to_s)
         Log.info("\nTrying to use Xcode managed Provisioning Profiles")
 
-        ensure_profiles(distribution_type, false, min_profile_days_valid, portal_devices)
+        ensure_profiles(distribution_type, portal_devices, false, min_profile_days_valid)
       end
 
       return false

@@ -11,7 +11,7 @@ module Portal
         return
       end
 
-      portal_devices = self.fetch_devices()
+      portal_devices = fetch_devices
 
       new_device_registered = false
       test_devices.each do |test_device|
@@ -44,13 +44,13 @@ module Portal
       end
 
       Log.success("every test devices (#{test_devices.length}) registered on bitrise are registered on developer portal")
-      return new_device_registered, portal_devices
+      [new_device_registered, portal_devices]
     end
 
     def self.fetch_devices(device_client = Spaceship::Portal.device)
       portal_devices = nil
       run_and_handle_portal_function { portal_devices = device_client.all(mac: false, include_disabled: true) || [] }
-      return portal_devices
-    end  
+      portal_devices
+    end
   end
 end

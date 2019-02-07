@@ -84,9 +84,9 @@ begin
   ###
 
   # Fetch the fresh device list from Developer Portal if there was a new device registered
-  if new_device_registered 
+  if new_device_registered
     Log.info('Fetch test devices on Developer Portal')
-    portal_devices = Portal::DeviceClient.fetch_devices()
+    portal_devices = Portal::DeviceClient.fetch_devices
   end
   ###
 
@@ -94,7 +94,7 @@ begin
   Log.info('Ensure Provisioning Profiles on Developer Portal')
 
   profile_helper = ProfileHelper.new(project_helper, cert_helper)
-  xcode_managed_signing = profile_helper.ensure_profiles(params.distribution_type, params.generate_profiles == 'yes', params.min_profile_days_valid, portal_devices)
+  xcode_managed_signing = profile_helper.ensure_profiles(params.distribution_type, portal_devices, params.generate_profiles == 'yes', params.min_profile_days_valid)
   ###
 
   unless xcode_managed_signing
