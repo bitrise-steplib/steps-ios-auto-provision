@@ -11,7 +11,7 @@ module Portal
         return
       end
 
-      portal_devices = fetch_devices
+      portal_devices = fetch_devices(device_client)
 
       new_device_registered = false
       test_devices.each do |test_device|

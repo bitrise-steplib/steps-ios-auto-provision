@@ -89,7 +89,7 @@ module Portal
       end
 
       # check if the development and ad-hoc profile's device list is up to date
-      if valid && (profile.distribution_method == distribution_methods['development'] || profile.distribution_method == distribution_methods['ad-hoc'])
+      if valid && ['development', 'ad-hoc'].include?(distribution_type) && !portal_devices.nil?
         Log.info('Check the device list in the profile')
 
         profile_device_udids = profile.devices.map(&:udid)
