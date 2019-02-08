@@ -27,7 +27,7 @@ module Portal
       profiles = full_matching_profiles.select do |profile|
         distribution_type_matches?(profile, distribution_type) &&
           !expired?(profile, min_profile_days_valid) &&
-          all_services_enabled?(entitlements, entitlements) &&
+          all_services_enabled?(profile, entitlements) &&
           include_certificate?(profile, certificate)
       end
 
@@ -36,7 +36,7 @@ module Portal
       profiles = matching_profiles.select do |profile|
         distribution_type_matches?(profile, distribution_type) &&
           !expired?(profile, min_profile_days_valid) &&
-          all_services_enabled?(entitlements, entitlements) &&
+          all_services_enabled?(profile, entitlements) &&
           include_certificate?(profile, certificate)
       end
 
@@ -61,7 +61,7 @@ module Portal
                         bundle_id_matches?(profile, app) &&
                         distribution_type_matches?(profile, distribution_type) &&
                         !expired?(profile, min_profile_days_valid) &&
-                        all_services_enabled?(entitlements, entitlements) &&
+                        all_services_enabled?(profile, entitlements) &&
                         include_certificate?(profile, certificate) &&
                         device_list_up_to_date?(profile, distribution_type, platform, portal_devices)
 
