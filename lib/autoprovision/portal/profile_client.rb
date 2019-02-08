@@ -113,7 +113,7 @@ module Portal
         Log.debug("Profile (#{profile.name}) distribution type: #{profile.distribution_method}, should be: #{desired_distribution_method}")
         return false
       end
-      false
+      true
     end
 
     def self.expired?(profile, min_profile_days_valid)
