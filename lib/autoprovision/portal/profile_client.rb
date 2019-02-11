@@ -11,12 +11,12 @@ module Portal
       profiles = ProfileClient.fetch_profiles(true, platform)
 
       # Separate matching profiles
-      # full_matching_profiles contains profiles which bundle id equals to the provided bundle_id
+      # full_matching_profiles contains profiles which bundle id equals to the provided bundle_id, these are the prefered profiles
       # matching_profiles contains profiles which bundle id glob matches to the provided bundle_id
       full_matching_profiles = []
       matching_profiles = []
       profiles.each do |profile|
-        if profile.app.bundle_id == bundle_id
+        if bundle_id_matches?(profile, bundle_id)
           full_matching_profiles.push(profile)
           next
         end
@@ -31,7 +31,7 @@ module Portal
           include_certificate?(profile, certificate)
       end
 
-      return profiles[0] unless profiles.empty?
+      return profiles.first unless profiles.empty?
 
       profiles = matching_profiles.select do |profile|
         distribution_type_matches?(profile, distribution_type) &&
@@ -40,7 +40,7 @@ module Portal
           include_certificate?(profile, certificate)
       end
 
-      return profiles[0] unless profiles.empty?
+      return profiles.first unless profiles.empty?
 
       raise [
         "Failed to find #{distribution_type} Xcode managed provisioning profile for bundle id: #{bundle_id}.",
@@ -58,7 +58,7 @@ module Portal
       profile = all_profiles.select { |prof| prof.name == profile_name }.first
 
       return profile if !profile.nil? &&
-                        bundle_id_matches?(profile, app) &&
+                        bundle_id_matches?(profile, app.bundle_id) &&
                         distribution_type_matches?(profile, distribution_type) &&
                         !expired?(profile, min_profile_days_valid) &&
                         all_services_enabled?(profile, entitlements) &&
@@ -92,9 +92,9 @@ module Portal
       profile
     end
 
-    def self.bundle_id_matches?(profile, app)
-      if profile.app.bundle_id != app.bundle_id
-        Log.debug("Profile (#{profile.name}) bundle id: #{profile.app.bundle_id}, should be: #{app.bundle_id}")
+    def self.bundle_id_matches?(profile, bundle_id)
+      unless profile.app.bundle_id == bundle_id
+        Log.debug("Profile (#{profile.name}) bundle id: #{profile.app.bundle_id}, should be: #{bundle_id}")
         return false
       end
       true
