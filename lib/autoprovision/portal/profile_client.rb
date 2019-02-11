@@ -151,7 +151,7 @@ module Portal
     def self.device_list_up_to_date?(profile, distribution_type, platform, portal_devices)
       # check if the development and ad-hoc profile's device list is up to date
       if ['development', 'ad-hoc'].include?(distribution_type) && !portal_devices.nil?
-        Log.info('Check the device list in the profile')
+        Log.info('Check the device list in the Provisioning Profile')
 
         profile_device_udids = profile.devices.map(&:udid)
         filtered_portal_device_udids = if platform == :tvos
@@ -168,7 +168,7 @@ module Portal
 
           false
         else
-          Log.print("Profile (#{profile.name}) contains all the test devices")
+          Log.print("Profile (#{profile.name}) contains all the test devices\n")
         end
       end
 
