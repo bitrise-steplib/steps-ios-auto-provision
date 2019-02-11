@@ -72,7 +72,7 @@ module Portal
       end
 
       begin
-        Log.print("generating profile: #{profile_name}")
+        Log.debug("generating profile: #{profile_name}")
         profile_class = portal_profile_class(distribution_type)
         run_and_handle_portal_function { profile = profile_class.create!(bundle_id: app.bundle_id, certificate: certificate, name: profile_name, sub_platform: platform == :tvos ? 'tvOS' : nil) }
       rescue => ex
