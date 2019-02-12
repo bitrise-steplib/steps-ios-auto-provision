@@ -1,4 +1,5 @@
 require 'spaceship'
+require 'active_support'
 require 'active_support/core_ext'
 
 require_relative 'app_client'
