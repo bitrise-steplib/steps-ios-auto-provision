@@ -65,7 +65,7 @@ module Portal
                         !expired?(profile, min_profile_days_valid) &&
                         all_services_enabled?(profile, entitlements) &&
                         include_certificate?(profile, certificate) &&
-                        device_list_up_to_date?(profile, distribution_type, platform, test_devices)
+                        device_list_up_to_date?(profile, distribution_type, test_devices)
 
       # profile name needs to be unique
       unless profile.nil?
@@ -150,19 +150,13 @@ module Portal
       false
     end
 
-    def self.device_list_up_to_date?(profile, distribution_type, platform, test_devices)
+    def self.device_list_up_to_date?(profile, distribution_type, test_devices)
       # check if the development and ad-hoc profile's device list is up to date
       if ['development', 'ad-hoc'].include?(distribution_type) && !test_devices.blank?
         Log.info('Check the device list in the Provisioning Profile')
 
         profile_device_udids = profile.devices.map(&:udid)
-        filtered_test_device_udids = if platform == :tvos
-                                       # Remove all the NON tvOS devices and the disabled ones
-                                       test_devices.reject { |device| device.device_type != 'tvOS' || device.status == 'r' }.map(&:udid)
-                                     else
-                                       # Remove all the tvOS devices and the disabled ones
-                                       test_devices.reject { |device| device.device_type == 'tvOS' || device.status == 'r' }.map(&:udid)
-                                     end
+        filtered_test_device_udids = test_devices.map(&:udid)
 
         if !(filtered_test_device_udids - profile_device_udids).empty?
           Log.warn("Profile (#{profile.name}) does not contain all the test devices")
