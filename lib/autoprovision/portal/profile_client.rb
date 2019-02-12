@@ -150,7 +150,7 @@ module Portal
 
     def self.device_list_up_to_date?(profile, distribution_type, platform, test_devices)
       # check if the development and ad-hoc profile's device list is up to date
-      if ['development', 'ad-hoc'].include?(distribution_type) && !test_devices.nil?
+      if ['development', 'ad-hoc'].include?(distribution_type) && !test_devices.blank?
         Log.info('Check the device list in the Provisioning Profile')
 
         profile_device_udids = profile.devices.map(&:udid)
