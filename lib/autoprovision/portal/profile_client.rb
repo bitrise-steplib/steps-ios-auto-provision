@@ -166,7 +166,7 @@ module Portal
           Log.warn("Profile (#{profile.name}) does not contain all the test devices")
           Log.print("Missing devices:\n#{(filtered_test_device_udids - profile_device_udids).join("\n")}")
 
-          false
+          return false
         else
           Log.print("Profile (#{profile.name}) contains all the test devices\n")
         end
