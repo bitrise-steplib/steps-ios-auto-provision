@@ -50,7 +50,7 @@ module Portal
       ].join("\n")
     end
 
-    def self.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, min_profile_days_valid, allow_retry = true, portal_devices)
+    def self.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, min_profile_days_valid, allow_retry = true, test_devices)
       all_profiles = ProfileClient.fetch_profiles(false, platform)
 
       # search for the Bitrise managed profile
@@ -63,7 +63,7 @@ module Portal
                         !expired?(profile, min_profile_days_valid) &&
                         all_services_enabled?(profile, entitlements) &&
                         include_certificate?(profile, certificate) &&
-                        device_list_up_to_date?(profile, distribution_type, platform, portal_devices)
+                        device_list_up_to_date?(profile, distribution_type, platform, test_devices)
 
       # profile name needs to be unique
       unless profile.nil?
@@ -84,7 +84,7 @@ module Portal
         Log.debug('failed to generate the profile, retrying in 2 sec ...')
         sleep(2)
         ProfileClient.clear_cache(false, platform)
-        return ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, min_profile_days_valid, false, portal_devices)
+        return ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, min_profile_days_valid, false, test_devices)
       end
 
       raise "failed to find or create provisioning profile for bundle id: #{app.bundle_id}" unless profile
@@ -148,23 +148,23 @@ module Portal
       false
     end
 
-    def self.device_list_up_to_date?(profile, distribution_type, platform, portal_devices)
+    def self.device_list_up_to_date?(profile, distribution_type, platform, test_devices)
       # check if the development and ad-hoc profile's device list is up to date
-      if ['development', 'ad-hoc'].include?(distribution_type) && !portal_devices.nil?
+      if ['development', 'ad-hoc'].include?(distribution_type) && !test_devices.nil?
         Log.info('Check the device list in the Provisioning Profile')
 
         profile_device_udids = profile.devices.map(&:udid)
-        filtered_portal_device_udids = if platform == :tvos
-                                         # Remove all the NON tvOS devices and the disabled ones
-                                         portal_devices.reject { |device| device.device_type != 'tvOS' || device.status == 'r' }.map(&:udid)
-                                       else
-                                         # Remove all the tvOS devices and the disabled ones
-                                         portal_devices.reject { |device| device.device_type == 'tvOS' || device.status == 'r' }.map(&:udid)
-                                       end
+        filtered_test_device_udids = if platform == :tvos
+                                       # Remove all the NON tvOS devices and the disabled ones
+                                       test_devices.reject { |device| device.device_type != 'tvOS' || device.status == 'r' }.map(&:udid)
+                                     else
+                                       # Remove all the tvOS devices and the disabled ones
+                                       test_devices.reject { |device| device.device_type == 'tvOS' || device.status == 'r' }.map(&:udid)
+                                     end
 
-        if !(filtered_portal_device_udids - profile_device_udids).empty?
+        if !(filtered_test_device_udids - profile_device_udids).empty?
           Log.warn("Profile (#{profile.name}) does not contain all the test devices")
-          Log.print("Missing devices:\n#{(filtered_portal_device_udids - profile_device_udids).join("\n")}")
+          Log.print("Missing devices:\n#{(filtered_test_device_udids - profile_device_udids).join("\n")}")
 
           false
         else
