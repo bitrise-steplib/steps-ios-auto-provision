@@ -10,4 +10,4 @@ group :test do
   gem 'rubocop', '0.58.2'
 end
 
-gem "activesupport", "~> 5.2"
+gem 'activesupport', '~> 5.2'
