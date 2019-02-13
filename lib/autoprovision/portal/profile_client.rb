@@ -1,6 +1,4 @@
 require 'spaceship'
-require 'active_support'
-require 'active_support/core_ext'
 
 require_relative 'app_client'
 
@@ -152,7 +150,7 @@ module Portal
 
     def self.device_list_up_to_date?(profile, distribution_type, test_devices)
       # check if the development and ad-hoc profile's device list is up to date
-      if ['development', 'ad-hoc'].include?(distribution_type) && !test_devices.blank?
+      if ['development', 'ad-hoc'].include?(distribution_type) && !test_devices.to_a.nil?
         Log.info('Check the device list in the Provisioning Profile')
 
         profile_device_udids = profile.devices.map(&:udid)
