@@ -37,7 +37,7 @@ class ProfileHelper
 
     distribution_types.each do |distr_type|
       if @project_helper.uses_xcode_auto_codesigning?
-        ensure_xcode_managed_profiles(distr_type, @project_helper.platform, min_profile_days_valid, test_devices)
+        ensure_xcode_managed_profiles(distr_type, @project_helper.platform, test_devices, min_profile_days_valid, )
       else
         ensure_manual_profiles(distr_type, @project_helper.platform, min_profile_days_valid, test_devices)
       end
@@ -62,7 +62,7 @@ class ProfileHelper
       entitlements = @project_helper.target_entitlements(target_name) || {}
 
       Log.print("checking xcode managed #{distribution_type} profile for target: #{target_name} (#{bundle_id}) with #{entitlements.length} services on developer portal")
-      portal_profile = Portal::ProfileClient.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, certificate, platform, min_profile_days_valid, test_devices)
+      portal_profile = Portal::ProfileClient.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, certificate, platform, test_devices, min_profile_days_valid)
 
       Log.print("downloading #{distribution_type} profile: #{portal_profile.name}")
       profile_path = write_profile(portal_profile)
