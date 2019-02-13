@@ -95,7 +95,7 @@ workflows:
     - BITRISE_SCHEME: code-sign-test
     - BITRISE_CONFIGURATION: 
     - DISTRIBUTION_TYPE: app-store
-    - GENERATE_PROFILES: "yes"
+    - GENERATE_PROFILES: "no"
     after_run:
     - _common
 
