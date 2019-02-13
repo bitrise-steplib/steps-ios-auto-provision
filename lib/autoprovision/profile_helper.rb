@@ -37,7 +37,7 @@ class ProfileHelper
 
     distribution_types.each do |distr_type|
       if @project_helper.uses_xcode_auto_codesigning?
-        ensure_xcode_managed_profiles(distr_type, @project_helper.platform, test_devices, min_profile_days_valid, )
+        ensure_xcode_managed_profiles(distr_type, @project_helper.platform, test_devices, min_profile_days_valid)
       else
         ensure_manual_profiles(distr_type, @project_helper.platform, min_profile_days_valid, test_devices)
       end
