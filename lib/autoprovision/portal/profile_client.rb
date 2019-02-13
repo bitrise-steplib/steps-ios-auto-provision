@@ -7,7 +7,7 @@ module Portal
   class ProfileClient
     @profiles = {}
 
-    def self.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, certificate, platform, min_profile_days_valid)
+    def self.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, certificate, platform, min_profile_days_valid, test_devices)
       profiles = ProfileClient.fetch_profiles(true, platform)
 
       # Separate matching profiles
@@ -40,7 +40,8 @@ module Portal
           include_certificate?(profile, certificate)
       end
 
-      return profiles.first unless profiles.empty?
+      return profiles.first unless profiles.empty? ||
+                                   !device_list_up_to_date?(profile, distribution_type, test_devices)
 
       raise [
         "Failed to find #{distribution_type} Xcode managed provisioning profile for bundle id: #{bundle_id}.",

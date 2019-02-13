@@ -23,7 +23,7 @@ class ProfileHelper
       Log.warn('project uses Xcode managed signing, but generate_profiles set to true, trying to generate Provisioning Profiles')
 
       begin
-        distribution_types.each { |distr_type| ensure_manual_profiles(distr_type, @project_helper.platform, min_profile_days_valid, test_devices) }
+        distribution_types.each { |distr_type| ensure_manual_profiles(distr_type, @project_helper.platform, test_devices, min_profile_days_valid) }
       rescue => ex
         Log.error('generate_profiles set to true, but failed to generate Provisioning Profiles with error:')
         Log.error(ex.to_s)
@@ -37,7 +37,7 @@ class ProfileHelper
 
     distribution_types.each do |distr_type|
       if @project_helper.uses_xcode_auto_codesigning?
-        ensure_xcode_managed_profiles(distr_type, @project_helper.platform, min_profile_days_valid)
+        ensure_xcode_managed_profiles(distr_type, @project_helper.platform, min_profile_days_valid, test_devices)
       else
         ensure_manual_profiles(distr_type, @project_helper.platform, min_profile_days_valid, test_devices)
       end
@@ -52,7 +52,7 @@ class ProfileHelper
 
   private
 
-  def ensure_xcode_managed_profiles(distribution_type, platform, min_profile_days_valid = 0)
+  def ensure_xcode_managed_profiles(distribution_type, platform, test_devices, min_profile_days_valid = 0)
     certificate = @certificate_helper.certificate_info(distribution_type).portal_certificate
 
     targets = @project_helper.targets
@@ -62,7 +62,7 @@ class ProfileHelper
       entitlements = @project_helper.target_entitlements(target_name) || {}
 
       Log.print("checking xcode managed #{distribution_type} profile for target: #{target_name} (#{bundle_id}) with #{entitlements.length} services on developer portal")
-      portal_profile = Portal::ProfileClient.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, certificate, platform, min_profile_days_valid)
+      portal_profile = Portal::ProfileClient.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, certificate, platform, min_profile_days_valid, test_devices)
 
       Log.print("downloading #{distribution_type} profile: #{portal_profile.name}")
       profile_path = write_profile(portal_profile)
