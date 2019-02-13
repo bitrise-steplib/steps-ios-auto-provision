@@ -7,6 +7,18 @@ module Portal
   class ProfileClient
     @profiles = {}
 
+    def self.xcode_managed?(profile)
+      return true if profile.name.start_with?('XC')
+
+      return true if profile.name.start_with?('iOS Team') && profile.name.include?('Provisioning Profile')
+
+      return true if profile.name.start_with?('tvOS Team') && profile.name.include?('Provisioning Profile')
+
+      return true if profile.name.start_with?('Mac Team') && profile.name.include?('Provisioning Profile')
+
+      false
+    end
+
     def self.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, certificate, platform, test_devices, min_profile_days_valid)
       profiles = ProfileClient.fetch_profiles(true, platform)
 
@@ -38,7 +50,7 @@ module Portal
         distribution_type_matches?(profile, distribution_type) &&
           !expired?(profile, min_profile_days_valid) &&
           all_services_enabled?(profile, entitlements) &&
-          include_certificate?(profile, certificate) && 
+          include_certificate?(profile, certificate) &&
           device_list_up_to_date?(profile, distribution_type, test_devices)
       end
 
@@ -177,10 +189,10 @@ module Portal
 
       profiles = []
       run_and_handle_portal_function { profiles = Spaceship::Portal.provisioning_profile.all(mac: false, xcode: xcode_managed) }
-      Log.debug("all profiles (#{profiles.length}):")
-      profiles.each do |profile|
-        Log.debug("#{profile.name}")
-      end
+      # Log.debug("all profiles (#{profiles.length}):")
+      # profiles.each do |profile|
+      #   Log.debug("#{profile.name}")
+      # end
 
       # filter for sub_platform
       profiles = profiles.reject do |profile|
@@ -190,6 +202,10 @@ module Portal
           profile.sub_platform.to_s.casecmp('tvos').zero?
         end
       end
+
+      # filter non Xcode Managed profiles
+      profiles = profiles.select { |profile| ProfileClient.xcode_managed?(profile) } if xcode_managed
+
       # Log.debug("subplatform #{platform} profiles (#{profiles.length}):")
       # profiles.each do |profile|
       #   Log.debug("#{profile.name}")
