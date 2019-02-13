@@ -37,11 +37,11 @@ module Portal
         distribution_type_matches?(profile, distribution_type) &&
           !expired?(profile, min_profile_days_valid) &&
           all_services_enabled?(profile, entitlements) &&
-          include_certificate?(profile, certificate)
+          include_certificate?(profile, certificate) &&
+          device_list_up_to_date?(profile, distribution_type, test_devices)
       end
 
-      return profiles.first unless profiles.empty? ||
-                                   !device_list_up_to_date?(profile, distribution_type, test_devices)
+      return profiles.first unless profiles.empty?
 
       raise [
         "Failed to find #{distribution_type} Xcode managed provisioning profile for bundle id: #{bundle_id}.",
