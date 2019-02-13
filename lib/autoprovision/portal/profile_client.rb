@@ -28,7 +28,8 @@ module Portal
         distribution_type_matches?(profile, distribution_type) &&
           !expired?(profile, min_profile_days_valid) &&
           all_services_enabled?(profile, entitlements) &&
-          include_certificate?(profile, certificate)
+          include_certificate?(profile, certificate) &&
+          device_list_up_to_date?(profile, distribution_type, test_devices)
       end
 
       return profiles.first unless profiles.empty?
@@ -37,7 +38,7 @@ module Portal
         distribution_type_matches?(profile, distribution_type) &&
           !expired?(profile, min_profile_days_valid) &&
           all_services_enabled?(profile, entitlements) &&
-          include_certificate?(profile, certificate) &&
+          include_certificate?(profile, certificate) && 
           device_list_up_to_date?(profile, distribution_type, test_devices)
       end
 
@@ -152,18 +153,14 @@ module Portal
     def self.device_list_up_to_date?(profile, distribution_type, test_devices)
       # check if the development and ad-hoc profile's device list is up to date
       if ['development', 'ad-hoc'].include?(distribution_type) && !test_devices.to_a.nil?
-        Log.info('Check the device list in the Provisioning Profile')
-
         profile_device_udids = profile.devices.map(&:udid)
         test_device_udids = test_devices.map(&:udid)
 
-        if !(test_device_udids - profile_device_udids).empty?
-          Log.warn("Profile (#{profile.name}) does not contain all the test devices")
-          Log.print("Missing devices:\n#{(test_device_udids - profile_device_udids).join("\n")}")
+        unless (test_device_udids - profile_device_udids).empty?
+          Log.debug("Profile (#{profile.name}) does not contain all the test devices")
+          Log.debug("Missing devices:\n#{(test_device_udids - profile_device_udids).join("\n")}")
 
           return false
-        else
-          Log.print("Profile (#{profile.name}) contains all the test devices\n")
         end
       end
 
