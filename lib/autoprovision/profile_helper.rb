@@ -23,7 +23,7 @@ class ProfileHelper
       Log.warn('project uses Xcode managed signing, but generate_profiles set to true, trying to generate Provisioning Profiles')
 
       begin
-        distribution_types.each { |distr_type| ensure_manual_profiles(distr_type, @project_helper.platform, test_devices, min_profile_days_valid) }
+        distribution_types.each { |distr_type| ensure_manual_profiles(distr_type, @project_helper.platform, min_profile_days_valid, test_devices) }
       rescue => ex
         Log.error('generate_profiles set to true, but failed to generate Provisioning Profiles with error:')
         Log.error(ex.to_s)
