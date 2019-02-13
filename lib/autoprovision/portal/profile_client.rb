@@ -177,10 +177,10 @@ module Portal
 
       profiles = []
       run_and_handle_portal_function { profiles = Spaceship::Portal.provisioning_profile.all(mac: false, xcode: xcode_managed) }
-      # Log.debug("all profiles (#{profiles.length}):")
-      # profiles.each do |profile|
-      #   Log.debug("#{profile.name}")
-      # end
+      Log.debug("all profiles (#{profiles.length}):")
+      profiles.each do |profile|
+        Log.debug("#{profile.name}")
+      end
 
       # filter for sub_platform
       profiles = profiles.reject do |profile|
