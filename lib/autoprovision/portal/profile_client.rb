@@ -154,11 +154,11 @@ module Portal
         Log.info('Check the device list in the Provisioning Profile')
 
         profile_device_udids = profile.devices.map(&:udid)
-        filtered_test_device_udids = test_devices.map(&:udid)
+        test_device_udids = test_devices.map(&:udid)
 
-        if !(filtered_test_device_udids - profile_device_udids).empty?
+        if !(test_device_udids - profile_device_udids).empty?
           Log.warn("Profile (#{profile.name}) does not contain all the test devices")
-          Log.print("Missing devices:\n#{(filtered_test_device_udids - profile_device_udids).join("\n")}")
+          Log.print("Missing devices:\n#{(test_device_udids - profile_device_udids).join("\n")}")
 
           return false
         else
