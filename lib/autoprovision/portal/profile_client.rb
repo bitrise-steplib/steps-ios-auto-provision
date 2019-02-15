@@ -37,7 +37,7 @@ module Portal
       end
 
       profiles = full_matching_profiles.select do |profile|
-        distribution_type_matches?(profile, distribution_type) &&
+        distribution_type_matches?(profile, distribution_type, platform) &&
           !expired?(profile, min_profile_days_valid) &&
           all_services_enabled?(profile, entitlements) &&
           include_certificate?(profile, certificate) &&
@@ -47,7 +47,7 @@ module Portal
       return profiles.first unless profiles.empty?
 
       profiles = matching_profiles.select do |profile|
-        distribution_type_matches?(profile, distribution_type) &&
+        distribution_type_matches?(profile, distribution_type, platform) &&
           !expired?(profile, min_profile_days_valid) &&
           all_services_enabled?(profile, entitlements) &&
           include_certificate?(profile, certificate) &&
@@ -73,7 +73,7 @@ module Portal
 
       return profile if !profile.nil? &&
                         bundle_id_matches?(profile, app.bundle_id) &&
-                        distribution_type_matches?(profile, distribution_type) &&
+                        distribution_type_matches?(profile, distribution_type, platform) &&
                         !expired?(profile, min_profile_days_valid) &&
                         all_services_enabled?(profile, entitlements) &&
                         include_certificate?(profile, certificate) &&
@@ -114,7 +114,7 @@ module Portal
       true
     end
 
-    def self.distribution_type_matches?(profile, distribution_type)
+    def self.distribution_type_matches?(profile, distribution_type, platform)
       distribution_methods = {
         'development' => 'limited',
         'app-store' => 'store',
@@ -122,6 +122,16 @@ module Portal
         'enterprise' => 'inhouse'
       }
       desired_distribution_method = distribution_methods[distribution_type]
+
+      # Both app_store.all and ad_hoc.all return the same
+      # This is the case since September 2016, since the API has changed
+      # and there is no fast way to get the type when fetching the profiles
+      # Distinguish between App Store and Ad Hoc profiles
+      if distribution_type == 'app-store' && platform.casecmp('tvos')
+        return false if profile.name.downcase.start_with?('tvos team ad hoc', 'xc ad hoc', 'xc tvos ad hoc')
+      elsif distribution_type == 'app-store'
+        return false if profile.name.downcase.start_with?('ios team ad hoc', 'xc ad hoc', 'xc ios ad hoc')
+      end
 
       unless profile.distribution_method == desired_distribution_method
         Log.debug("Profile (#{profile.name}) distribution type: #{profile.distribution_method}, should be: #{desired_distribution_method}")
@@ -215,7 +225,6 @@ module Portal
       platform_profiles = @profiles[platform].to_h
       platform_profiles[xcode_managed] = profiles
       @profiles[platform] = platform_profiles
-
       profiles
     end
 
