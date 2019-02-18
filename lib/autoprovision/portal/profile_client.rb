@@ -7,6 +7,23 @@ module Portal
   class ProfileClient
     @profiles = {}
 
+    # Xcode Managed profile examples:
+    # XC Ad Hoc: *
+    # XC: *
+    # XC Ad Hoc: { bundle id }
+    # XC: { bundle id }
+    # iOS Team Provisioning Profile: *
+    # iOS Team Ad Hoc Provisioning Profile: *
+    # iOS Team Ad Hoc Provisioning Profile: {bundle id}
+    # iOS Team Provisioning Profile: {bundle id}
+    # tvOS Team Provisioning Profile: *
+    # tvOS Team Ad Hoc Provisioning Profile: *
+    # tvOS Team Ad Hoc Provisioning Profile: {bundle id}
+    # tvOS Team Provisioning Profile: {bundle id}
+    # Mac Team Provisioning Profile: *
+    # Mac Team Ad Hoc Provisioning Profile: *
+    # Mac Team Ad Hoc Provisioning Profile: {bundle id}
+    # Mac Team Provisioning Profile: {bundle id}
     def self.xcode_managed?(profile)
       return true if profile.name.start_with?('XC')
 
