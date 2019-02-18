@@ -7,6 +7,23 @@ module Portal
   class ProfileClient
     @profiles = {}
 
+    # Xcode Managed profile examples:
+    # XC Ad Hoc: *
+    # XC: *
+    # XC Ad Hoc: { bundle id }
+    # XC: { bundle id }
+    # iOS Team Provisioning Profile: *
+    # iOS Team Ad Hoc Provisioning Profile: *
+    # iOS Team Ad Hoc Provisioning Profile: {bundle id}
+    # iOS Team Provisioning Profile: {bundle id}
+    # tvOS Team Provisioning Profile: *
+    # tvOS Team Ad Hoc Provisioning Profile: *
+    # tvOS Team Ad Hoc Provisioning Profile: {bundle id}
+    # tvOS Team Provisioning Profile: {bundle id}
+    # Mac Team Provisioning Profile: *
+    # Mac Team Ad Hoc Provisioning Profile: *
+    # Mac Team Ad Hoc Provisioning Profile: {bundle id}
+    # Mac Team Provisioning Profile: {bundle id}
     def self.xcode_managed?(profile)
       return true if profile.name.start_with?('XC')
 
@@ -127,10 +144,19 @@ module Portal
       # This is the case since September 2016, since the API has changed
       # and there is no fast way to get the type when fetching the profiles
       # Distinguish between App Store and Ad Hoc profiles
-      if distribution_type == 'app-store' && platform.casecmp('tvos')
-        return false if profile.name.downcase.start_with?('tvos team ad hoc', 'xc ad hoc', 'xc tvos ad hoc')
-      elsif distribution_type == 'app-store'
-        return false if profile.name.downcase.start_with?('ios team ad hoc', 'xc ad hoc', 'xc ios ad hoc')
+
+      # Profile name examples:
+      # XC Ad Hoc: { bundle id }
+      # iOS Team Ad Hoc Provisioning Profile: *
+      # iOS Team Ad Hoc Provisioning Profile: {bundle id}
+      # tvOS Team Ad Hoc Provisioning Profile: *
+      # tvOS Team Ad Hoc Provisioning Profile: {bundle id}
+      if ProfileClient.xcode_managed?(profile)
+        if distribution_type == 'app-store' && platform.casecmp('tvos')
+          return false if profile.name.downcase.start_with?('tvos team ad hoc', 'xc ad hoc', 'xc tvos ad hoc')
+        elsif distribution_type == 'app-store'
+          return false if profile.name.downcase.start_with?('ios team ad hoc', 'xc ad hoc', 'xc ios ad hoc')
+        end
       end
 
       unless profile.distribution_method == desired_distribution_method
