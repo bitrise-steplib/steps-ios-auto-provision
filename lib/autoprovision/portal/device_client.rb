@@ -11,6 +11,7 @@ module Portal
         return
       end
 
+      test_devices = filter_duplicated_devices(test_devices)
       portal_devices = fetch_devices(device_client)
 
       new_device_registered = false
@@ -51,6 +52,12 @@ module Portal
       portal_devices = nil
       run_and_handle_portal_function { portal_devices = device_client.all(mac: false, include_disabled: true) || [] }
       portal_devices
+    end
+
+    def self.filter_duplicated_devices(test_devices)
+      test_devices = test_devices.map { |device| device.udid = device.udid.gsub!(/[^0-9A-Za-z]/, '') }
+      Log.warn("filtered test_devices: #{test_devices}")
+      test_devices
     end
   end
 end
