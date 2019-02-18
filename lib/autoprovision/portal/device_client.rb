@@ -55,7 +55,10 @@ module Portal
     end
 
     def self.filter_duplicated_devices(test_devices)
-      test_devices = test_devices.map { |device| device.udid = device.udid.gsub!(/[^0-9A-Za-z]/, '') }
+      test_devices.each do |test_device|
+        test_device.udid = test_device.udid.gsub!(/[^0-9A-Za-z]/, '')
+      end
+
       Log.warn("filtered test_devices: #{test_devices}")
       test_devices
     end
