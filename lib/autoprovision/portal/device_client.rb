@@ -57,7 +57,7 @@ module Portal
     def self.filter_duplicated_devices(test_devices)
       test_devices.each do |test_device|
         substituted_udid = test_device.udid.sub(/[^0-9A-Za-z]/, '')
-        test_device.udid = substituted_udid unless substituted.to_s.empty?
+        test_device.udid = substituted_udid unless substituted_udid.to_s.empty?
       end
 
       Log.warn("filtered test_devices: #{test_devices}")
