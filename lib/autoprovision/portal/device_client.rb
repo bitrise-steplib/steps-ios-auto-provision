@@ -11,7 +11,7 @@ module Portal
         return
       end
 
-      test_devices = filter_duplicated_devices(test_devices)
+      test_devices = TestDevice.uniq(test_devices)
       portal_devices = fetch_devices(device_client)
 
       new_device_registered = false
@@ -52,18 +52,6 @@ module Portal
       portal_devices = nil
       run_and_handle_portal_function { portal_devices = device_client.all(mac: false, include_disabled: true) || [] }
       portal_devices
-    end
-
-    def self.filter_duplicated_devices(test_devices)
-      test_devices.each do |test_device|
-        Log.warn("test_device: #{test_device.inspect}")
-        substituted_udid = test_device.udid.sub(/[^0-9A-Za-z]/, '')
-        test_device.udid = substituted_udid unless substituted_udid.to_s.empty?
-      end
-
-      test_devices = test_device.to_set.to_a
-      Log.warn("filtered test_devices: #{test_devices}")
-      test_devices
     end
   end
 end
