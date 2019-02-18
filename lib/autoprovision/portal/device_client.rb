@@ -61,6 +61,7 @@ module Portal
         test_device.udid = substituted_udid unless substituted_udid.to_s.empty?
       end
 
+      test_devices = test_device.to_set.to_a
       Log.warn("filtered test_devices: #{test_devices}")
       test_devices
     end
