@@ -13,29 +13,7 @@ class TestDevice
     raise 'device title not provided for this build' if @name.empty?
   end
 
-  def to_test_device(object)
-    TestDevice.New(object.udid, object.name)
-  end
-
   def ==(other)
-    substituted_udid = @udid.sub(/[^0-9A-Za-z]/, '')
-    other_substituted_udid = other.udid.sub(/[^0-9A-Za-z]/, '')
-    substituted_udid == other_substituted_udid
-  end
-
-  def ===(other)
-    substituted_udid = @udid.sub(/[^0-9A-Za-z]/, '')
-    other_substituted_udid = other.udid.sub(/[^0-9A-Za-z]/, '')
-    substituted_udid == other_substituted_udid
-  end
-
-  def eql?(other)
-    substituted_udid = @udid.sub(/[^0-9A-Za-z]/, '')
-    other_substituted_udid = other.udid.sub(/[^0-9A-Za-z]/, '')
-    substituted_udid == other_substituted_udid
-  end
-
-  def equal?(other)
     substituted_udid = @udid.sub(/[^0-9A-Za-z]/, '')
     other_substituted_udid = other.udid.sub(/[^0-9A-Za-z]/, '')
     substituted_udid == other_substituted_udid
