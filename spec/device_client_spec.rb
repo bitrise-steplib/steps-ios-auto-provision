@@ -4,7 +4,7 @@ require_relative '../log/log'
 
 RSpec.describe '.ensure_test_devices' do
   it 'it registers new device' do
-    device = TestDevice.new(
+    device = Device.new(
       'device_identifier' => '123456',
       'title' => 'New Device'
     )

@@ -1,5 +1,5 @@
-# TestDevice
-class TestDevice
+# Device
+class Device
   attr_reader :udid
   attr_reader :name
 
