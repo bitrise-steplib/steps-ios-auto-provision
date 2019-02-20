@@ -11,6 +11,17 @@ module Portal
         return
       end
 
+      # Log the duplicated devices (by udid)
+      duplicated_devices_groups = Device.duplicated_device_groups(test_devices)
+      unless duplicated_devices_groups.to_a.empty?
+        Log.debug('Devices registered multiples times on Bitrise:')
+
+        duplicated_devices_groups.each do |duplicated_devices|
+          Log.debug("#{duplicated_devices.map(&:udid).join("\n")}\n\n")
+        end
+      end
+
+      # Remove the duplications from the device list
       test_devices = Device.filter_duplicated_devices(test_devices)
       portal_devices = fetch_devices(device_client)
 
