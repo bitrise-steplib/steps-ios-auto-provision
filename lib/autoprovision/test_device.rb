@@ -19,7 +19,7 @@ class TestDevice
     substituted_udid == other_substituted_udid
   end
 
-  def self.uniq(test_devices)
+  def self.filter_duplicated_devices(test_devices)
     return test_devices if test_devices.to_a.empty? || test_devices.to_a.length == 1
 
     filtered_test_devices = [test_devices.to_a[0]]

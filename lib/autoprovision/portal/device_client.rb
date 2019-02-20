@@ -11,7 +11,7 @@ module Portal
         return
       end
 
-      test_devices = TestDevice.uniq(test_devices)
+      test_devices = TestDevice.filter_duplicated_devices(test_devices)
       portal_devices = fetch_devices(device_client)
 
       new_device_registered = false
