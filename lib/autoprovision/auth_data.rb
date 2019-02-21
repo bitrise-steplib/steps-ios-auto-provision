@@ -1,4 +1,4 @@
-require_relative 'test_device'
+require_relative 'device'
 
 # AuthData
 class AuthData
