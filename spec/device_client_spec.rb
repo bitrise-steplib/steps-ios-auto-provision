@@ -1,5 +1,5 @@
 require_relative '../lib/autoprovision/portal/device_client'
-require_relative '../lib/autoprovision/test_device'
+require_relative '../lib/autoprovision/device'
 require_relative '../log/log'
 
 RSpec.describe '.ensure_test_devices' do

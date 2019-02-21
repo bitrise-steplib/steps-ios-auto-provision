@@ -50,7 +50,7 @@ Style/BlockComments:
 # SupportedStyles: each, for
 Style/For:
   Exclude:
-    - 'lib/autoprovision/test_device.rb'
+    - 'lib/autoprovision/device.rb'
 
 # Offense count: 1
 # Configuration parameters: MinBodyLength.
