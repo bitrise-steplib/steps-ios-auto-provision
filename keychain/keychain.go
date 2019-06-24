@@ -3,13 +3,15 @@ package keychain
 import (
 	"bytes"
 	"fmt"
-	"io"
-	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-io/go-xcode/certificateutil"
 	"github.com/hashicorp/go-version"
 )
 
@@ -19,8 +21,71 @@ type Keychain struct {
 	Password stepconf.Secret
 }
 
-// ListKeychains returns the paths of available keychains
-func ListKeychains() ([]string, error) {
+// New ...
+func New(pth string, pass stepconf.Secret) (*Keychain, error) {
+	if exist, err := pathutil.IsPathExists(pth); err != nil {
+		return nil, err
+	} else if exist {
+		return &Keychain{
+			Path:     pth,
+			Password: stepconf.Secret(pass),
+		}, nil
+	}
+
+	p := pth + "-db"
+	if exist, err := pathutil.IsPathExists(p); err != nil {
+		return nil, err
+	} else if exist {
+		return &Keychain{
+			Path:     pth,
+			Password: pass,
+		}, nil
+	}
+
+	return createKeychain(pth, pass)
+}
+
+// InstallCertificate ...
+func (k Keychain) InstallCertificate(cert certificateutil.CertificateInfoModel, pass stepconf.Secret) error {
+	tmpDir, err := pathutil.NormalizedOSTempDirPath("keychain")
+	if err != nil {
+		return err
+	}
+	pth := filepath.Join(tmpDir, "Certificate.p12")
+	_, err = cert.EncodeToP12(string(pass))
+	if err != nil {
+		return err
+	}
+
+	if err := k.importCertificate(pth, pass); err != nil {
+		return err
+	}
+
+	if needed, err := isKeyPartitionListNeeded(); err != nil {
+		return err
+	} else if needed {
+		if err := k.setKeyPartitionList(); err != nil {
+			return err
+		}
+	}
+
+	if err := k.setLockSettings(); err != nil {
+		return err
+	}
+
+	if err := k.addToSearchPath(); err != nil {
+		return err
+	}
+
+	if err := k.setAsDefault(); err != nil {
+		return err
+	}
+
+	return k.unlock()
+}
+
+// listKeychains returns the paths of available keychains
+func listKeychains() ([]string, error) {
 	outbuf := bytes.NewBuffer([]byte{})
 	cmd := command.New("security", "list-keychain").SetStdout(outbuf).SetStderr(outbuf)
 
@@ -41,19 +106,22 @@ func ListKeychains() ([]string, error) {
 	return keychains, nil
 }
 
-// CreateKeychain creates a new keychain file at
+// createKeychain creates a new keychain file at
 // path, protected by password. Returns an error
 // if the keychain could not be created, otherwise
 // a Keychain object representing the created
 // keychain is returned.
-func CreateKeychain(path string, password stepconf.Secret, out, errout io.Writer) (*Keychain, error) {
+func createKeychain(path string, password stepconf.Secret) (*Keychain, error) {
 	params := []string{"-v", "create-keychain", "-p", "*****", path}
 	log.Debugf("$ %s", command.New("security", params...).PrintableCommandArgs())
 	params[3] = string(password)
 
-	cmd := command.New("security", params...).SetStdout(out).SetStderr(errout)
-	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("create keychain command failed: %s", err)
+	cmd := command.New("security", params...)
+	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
+		if errorutil.IsExitStatusError(err) {
+			return nil, fmt.Errorf("create-keychain failed: %s", out)
+		}
+		return nil, fmt.Errorf("create-keychain failed: %s", err)
 	}
 
 	return &Keychain{
@@ -62,102 +130,123 @@ func CreateKeychain(path string, password stepconf.Secret, out, errout io.Writer
 	}, nil
 }
 
-// ImportCertificate adds the certificate at path, protected by
-// passphrase to the kc keychain.
-func (kc Keychain) ImportCertificate(path string, passphrase stepconf.Secret) error {
-	params := []string{"import", path, "-k", kc.Path, "-P", "*****", "-A"}
+// importCertificate adds the certificate at path, protected by
+// passphrase to the k keychain.
+func (k Keychain) importCertificate(path string, passphrase stepconf.Secret) error {
+	params := []string{"import", path, "-k", k.Path, "-P", "*****", "-A"}
 	log.Debugf("$ %s", command.New("security", params...).PrintableCommandArgs())
 	params[5] = string(passphrase)
 
-	cmd := command.New("security", params...).SetStdout(os.Stdout).SetStderr(os.Stderr)
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("import certificate command: %s", err)
+	cmd := command.New("security", params...)
+	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
+		if errorutil.IsExitStatusError(err) {
+			return fmt.Errorf("import failed: %s", out)
+		}
+		return fmt.Errorf("import failed: %s", err)
 	}
 
 	return nil
 }
 
-// SetKeyPartitionList sets the partition list
+// setKeyPartitionList sets the partition list
 // for the keychain to allow access for tools.
-func (kc Keychain) SetKeyPartitionList() error {
-	params := []string{"set-key-partition-list", "-S", "apple-tool:,apple:", "-k", "*****", kc.Path}
+func (k Keychain) setKeyPartitionList() error {
+	params := []string{"set-key-partition-list", "-S", "apple-tool:,apple:", "-k", "*****", k.Path}
 	log.Debugf("$ %s", command.New("security", params...).PrintableCommandArgs())
-	params[4] = string(kc.Password)
+	params[4] = string(k.Password)
 
-	cmd := command.New("security", params...).SetStdout(os.Stdout).SetStderr(os.Stderr)
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("set partition list command failed: %s", err)
+	cmd := command.New("security", params...)
+	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
+		if errorutil.IsExitStatusError(err) {
+			return fmt.Errorf("set-key-partition-list failed: %s", out)
+		}
+		return fmt.Errorf("set-key-partition-list failed: %s", err)
 	}
 
 	return nil
 }
 
-// SetLockSettings sets keychain autolocking.
-func (kc Keychain) SetLockSettings() error {
-	cmd := command.New("security", "-v", "set-keychain-settings", "-lut", "72000", kc.Path).SetStdout(os.Stdout).SetStderr(os.Stderr)
-
+// setLockSettings sets keychain autolocking.
+func (k Keychain) setLockSettings() error {
+	cmd := command.New("security", "-v", "set-keychain-settings", "-lut", "72000", k.Path)
 	log.Debugf("$ %s", cmd.PrintableCommandArgs())
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("set keychain lock settings command: %s", err)
+
+	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
+		if errorutil.IsExitStatusError(err) {
+			return fmt.Errorf("set-keychain-settings failed: %s", out)
+		}
+		return fmt.Errorf("set-keychain-settings failed: %s", err)
 	}
 
 	return nil
 }
 
-// AddToSearchPath registers the keychain
+// addToSearchPath registers the keychain
 // in the systemwide search path
-func (kc Keychain) AddToSearchPath() error {
-	keychains, err := ListKeychains()
+func (k Keychain) addToSearchPath() error {
+	keychains, err := listKeychains()
 	if err != nil {
 		return fmt.Errorf("get keychain list: %s", err)
 	}
 
-	cmd := command.New("security", "-v", "list-keychains", "-s", strings.Join(keychains, " ")).SetStdout(os.Stdout).SetStderr(os.Stderr)
-
+	cmd := command.New("security", "-v", "list-keychains", "-s", strings.Join(keychains, " "))
 	log.Debugf("$ %s", cmd.PrintableCommandArgs())
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("add keychain to search path failed: %s", err)
+
+	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
+		if errorutil.IsExitStatusError(err) {
+			return fmt.Errorf("list-keychains failed: %s", out)
+		}
+		return fmt.Errorf("list-keychains failed: %s", err)
 	}
 
 	return nil
 }
 
-// SetAsDefault sets the keychain as the
+// setAsDefault sets the keychain as the
 // default keychain for the system.
-func (kc Keychain) SetAsDefault() error {
-	cmd := command.New("security", "-v", "default-keychain", "-s", kc.Path).SetStdout(os.Stdout).SetStderr(os.Stderr)
-
+func (k Keychain) setAsDefault() error {
+	cmd := command.New("security", "-v", "default-keychain", "-s", k.Path)
 	log.Debugf("$ %s", cmd.PrintableCommandArgs())
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("set keychain as default command failed: %s", err)
+
+	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
+		if errorutil.IsExitStatusError(err) {
+			return fmt.Errorf("default-keychain failed: %s", out)
+		}
+		return fmt.Errorf("default-keychain failed: %s", err)
 	}
 
 	return nil
 }
 
-// Unlock unlocks the keychain
-func (kc Keychain) Unlock() error {
-	params := []string{"-v", "unlock-keychain", "-p", "*****", kc.Path}
+// unlock unlocks the keychain
+func (k Keychain) unlock() error {
+	params := []string{"-v", "unlock-keychain", "-p", "*****", k.Path}
 	log.Debugf("$ %s", command.New("security", params...).PrintableCommandArgs())
-	params[3] = string(kc.Password)
+	params[3] = string(k.Password)
 
-	cmd := command.New("security", params...).SetStdout(os.Stdout).SetStderr(os.Stderr)
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("unlock keychain command failed: %s", err)
+	cmd := command.New("security", params...)
+	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
+		if errorutil.IsExitStatusError(err) {
+			return fmt.Errorf("unlock-keychain failed: %s", out)
+		}
+		return fmt.Errorf("unlock-keychain failed: %s", err)
 	}
 
 	return nil
 }
 
-// IsKeyPartitionListNeeded determines whether
+// isKeyPartitionListNeeded determines whether
 // key partition lists are used by the system.
-func IsKeyPartitionListNeeded() (bool, error) {
+func isKeyPartitionListNeeded() (bool, error) {
 	outbuf := bytes.NewBuffer([]byte{})
-	cmd := command.New("sw_vers", "-productVersion").SetStdout(outbuf).SetStderr(os.Stderr)
-
+	cmd := command.New("sw_vers", "-productVersion")
 	log.Debugf("$ %s", cmd.PrintableCommandArgs())
-	if err := cmd.Run(); err != nil {
-		return false, fmt.Errorf("get OS version: %s", err)
+
+	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
+		if errorutil.IsExitStatusError(err) {
+			return false, fmt.Errorf("sw_vers failed: %s", out)
+		}
+		return false, fmt.Errorf("sw_vers failed: %s", err)
 	}
 
 	const versionSierra = "10.12.0"

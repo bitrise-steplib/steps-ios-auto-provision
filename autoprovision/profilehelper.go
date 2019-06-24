@@ -2,8 +2,25 @@ package autoprovision
 
 import (
 	"fmt"
+
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
+
+// PlatformToProfileTypeByDistribution ...
+var PlatformToProfileTypeByDistribution = map[Platform]map[DistributionType]appstoreconnect.ProfileType{
+	IOS: map[DistributionType]appstoreconnect.ProfileType{
+		Development: appstoreconnect.IOSAppDevelopment,
+		AppStore:    appstoreconnect.IOSAppStore,
+		AdHoc:       appstoreconnect.IOSAppAdHoc,
+		Enterprise:  appstoreconnect.IOSAppInHouse,
+	},
+	TVOS: map[DistributionType]appstoreconnect.ProfileType{
+		Development: appstoreconnect.TvOSAppDevelopment,
+		AppStore:    appstoreconnect.TvOSAppStore,
+		AdHoc:       appstoreconnect.TvOSAppAdHoc,
+		Enterprise:  appstoreconnect.TvOSAppInHouse,
+	},
+}
 
 func profileName(profileType appstoreconnect.ProfileType, bundleID string) (string, error) {
 	var distr string

@@ -19,15 +19,6 @@ import (
 	"howett.net/plist"
 )
 
-// ProjectHelper ...
-type ProjectHelper struct {
-	MainTarget    xcodeproj.Target
-	Targets       []xcodeproj.Target
-	Platform      Platform
-	XcProj        xcodeproj.XcodeProj
-	Configuration string
-}
-
 // Platform of the target
 // iOS, tvOS, macOS
 type Platform string
@@ -52,6 +43,16 @@ const (
 	TVOS  Platform = "tvOS"
 	MacOS Platform = "macOS"
 )
+
+// ProjectHelper ...
+type ProjectHelper struct {
+	MainTarget    xcodeproj.Target
+	Targets       []xcodeproj.Target
+	XcProj        xcodeproj.XcodeProj
+	Configuration string
+
+	buildSettingsCache map[string]map[string]serialized.Object // target/config/buildSettings(serialized.Object)
+}
 
 // NewProjectHelper checks the provided project or workspace and generate a ProjectHelper with the provided scheme and configuration
 // Previously in the ruby version the initialize method did the same
@@ -85,12 +86,6 @@ func NewProjectHelper(projOrWSPath, schemeName, configurationName string) (*Proj
 		return nil, "", fmt.Errorf("archive action not defined for scheme: %s", scheme.Name)
 	}
 
-	// Get the platform (PLATFORM_DISPLAY_NAME) -iphoneos, macosx, appletvos
-	platf, err := platform(xcproj, mainTarget, configurationName)
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to find platform of the project, error: %s", err)
-	}
-
 	// Configuration
 	conf, err := configuration(configurationName, scheme, xcproj)
 	if err != nil {
@@ -99,7 +94,6 @@ func NewProjectHelper(projOrWSPath, schemeName, configurationName string) (*Proj
 	return &ProjectHelper{
 			MainTarget:    mainTarget,
 			Targets:       xcproj.Proj.Targets,
-			Platform:      platf,
 			XcProj:        xcproj,
 			Configuration: conf,
 		}, conf,
@@ -107,7 +101,7 @@ func NewProjectHelper(projOrWSPath, schemeName, configurationName string) (*Proj
 }
 
 // ArchivableTargetBundleIDToEntitlements ...
-func (p ProjectHelper) ArchivableTargetBundleIDToEntitlements() (map[string]serialized.Object, error) {
+func (p *ProjectHelper) ArchivableTargetBundleIDToEntitlements() (map[string]serialized.Object, error) {
 	targets := append([]xcodeproj.Target{p.MainTarget}, p.MainTarget.DependentExecutableProductTargets(false)...)
 
 	entitlementsByBundleID := map[string]serialized.Object{}
@@ -129,45 +123,16 @@ func (p ProjectHelper) ArchivableTargetBundleIDToEntitlements() (map[string]seri
 	return entitlementsByBundleID, nil
 }
 
-// UsesXcodeAutoCodeSigning checks the project uses automatically managed code signing
-// It checks the main target "ProvisioningStyle" attribute first then the "CODE_SIGN_STYLE" for the provided configuration
-// It returns true if the project uses automatically code signing
-func UsesXcodeAutoCodeSigning(xcProj xcodeproj.XcodeProj, mainTarget xcodeproj.Target, config string) (bool, error) {
-	settings, err := xcProj.TargetBuildSettings(mainTarget.Name, config)
+// Platform get the platform (PLATFORM_DISPLAY_NAME) - iOS, tvOS, macOS
+func (p *ProjectHelper) Platform(configurationName string) (Platform, error) {
+	settings, err := p.targetBuildSettings(p.MainTarget.Name, configurationName)
 	if err != nil {
-		return false, fmt.Errorf("failed to fetch project settings (%s), error: %s", xcProj.Path, err)
-	}
-
-	if provStle, err := settings.String("ProvisioningStyle"); err != nil && !serialized.IsKeyNotFoundError(err) {
-		return false, err
-	} else if provStle == "Automatic" {
-		return true, nil
-	}
-
-	for _, buildConf := range mainTarget.BuildConfigurationList.BuildConfigurations {
-		if buildConf.Name != config {
-			continue
-		}
-
-		if signStyle, err := buildConf.BuildSettings.String("CODE_SIGN_STYLE"); err != nil && !serialized.IsKeyNotFoundError(err) {
-			return false, err
-		} else if signStyle == "Automatic" {
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
-// Get the platform (PLATFORM_DISPLAY_NAME) - iOS, tvOS, macOS
-func platform(xcproj xcodeproj.XcodeProj, mainTarget xcodeproj.Target, configurationName string) (Platform, error) {
-	settings, err := xcproj.TargetBuildSettings(mainTarget.Name, configurationName)
-	if err != nil {
-		return "", fmt.Errorf("failed to fetch project settings (%s), error: %s", xcproj.Path, err)
+		return "", fmt.Errorf("failed to fetch project settings (%s), error: %s", p.XcProj.Path, err)
 	}
 
 	platformDisplayName, err := settings.String("PLATFORM_DISPLAY_NAME")
 	if err != nil {
-		return "", fmt.Errorf("no PLATFORM_DISPLAY_NAME config found for (%s) target", mainTarget.Name)
+		return "", fmt.Errorf("no PLATFORM_DISPLAY_NAME config found for (%s) target", p.MainTarget.Name)
 	}
 
 	if platformDisplayName != string(IOS) && platformDisplayName != string(MacOS) && platformDisplayName != string(TVOS) {
@@ -292,11 +257,11 @@ func findBuiltProject(pth, schemeName, configurationName string) (xcodeproj.Xcod
 // ProjectTeamID returns the development team's ID
 // If there is mutlitple development team in the project (different team for targets) it will return an error
 // It returns the development team's ID
-func (p ProjectHelper) ProjectTeamID(config string) (string, error) {
+func (p *ProjectHelper) ProjectTeamID(config string) (string, error) {
 	var teamID string
 
 	for _, target := range p.Targets {
-		currentTeamID, err := targetTeamID(p.XcProj, target.Name, config)
+		currentTeamID, err := p.targetTeamID(target.Name, config)
 		if err != nil {
 			// Do nothing
 		}
@@ -341,11 +306,11 @@ func (p ProjectHelper) ProjectTeamID(config string) (string, error) {
 // ProjectCodeSignIdentity returns the codesign identity of the project
 // If there is mutlitple codesign identity in the project (different identity for targets) it will return an error
 // It returns the codesign identity
-func (p ProjectHelper) ProjectCodeSignIdentity(config string) (string, error) {
+func (p *ProjectHelper) ProjectCodeSignIdentity(config string) (string, error) {
 	var codesignIdentity string
 
 	for _, t := range p.Targets {
-		targetIdentity, err := targetCodesignIdentity(p.XcProj, t.Name, config)
+		targetIdentity, err := p.targetCodesignIdentity(t.Name, config)
 		if err != nil {
 			return "", err
 		}
@@ -382,16 +347,16 @@ func codesignIdentitesMatch(identity1, identity2 string) bool {
 	return false
 }
 
-func targetCodesignIdentity(xcProj xcodeproj.XcodeProj, targatName, config string) (string, error) {
-	settings, err := xcProj.TargetBuildSettings(targatName, config)
+func (p *ProjectHelper) targetCodesignIdentity(targatName, config string) (string, error) {
+	settings, err := p.targetBuildSettings(targatName, config)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch target (%s) settings, error: %s", targatName, err)
 	}
 	return settings.String("CODE_SIGN_IDENTITY")
 }
 
-func targetTeamID(xcProj xcodeproj.XcodeProj, targatName, config string) (string, error) {
-	settings, err := xcProj.TargetBuildSettings(targatName, config)
+func (p *ProjectHelper) targetTeamID(targatName, config string) (string, error) {
+	settings, err := p.targetBuildSettings(targatName, config)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch target (%s) settings, error: %s", targatName, err)
 	}
@@ -404,13 +369,40 @@ func targetTeamID(xcProj xcodeproj.XcodeProj, targatName, config string) (string
 
 }
 
+func (p *ProjectHelper) targetBuildSettings(name, conf string) (serialized.Object, error) {
+	targetCache, ok := p.buildSettingsCache[name]
+	if ok {
+		confCache, ok := targetCache[conf]
+		if ok {
+			return confCache, nil
+		}
+	}
+
+	settings, err := p.XcProj.TargetBuildSettings(name, conf)
+	if err != nil {
+		return nil, err
+	}
+
+	if targetCache == nil {
+		targetCache = map[string]serialized.Object{}
+	}
+	targetCache[conf] = settings
+
+	if p.buildSettingsCache == nil {
+		p.buildSettingsCache = map[string]map[string]serialized.Object{}
+	}
+	p.buildSettingsCache[name] = targetCache
+
+	return settings, nil
+}
+
 // TargetBundleID returns the target bundle ID
 // First it tries to fetch the bundle ID from the `PRODUCT_BUNDLE_IDENTIFIER` build settings
 // If it's no available it will fetch the target's Info.plist and search for the `CFBundleIdentifier` key.
 // The CFBundleIdentifier's value is not resolved in the Info.plist, so it will try to resolve it by the resolveBundleID()
 // It returns  the target bundle ID
-func (p ProjectHelper) TargetBundleID(name, conf string) (string, error) {
-	settings, err := p.XcProj.TargetBuildSettings(name, conf)
+func (p *ProjectHelper) TargetBundleID(name, conf string) (string, error) {
+	settings, err := p.targetBuildSettings(name, conf)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch target (%s) settings, error: %s", name, err)
 	}
@@ -485,7 +477,7 @@ func resolveBundleID(bundleID string, buildSettings serialized.Object) (string, 
 
 }
 
-func (p ProjectHelper) targetEntitlements(name, config string) (serialized.Object, error) {
+func (p *ProjectHelper) targetEntitlements(name, config string) (serialized.Object, error) {
 	o, err := p.XcProj.TargetCodeSignEntitlements(name, config)
 	if err != nil && !serialized.IsKeyNotFoundError(err) {
 		return nil, err

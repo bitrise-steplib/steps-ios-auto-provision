@@ -1,21 +1,11 @@
-package keychain_test
+package keychain
 
 import (
-	"bytes"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
-
-	"github.com/bitrise-steplib/steps-ios-auto-provision/keychain"
-)
-
-const (
-	testCertPassword     = "challenge"
-	testCertFilename     = "testcert.crt"
-	testKeychainFilename = "testkeychain"
-	testKeychainPassword = "password"
 )
 
 func TestCreateKeychain(t *testing.T) {
@@ -24,23 +14,25 @@ func TestCreateKeychain(t *testing.T) {
 		t.Errorf("setup: create temp dir for keychain: %s", err)
 	}
 	path := filepath.Join(dir, "testkeychain")
-	outbuf := bytes.NewBuffer([]byte{})
-	errbuf := bytes.NewBuffer([]byte{})
-	_, err = keychain.CreateKeychain(path, "randompassword", outbuf, errbuf)
+	_, err = createKeychain(path, "randompassword")
 
 	if err != nil {
-		t.Log(outbuf.String(), errbuf.String())
 		t.Errorf("error creating keychain: %s", err)
 	}
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		t.Log(outbuf.String())
-		t.Log(errbuf.String())
 		t.Errorf("keychain not created")
 	}
 }
 
 func TestImportCertificate(t *testing.T) {
+	const (
+		testCertPassword     = "challenge"
+		testCertFilename     = "testcert.crt"
+		testKeychainFilename = "testkeychain"
+		testKeychainPassword = "password"
+	)
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		t.Errorf("setup: faliled to get working dir, error: %s", err)
@@ -62,9 +54,9 @@ func TestImportCertificate(t *testing.T) {
 	}
 	pathCert := filepath.Join(dirTest, testCertFilename)
 
-	kchain := keychain.Keychain{Path: pathTesting, Password: testKeychainPassword}
+	kchain := Keychain{Path: pathTesting, Password: testKeychainPassword}
 
-	if err := kchain.ImportCertificate(pathCert, testCertPassword); err != nil {
+	if err := kchain.importCertificate(pathCert, testCertPassword); err != nil {
 		t.Errorf("could not import cert: %s", err)
 	}
 

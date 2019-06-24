@@ -2,12 +2,12 @@
 
 
 [[projects]]
+  branch = "master"
   digest = "1:c0b39ecb4571b7c447a7de369bdba8e8233874015854ae9418814735102f0804"
   name = "github.com/bitrise-io/bitrise-add-new-project"
   packages = ["httputil"]
   pruneopts = "UT"
-  revision = "443debb90a5ff488fcdc9e32d9b6b24dfbec7f49"
-  version = "0.2.1"
+  revision = "d26ac481989033683ee4bb27b68a4a99646d77aa"
 
 [[projects]]
   branch = "master"
@@ -60,14 +60,6 @@
   ]
   pruneopts = "UT"
   revision = "22f5faeb65f6ab795230d678bec8160686ab848b"
-
-[[projects]]
-  branch = "master"
-  digest = "1:a3afea7f3c972b809af1a79472585115af175fbf1bcc5bebccd495f19bb551db"
-  name = "github.com/bitrise-tools/go-steputils"
-  packages = ["stepconf"]
-  pruneopts = "UT"
-  revision = "f540824d77dfd382ce84fd0ee0a9da2fba1cce0a"
 
 [[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
@@ -131,6 +123,7 @@
     "github.com/bitrise-io/bitrise-add-new-project/httputil",
     "github.com/bitrise-io/go-steputils/stepconf",
     "github.com/bitrise-io/go-utils/command",
+    "github.com/bitrise-io/go-utils/errorutil",
     "github.com/bitrise-io/go-utils/fileutil",
     "github.com/bitrise-io/go-utils/log",
     "github.com/bitrise-io/go-utils/pathutil",
@@ -142,7 +135,6 @@
     "github.com/bitrise-io/xcode-project/xcodeproj",
     "github.com/bitrise-io/xcode-project/xcscheme",
     "github.com/bitrise-io/xcode-project/xcworkspace",
-    "github.com/bitrise-tools/go-steputils/stepconf",
     "github.com/dgrijalva/jwt-go",
     "github.com/google/go-querystring/query",
     "github.com/hashicorp/go-version",

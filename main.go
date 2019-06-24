@@ -1,16 +1,120 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-io/go-utils/retry"
+	"github.com/bitrise-io/go-xcode/certificateutil"
 	"github.com/bitrise-io/xcode-project/pretty"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/autoprovision"
+	"github.com/bitrise-steplib/steps-ios-auto-provision/keychain"
 )
+
+// downloadCertificates downloads and parses a list of p12 files
+func downloadCertificates(URLs []CertificateFileURL) ([]certificateutil.CertificateInfoModel, error) {
+	httpClient := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	var certInfos []certificateutil.CertificateInfoModel
+
+	for i, p12 := range URLs {
+		log.Debugf("Downloading p12 file number %d from %s", i, p12.URL)
+
+		p12CertInfos, err := downloadPKCS12(httpClient, p12.URL, p12.Passphrase)
+		if err != nil {
+			return nil, err
+		}
+		log.Debugf("Codesign identities included: %s", autoprovision.CertsToString(p12CertInfos))
+
+		certInfos = append(certInfos, p12CertInfos...)
+	}
+
+	log.Debugf("%d certificates downloaded", len(certInfos))
+	return certInfos, nil
+}
+
+// downloadPKCS12 downloads a pkcs12 format file and parses certificates and matching private keys.
+func downloadPKCS12(httpClient *http.Client, certificateURL, passphrase string) ([]certificateutil.CertificateInfoModel, error) {
+	contents, err := downloadFile(httpClient, certificateURL)
+	if err != nil {
+		return nil, err
+	} else if contents == nil {
+		return nil, fmt.Errorf("certificate (%s) is empty", certificateURL)
+	}
+
+	infos, err := certificateutil.CertificatesFromPKCS12Content(contents, passphrase)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse certificate (%s), err: %s", certificateURL, err)
+	}
+
+	return infos, nil
+}
+
+func downloadFile(httpClient *http.Client, src string) ([]byte, error) {
+	url, err := url.Parse(src)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse url (%s), error: %s", src, err)
+	}
+
+	// Local file
+	if url.Scheme == "file" {
+		src := strings.Replace(src, url.Scheme+"://", "", -1)
+
+		return ioutil.ReadFile(src)
+	}
+
+	// Remote file
+	req, err := http.NewRequest(http.MethodGet, url.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request, error: %s", err)
+	}
+
+	var contents []byte
+	err = retry.Times(2).Wait(5 * time.Second).Try(func(attempt uint) error {
+		log.Debugf("Downloading %s, attempt %d", src, attempt)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+		defer cancel()
+		req = req.WithContext(ctx)
+
+		resp, err := httpClient.Do(req)
+		if err != nil {
+			return fmt.Errorf("failed to download (%s), error: %s", src, err)
+		}
+		defer func() {
+			if err := resp.Body.Close(); err != nil {
+				log.Warnf("failed to close (%s) body, error: %s", src, err)
+			}
+		}()
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("download (%s) failed with status code (%d)", src, resp.StatusCode)
+		}
+
+		contents, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read response (%s), error: %s", src, err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return contents, nil
+}
 
 func failf(s string, args ...interface{}) {
 	log.Errorf(s, args...)
@@ -18,8 +122,8 @@ func failf(s string, args ...interface{}) {
 }
 
 func main() {
-	stepConf, err := autoprovision.ParseConfig()
-	if err != nil {
+	var stepConf Config
+	if err := stepconf.Parse(&stepConf); err != nil {
 		log.Warnf(err.Error())
 	} else {
 		stepconf.Print(stepConf)
@@ -35,7 +139,7 @@ func main() {
 		failf(err.Error())
 	}
 
-	client, err := appstoreconnect.NewClient(stepConf.KeyID, stepConf.IssuerID, privateKey)
+	client, err := appstoreconnect.NewClient(string(stepConf.KeyID), string(stepConf.IssuerID), privateKey)
 	if err != nil {
 		failf(err.Error())
 	}
@@ -62,7 +166,10 @@ func main() {
 	}
 	log.Printf("bundle IDs: %s", pretty.Object(entitlementsByBundleID))
 
-	platform := projHelper.Platform
+	platform, err := projHelper.Platform(config)
+	if err != nil {
+		failf(err.Error())
+	}
 	log.Printf("platform: %s", platform)
 
 	//
@@ -72,7 +179,7 @@ func main() {
 	if err != nil {
 		failf(err.Error())
 	}
-	certs, err := autoprovision.DownloadLocalCertificates(certURLs)
+	certs, err := downloadCertificates(certURLs)
 	if err != nil {
 		failf(err.Error())
 	}
@@ -81,14 +188,14 @@ func main() {
 		log.Printf("- %s", cert.CommonName)
 	}
 
-	certType, ok := autoprovision.CertificateTypeByDistribution[stepConf.DistributionType]
+	certType, ok := autoprovision.CertificateTypeByDistribution[stepConf.DistributionType()]
 	if !ok {
 		failf("Invalid distribution type provided: %s", stepConf.DistributionType)
 	}
 
-	distrTypes := []autoprovision.DistributionType{stepConf.DistributionType}
+	distrTypes := []autoprovision.DistributionType{stepConf.DistributionType()}
 	requiredCertTypes := map[appstoreconnect.CertificateType]bool{certType: true}
-	if stepConf.DistributionType != autoprovision.Development {
+	if stepConf.DistributionType() != autoprovision.Development {
 		distrTypes = append(distrTypes, autoprovision.Development)
 		requiredCertTypes[appstoreconnect.IOSDevelopment] = false
 	}
@@ -100,9 +207,9 @@ func main() {
 		failf(err.Error())
 	}
 
-	if len(certsByType) == 1 && stepConf.DistributionType != autoprovision.Development {
+	if len(certsByType) == 1 && stepConf.DistributionType() != autoprovision.Development {
 		// remove development distribution if there is no development certificate uploaded
-		distrTypes = []autoprovision.DistributionType{stepConf.DistributionType}
+		distrTypes = []autoprovision.DistributionType{stepConf.DistributionType()}
 	}
 
 	// Ensure devices
@@ -118,7 +225,7 @@ func main() {
 			failf(err.Error())
 		}
 		if len(r.Data) > 0 {
-			log.Printf("device already registered", id)
+			log.Printf("device already registered: %s", id)
 			devices = append(devices, r.Data[0])
 		} else {
 			log.Printf("registering device", id)
@@ -151,16 +258,31 @@ func main() {
 		deviceIDs = append(deviceIDs, device.ID)
 	}
 
-	fmt.Println()
-	log.Infof("Checking provisioning profiles for %d bundle id(s)", len(entitlementsByBundleID))
-	profilesByBundleID := map[string][]appstoreconnect.Profile{}
-	for bundleIDIdentifier, entitlements := range entitlementsByBundleID {
-		fmt.Println()
-		log.Infof("  Checking bundle id: %s", bundleIDIdentifier)
-		log.Printf("  capabilities: %s", entitlements)
+	type CodesignSettings struct {
+		ProfilesByBundleID map[string]appstoreconnect.Profile
+		Certificate        certificateutil.CertificateInfoModel
+	}
 
-		for _, distrType := range distrTypes {
-			log.Printf("  distribution type: %s", distrType)
+	codesignSettingsByDistributionType := map[autoprovision.DistributionType]CodesignSettings{}
+
+	for _, distrType := range distrTypes {
+		fmt.Println()
+		log.Infof("Checking %s provisioning profiles for %d bundle id(s)", distrType, len(entitlementsByBundleID))
+		certType := autoprovision.CertificateTypeByDistribution[distrType]
+		certs := certsByType[certType]
+		if len(certs) == 0 {
+			failf("no certificates for %s distribution", distrType)
+		}
+
+		codesignSettings := CodesignSettings{
+			ProfilesByBundleID: map[string]appstoreconnect.Profile{},
+			Certificate:        certs[0].Certificate,
+		}
+
+		for bundleIDIdentifier, entitlements := range entitlementsByBundleID {
+			fmt.Println()
+			log.Infof("  Checking bundle id: %s", bundleIDIdentifier)
+			log.Printf("  capabilities: %s", entitlements)
 
 			// Search for Bitrise managed Profile
 			platformProfileTypes, ok := autoprovision.PlatformToProfileTypeByDistribution[platform]
@@ -183,9 +305,8 @@ func main() {
 					failf(err.Error())
 				} else if ok {
 					log.Donef("  profile capabilities are in sync with the project capabilities")
-					profiles := profilesByBundleID[bundleIDIdentifier]
-					profiles = append(profiles, *profile)
-					profilesByBundleID[bundleIDIdentifier] = profiles
+					codesignSettings.ProfilesByBundleID[bundleIDIdentifier] = *profile
+					codesignSettingsByDistributionType[distrType] = codesignSettings
 					continue
 				}
 
@@ -242,11 +363,31 @@ func main() {
 			if err != nil {
 				failf(err.Error())
 			}
-			log.Donef("  Profile created: %s", profile.Attributes.Name)
 
-			profiles := profilesByBundleID[bundleIDIdentifier]
-			profiles = append(profiles, *profile)
-			profilesByBundleID[bundleIDIdentifier] = profiles
+			log.Donef("  Profile created: %s", profile.Attributes.Name)
+			codesignSettings.ProfilesByBundleID[bundleIDIdentifier] = *profile
+			codesignSettingsByDistributionType[distrType] = codesignSettings
+		}
+	}
+
+	// Force Codesign Settings and install certificates
+	kc, err := keychain.New(stepConf.KeychainPath, stepConf.KeychainPassword)
+	if err != nil {
+		failf(err.Error())
+	}
+
+	for distrType, codesignSettings := range codesignSettingsByDistributionType {
+		fmt.Println()
+		log.Infof("Codesign settings for %s distribution", distrType)
+		log.Printf("Development Team: %s(%s)", codesignSettings.Certificate.TeamName, codesignSettings.Certificate.TeamID)
+		log.Printf("Provisioning Profiles:")
+		for bundleID, profile := range codesignSettings.ProfilesByBundleID {
+			log.Printf("  %s: %s", bundleID, profile.Attributes.Name)
+		}
+		log.Printf("Certificate: %s", codesignSettings.Certificate.CommonName)
+
+		if err := kc.InstallCertificate(codesignSettings.Certificate, ""); err != nil {
+			failf(err.Error())
 		}
 	}
 }
