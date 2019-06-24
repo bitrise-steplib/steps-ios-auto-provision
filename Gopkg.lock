@@ -2,58 +2,60 @@
 
 
 [[projects]]
+  digest = "1:c0b39ecb4571b7c447a7de369bdba8e8233874015854ae9418814735102f0804"
+  name = "github.com/bitrise-io/bitrise-add-new-project"
+  packages = ["httputil"]
+  pruneopts = "UT"
+  revision = "443debb90a5ff488fcdc9e32d9b6b24dfbec7f49"
+  version = "0.2.1"
+
+[[projects]]
   branch = "master"
-  digest = "1:08bf0306b2c80284922cd8bd9b185beb58e77f38eef86b99334e3979ffbbdabd"
+  digest = "1:9bc5c8aac6885e92a7cfc5779c44eeae0ef757d5e277826bb8b4c2713ab899d8"
   name = "github.com/bitrise-io/go-utils"
   packages = [
-    "command",
-    "errorutil",
+    "colorstring",
     "fileutil",
+    "log",
     "pathutil",
-    "sliceutil",
   ]
   pruneopts = "UT"
   revision = "10ba6612803187a89b6935f06a617e9e1cd9d2bf"
 
 [[projects]]
-  branch = "master"
-  digest = "1:a35d42c66f8e5c1f1a29b247a312353eea1607512936d067d80126fcb38bc39f"
-  name = "github.com/bitrise-io/xcode-project"
-  packages = [
-    "serialized",
-    "xcodebuild",
-    "xcodeproj",
-    "xcscheme",
-  ]
+  digest = "1:26e714e21bef4fc07640fb796ccce6d4f9423e15b2d660e131a8e61a0ee576d5"
+  name = "github.com/bitrise-steplib/steps-xcode-test"
+  packages = ["pretty"]
   pruneopts = "UT"
-  revision = "5929ad85d89233b3296d2d795e068a656db7fb25"
+  revision = "c05bd3a50ee36040bd047cf4618615083a9d0b2c"
+  version = "2.3.2"
 
 [[projects]]
-  digest = "1:1093f2eb4b344996604f7d8b29a16c5b22ab9e1b25652140d3fede39f640d5cd"
-  name = "golang.org/x/text"
-  packages = [
-    "internal/gen",
-    "internal/triegen",
-    "internal/ucd",
-    "transform",
-    "unicode/cldr",
-    "unicode/norm",
-  ]
-  pruneopts = "UT"
-  revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
-  version = "v0.3.2"
-
-[[projects]]
-  branch = "master"
-  digest = "1:c10265d5a71326618d37e97169eddb3582f78e8ac7dcf87403b4cf619efd519a"
-  name = "howett.net/plist"
+  digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
+  name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
   pruneopts = "UT"
-  revision = "591f970eefbbeb04d7b37f334a0c4c3256e32876"
+  revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
+  version = "v3.2.0"
+
+[[projects]]
+  digest = "1:a63cff6b5d8b95638bfe300385d93b2a6d9d687734b863da8e09dc834510a690"
+  name = "github.com/google/go-querystring"
+  packages = ["query"]
+  pruneopts = "UT"
+  revision = "44c6ddd0a2342c386950e880b658017258da92fc"
+  version = "v1.0.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = ["github.com/bitrise-io/xcode-project/xcodeproj"]
+  input-imports = [
+    "github.com/bitrise-io/bitrise-add-new-project/httputil",
+    "github.com/bitrise-io/go-utils/fileutil",
+    "github.com/bitrise-io/go-utils/log",
+    "github.com/bitrise-steplib/steps-xcode-test/pretty",
+    "github.com/dgrijalva/jwt-go",
+    "github.com/google/go-querystring/query",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
