@@ -7,6 +7,7 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/sliceutil"
+	"github.com/bitrise-io/xcode-project/serialized"
 	"github.com/bitrise-io/xcode-project/xcodeproj"
 	"github.com/bitrise-io/xcode-project/xcscheme"
 	"github.com/bitrise-io/xcode-project/xcworkspace"
@@ -79,6 +80,36 @@ func New(projOrWSPath, schemeName, configurationName string) (*ProjectHelper, st
 			Platform:   platf,
 		}, conf,
 		nil
+}
+
+// UsesXcodeAutoCodeSigning checks the project uses automatically managed code signing
+// It checks the main target "ProvisioningStyle" attribute first then the "CODE_SIGN_STYLE" for the provided configuration
+// It returns true if the project uses automatically code signing
+func UsesXcodeAutoCodeSigning(xcProj xcodeproj.XcodeProj, mainTarget xcodeproj.Target, config string) (bool, error) {
+	settings, err := xcProj.TargetBuildSettings(mainTarget.Name, config)
+	if err != nil {
+		return false, fmt.Errorf("failed to fetch project settings (%s), error: %s", xcProj.Path, err)
+	}
+
+	if provStle, err := settings.String("ProvisioningStyle"); err != nil && !serialized.IsKeyNotFoundError(err) {
+		return false, err
+	} else if provStle == "Automatic" {
+		return true, nil
+	}
+
+	for _, buildConf := range mainTarget.BuildConfigurationList.BuildConfigurations {
+		if buildConf.Name != config {
+			continue
+		}
+
+		if signStyle, err := buildConf.BuildSettings.String("CODE_SIGN_STYLE"); err != nil && !serialized.IsKeyNotFoundError(err) {
+			return false, err
+		} else if signStyle == "Automatic" {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 // Get the platform (PLATFORM_DISPLAY_NAME) - iOS, tvOS, macOS
