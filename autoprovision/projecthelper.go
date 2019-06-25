@@ -1,9 +1,5 @@
 package autoprovision
 
-// type ProjectHelper struct {
-// 	mainTarget
-// }
-
 import (
 	"fmt"
 	"path/filepath"
@@ -20,12 +16,11 @@ import (
 type ProjectHelper struct {
 	MainTarget xcodeproj.Target
 	Targets    []xcodeproj.Target
-	Platform   string // TODO - Akos: enum
-
+	Platform   Platform
 }
 
 // Platform of the target
-// iphoneos, appletvos, macosx
+// iOS, tvOS, macOS
 type Platform string
 
 // Const
@@ -35,7 +30,7 @@ const (
 	MacOS Platform = "macOS"
 )
 
-// New returns a ProjectHelper pointer
+// New checks the provided project or workspace and generate a ProjectHelper with the provided scheme and configuration
 // Previously in the ruby version the initialize method did the same
 // It returns a new ProjectHelper pointer and a configuration to use.
 func New(projOrWSPath, schemeName, configurationName string) (*ProjectHelper, string, error) {
@@ -86,8 +81,8 @@ func New(projOrWSPath, schemeName, configurationName string) (*ProjectHelper, st
 		nil
 }
 
-// Get the platform (PLATFORM_DISPLAY_NAME) -iphoneos, macosx, appletvos
-func platform(xcproj xcodeproj.XcodeProj, mainTarget xcodeproj.Target, configurationName string) (string, error) {
+// Get the platform (PLATFORM_DISPLAY_NAME) - iOS, tvOS, macOS
+func platform(xcproj xcodeproj.XcodeProj, mainTarget xcodeproj.Target, configurationName string) (Platform, error) {
 	settings, err := xcproj.TargetBuildSettings(mainTarget.Name, configurationName)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch project settings (%s), error: %s", xcproj.Path, err)
@@ -95,13 +90,13 @@ func platform(xcproj xcodeproj.XcodeProj, mainTarget xcodeproj.Target, configura
 
 	platformDisplayName, err := settings.String("PLATFORM_DISPLAY_NAME")
 	if err != nil {
-		return "", fmt.Errorf("no SDKROOT config found for (%s) target", mainTarget.Name)
+		return "", fmt.Errorf("no PLATFORM_DISPLAY_NAME config found for (%s) target", mainTarget.Name)
 	}
 
 	if platformDisplayName != string(IOS) && platformDisplayName != string(MacOS) && platformDisplayName != string(TVOS) {
 		return "", fmt.Errorf("not supported platform. Platform (PLATFORM_DISPLAY_NAME) = %s", platformDisplayName)
 	}
-	return platformDisplayName, nil
+	return Platform(platformDisplayName), nil
 }
 
 func configuration(configurationName string, scheme xcscheme.Scheme, xcproj xcodeproj.XcodeProj) (string, error) {
