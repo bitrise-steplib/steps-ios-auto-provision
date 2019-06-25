@@ -30,9 +30,9 @@ type Platform string
 
 // Const
 const (
-	IOS   Platform = "iphoneos"
-	TVOS  Platform = "appletvos"
-	MacOS Platform = "macosx"
+	IOS   Platform = "iOS"
+	TVOS  Platform = "tvOS"
+	MacOS Platform = "macOS"
 )
 
 // New returns a ProjectHelper pointer
@@ -74,7 +74,10 @@ func New(projOrWSPath, schemeName, configurationName string) (*ProjectHelper, st
 	}
 
 	// Configuration
-	conf := configuration(configurationName, scheme, xcproj)
+	conf, err := configuration(configurationName, scheme, xcproj)
+	if err != nil {
+		return nil, "", err
+	}
 	return &ProjectHelper{
 			MainTarget: mainTarget,
 			Targets:    xcproj.Proj.Targets,
@@ -83,25 +86,25 @@ func New(projOrWSPath, schemeName, configurationName string) (*ProjectHelper, st
 		nil
 }
 
-// Get the platform (SDKROOT) -iphoneos, macosx, appletvos
+// Get the platform (PLATFORM_DISPLAY_NAME) -iphoneos, macosx, appletvos
 func platform(xcproj xcodeproj.XcodeProj, mainTarget xcodeproj.Target, configurationName string) (string, error) {
 	settings, err := xcproj.TargetBuildSettings(mainTarget.Name, configurationName)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch project settings (%s), error: %s", xcproj.Path, err)
 	}
 
-	sdkRoot, err := settings.String("SDKROOT")
+	platformDisplayName, err := settings.String("PLATFORM_DISPLAY_NAME")
 	if err != nil {
 		return "", fmt.Errorf("no SDKROOT config found for (%s) target", mainTarget.Name)
 	}
 
-	if sdkRoot != string(IOS) && sdkRoot != string(MacOS) && sdkRoot != string(TVOS) {
-		return "", fmt.Errorf("not supported platform. Platform (SDKROOT) = %s", sdkRoot)
+	if platformDisplayName != string(IOS) && platformDisplayName != string(MacOS) && platformDisplayName != string(TVOS) {
+		return "", fmt.Errorf("not supported platform. Platform (PLATFORM_DISPLAY_NAME) = %s", platformDisplayName)
 	}
-	return sdkRoot, nil
+	return platformDisplayName, nil
 }
 
-func configuration(configurationName string, scheme xcscheme.Scheme, xcproj xcodeproj.XcodeProj) string {
+func configuration(configurationName string, scheme xcscheme.Scheme, xcproj xcodeproj.XcodeProj) (string, error) {
 	defaultConfiguration := scheme.ArchiveAction.BuildConfiguration
 	var configuration string
 	if configurationName == "" || configurationName == defaultConfiguration {
@@ -113,13 +116,14 @@ func configuration(configurationName string, scheme xcscheme.Scheme, xcproj xcod
 				configNames = append(configNames, conf.Name)
 			}
 			if !sliceutil.IsStringInSlice(configurationName, configNames) {
-				log.Warnf("Using defined build configuration: %s instead of the scheme's default one: %s", configurationName, defaultConfiguration)
-				configuration = configurationName
+				return "", fmt.Errorf("build configuration (%s) not defined for target: (%s)", configurationName, target.Name)
 			}
 		}
+		log.Warnf("Using defined build configuration: %s instead of the scheme's default one: %s", configurationName, defaultConfiguration)
+		configuration = configurationName
 	}
 
-	return configuration
+	return configuration, nil
 }
 
 // mainTargetOfScheme return the main target
