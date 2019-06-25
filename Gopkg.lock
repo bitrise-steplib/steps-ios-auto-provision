@@ -17,13 +17,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a35d42c66f8e5c1f1a29b247a312353eea1607512936d067d80126fcb38bc39f"
+  digest = "1:d30f24e344dc73c47a2e18a658fe46cc22b18a756b0fed3e8056c2fd4669a125"
   name = "github.com/bitrise-io/xcode-project"
   packages = [
     "serialized",
     "xcodebuild",
     "xcodeproj",
     "xcscheme",
+    "xcworkspace",
   ]
   pruneopts = "UT"
   revision = "5929ad85d89233b3296d2d795e068a656db7fb25"
@@ -54,6 +55,11 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = ["github.com/bitrise-io/xcode-project/xcodeproj"]
+  input-imports = [
+    "github.com/bitrise-io/go-utils/pathutil",
+    "github.com/bitrise-io/xcode-project/xcodeproj",
+    "github.com/bitrise-io/xcode-project/xcscheme",
+    "github.com/bitrise-io/xcode-project/xcworkspace",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
