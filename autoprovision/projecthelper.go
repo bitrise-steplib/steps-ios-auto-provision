@@ -63,7 +63,7 @@ func New(projOrWSPath, schemeName, configurationName string) (*ProjectHelper, st
 		return nil, "", fmt.Errorf("archive action not defined for scheme: %s", scheme.Name)
 	}
 
-	// Get the platform (SDKROOT) -iphoneos, macosx, appletvos
+	// Get the platform (PLATFORM_DISPLAY_NAME) -iphoneos, macosx, appletvos
 	platf, err := platform(xcproj, mainTarget, configurationName)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to find platform of the project, error: %s", err)
@@ -108,7 +108,6 @@ func UsesXcodeAutoCodeSigning(xcProj xcodeproj.XcodeProj, mainTarget xcodeproj.T
 			return true, nil
 		}
 	}
-
 	return false, nil
 }
 
@@ -211,12 +210,10 @@ func findBuiltProject(pth, schemeName, configurationName string) (xcodeproj.Xcod
 		return xcodeproj.XcodeProj{}, "", fmt.Errorf("unknown project extension: %s", filepath.Ext(pth))
 	}
 
-	if configurationName == "" {
-		configurationName = scheme.ArchiveAction.BuildConfiguration
-	}
-
-	if configurationName == "" {
+	if configurationName == "" && scheme.ArchiveAction.BuildConfiguration == "" {
 		return xcodeproj.XcodeProj{}, "", fmt.Errorf("no configuration provided nor default defined for the scheme's (%s) archive action", schemeName)
+	} else if configurationName == "" {
+		configurationName = scheme.ArchiveAction.BuildConfiguration
 	}
 
 	var archiveEntry xcscheme.BuildActionEntry
