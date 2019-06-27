@@ -18,6 +18,7 @@ type ProjectHelper struct {
 	MainTarget xcodeproj.Target
 	Targets    []xcodeproj.Target
 	Platform   Platform
+	XcProj     xcodeproj.XcodeProj
 }
 
 // Platform of the target
@@ -78,6 +79,7 @@ func New(projOrWSPath, schemeName, configurationName string) (*ProjectHelper, st
 			MainTarget: mainTarget,
 			Targets:    xcproj.Proj.Targets,
 			Platform:   platf,
+			XcProj:     xcproj,
 		}, conf,
 		nil
 }
@@ -240,4 +242,69 @@ func findBuiltProject(pth, schemeName, configurationName string) (xcodeproj.Xcod
 	}
 
 	return project, scheme.Name, nil
+}
+
+// ProjectTeamID returns the development team's ID
+// If there is mutlitple development team in the project (different team for targets) it will return an error
+// It returns the development team's ID
+func (p ProjectHelper) ProjectTeamID(config string) (string, error) {
+	var teamID string
+
+	for _, target := range p.Targets {
+		currentTeamID, err := targetTeamID(p.XcProj, target.Name, config)
+		if err != nil {
+			// Do nothing
+		}
+		log.Debugf("%s target build settings team id: %s", target.Name, currentTeamID)
+
+		if currentTeamID == "" {
+			log.Warnf("no DEVELOPMENT_TEAM build settings found for target: %s, checking target attributes...", target.Name)
+
+			targetAttributesTeamID := p.XcProj.Proj.Attributes.TargetAttributes[target.ID].DevelopmentTeam
+			if targetAttributesTeamID == "" {
+				log.Warnf("no DevelopmentTeam target attribute found for target: %s", target.Name)
+				continue
+			}
+
+			currentTeamID = targetAttributesTeamID
+		}
+
+		if teamID == "" {
+			teamID = currentTeamID
+			continue
+		}
+
+		if teamID != currentTeamID {
+			log.Warnf("target team id: %s does not match to the already registered team id: %s", currentTeamID, teamID)
+			teamID = ""
+			break
+		}
+	}
+
+	return teamID, nil
+
+}
+
+func targetCodesignIdentity(xcProj xcodeproj.XcodeProj, targatName, config string) (string, error) {
+	settings, err := xcProj.TargetBuildSettings(targatName, config)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch target (%s) settings, error: %s", targatName, err)
+	}
+	return settings.String("CODE_SIGN_IDENTITY")
+
+	// xcProj.TargetInformationPropertyList
+}
+
+func targetTeamID(xcProj xcodeproj.XcodeProj, targatName, config string) (string, error) {
+	settings, err := xcProj.TargetBuildSettings(targatName, config)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch target (%s) settings, error: %s", targatName, err)
+	}
+
+	devTeam, err := settings.String("DEVELOPMENT_TEAM")
+	if serialized.IsKeyNotFoundError(err) {
+		return devTeam, nil
+	}
+	return devTeam, err
+
 }

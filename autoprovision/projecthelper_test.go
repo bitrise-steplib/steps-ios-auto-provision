@@ -202,6 +202,120 @@ func TestUsesXcodeAutoCodeSigning(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("UsesXcodeAutoCodeSigning() = %v, want %v", got, tt.want)
 			}
+
+			panic("")
+		})
+	}
+}
+
+func TestProjectHelper_ProjectTeamID(t *testing.T) {
+	//
+	// Init test cases
+	schemeCases := []string{
+		"Xcode-10_default",
+		"Xcode-10_default",
+		"Xcode-10_mac",
+		"Xcode-10_mac",
+		"TV_OS",
+		"TV_OS",
+	}
+	configCases := []string{
+		"Debug",
+		"Release",
+		"Debug",
+		"Release",
+		"Debug",
+		"Release",
+	}
+	projectCases := []string{
+		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
+		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
+		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_mac.xcodeproj",
+		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_mac.xcodeproj",
+		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/TV_OS.xcodeproj",
+		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/TV_OS.xcodeproj",
+	}
+	var xcProjCases []xcodeproj.XcodeProj
+	var projHelpCases []ProjectHelper
+
+	for i, schemeCase := range schemeCases {
+		xcProj, _, err := findBuiltProject(
+			projectCases[i],
+			schemeCase,
+			configCases[i],
+		)
+		if err != nil {
+			t.Fatalf("Failed to generate XcodeProj for test case, error: %s", err)
+		}
+		xcProjCases = append(xcProjCases, xcProj)
+
+		projHelp, _, err := New(
+			projectCases[i],
+			schemeCase,
+			configCases[i],
+		)
+		if err != nil {
+			t.Fatalf("Failed to generate projectHelper for test case, error: %s", err)
+		}
+		projHelpCases = append(projHelpCases, *projHelp)
+	}
+
+	tests := []struct {
+		name    string
+		config  string
+		want    string
+		wantErr bool
+	}{
+		{
+			name:    schemeCases[0] + " Debug",
+			config:  configCases[0],
+			want:    "72SA8V3WYL",
+			wantErr: false,
+		},
+		{
+			name:    schemeCases[1] + " Release",
+			config:  configCases[1],
+			want:    "72SA8V3WYL",
+			wantErr: false,
+		},
+		{
+			name:    schemeCases[2] + " Debug",
+			config:  configCases[2],
+			want:    "72SA8V3WYL",
+			wantErr: false,
+		},
+		{
+			name:    schemeCases[3] + " Release",
+			config:  configCases[3],
+			want:    "72SA8V3WYL",
+			wantErr: false,
+		},
+		{
+			name:    schemeCases[4] + " Debug",
+			config:  configCases[4],
+			want:    "72SA8V3WYL",
+			wantErr: false,
+		},
+		{
+			name:    schemeCases[5] + " Release",
+			config:  configCases[5],
+			want:    "72SA8V3WYL",
+			wantErr: false,
+		},
+	}
+
+	for i, tt := range tests {
+		p := projHelpCases[i]
+
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := p.ProjectTeamID(tt.config)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ProjectHelper.ProjectTeamID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ProjectHelper.ProjectTeamID() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

@@ -9,10 +9,16 @@ type Proj struct {
 	ID                     string
 	BuildConfigurationList ConfigurationList
 	Targets                []Target
+	Attributes             ProjectAtributes
 }
 
 func parseProj(id string, objects serialized.Object) (Proj, error) {
 	rawPBXProj, err := objects.Object(id)
+	if err != nil {
+		return Proj{}, err
+	}
+
+	projectAttributes, err := parseProjectAttributes(rawPBXProj)
 	if err != nil {
 		return Proj{}, err
 	}
@@ -45,6 +51,7 @@ func parseProj(id string, objects serialized.Object) (Proj, error) {
 		ID:                     id,
 		BuildConfigurationList: buildConfigurationList,
 		Targets:                targets,
+		Attributes:             projectAttributes,
 	}, nil
 }
 

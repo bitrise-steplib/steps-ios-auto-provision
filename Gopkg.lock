@@ -3,12 +3,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:08bf0306b2c80284922cd8bd9b185beb58e77f38eef86b99334e3979ffbbdabd"
+  digest = "1:835a344b1d5a6adaf588926627d18ce472eb8876ced599eb43c775bedeacc2bc"
   name = "github.com/bitrise-io/go-utils"
   packages = [
+    "colorstring",
     "command",
     "errorutil",
     "fileutil",
+    "log",
     "pathutil",
     "sliceutil",
   ]
@@ -16,8 +18,8 @@
   revision = "10ba6612803187a89b6935f06a617e9e1cd9d2bf"
 
 [[projects]]
-  branch = "master"
-  digest = "1:d30f24e344dc73c47a2e18a658fe46cc22b18a756b0fed3e8056c2fd4669a125"
+  branch = "project-attribute"
+  digest = "1:8f07861e20beda79f0fec02d08ac59151f592f6f77bc1925b65cb44150bce772"
   name = "github.com/bitrise-io/xcode-project"
   packages = [
     "serialized",
@@ -27,7 +29,7 @@
     "xcworkspace",
   ]
   pruneopts = "UT"
-  revision = "5929ad85d89233b3296d2d795e068a656db7fb25"
+  revision = "e88db87e5b68e8cf70a38d1bd6db63c31573e407"
 
 [[projects]]
   digest = "1:1093f2eb4b344996604f7d8b29a16c5b22ab9e1b25652140d3fede39f640d5cd"
@@ -56,7 +58,10 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/bitrise-io/go-utils/log",
     "github.com/bitrise-io/go-utils/pathutil",
+    "github.com/bitrise-io/go-utils/sliceutil",
+    "github.com/bitrise-io/xcode-project/serialized",
     "github.com/bitrise-io/xcode-project/xcodeproj",
     "github.com/bitrise-io/xcode-project/xcscheme",
     "github.com/bitrise-io/xcode-project/xcworkspace",

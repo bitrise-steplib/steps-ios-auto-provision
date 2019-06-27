@@ -4,5 +4,5 @@
   unused-packages = true
 
 [[constraint]]
-  branch = "master"
+  branch = "project-attribute"
   name = "github.com/bitrise-io/xcode-project"
