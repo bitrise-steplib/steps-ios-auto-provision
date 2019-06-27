@@ -3,6 +3,7 @@ package autoprovision
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
@@ -285,14 +286,56 @@ func (p ProjectHelper) ProjectTeamID(config string) (string, error) {
 
 }
 
+// ProjectCodeSignIdentity returns the codesign identity of the project
+// If there is mutlitple codesign identity in the project (different identity for targets) it will return an error
+// It returns the codesign identity
+func (p ProjectHelper) ProjectCodeSignIdentity(config string) (string, error) {
+	var codesignIdentity string
+
+	for _, t := range p.Targets {
+		targetIdentity, err := targetCodesignIdentity(p.XcProj, t.Name, config)
+		if err != nil {
+			return "", err
+		}
+
+		log.Debugf("%s codesign identity: %s", t.Name, targetIdentity)
+
+		if targetIdentity == "" {
+			log.Warnf("no CODE_SIGN_IDENTITY build settings found for target: %s", t.Name)
+			continue
+		}
+
+		if codesignIdentity == "" {
+			codesignIdentity = targetIdentity
+			continue
+		}
+
+		if !codesignIdentitesMatch(codesignIdentity, targetIdentity) {
+			log.Warnf("target codesign identity: %s does not match to the already registered codesign identity: %s", targetIdentity, codesignIdentity)
+			codesignIdentity = ""
+			break
+		}
+	}
+	return codesignIdentity, nil
+}
+
+// 'iPhone Developer' should match to 'iPhone Developer: Bitrise Bot (ABCD)'
+func codesignIdentitesMatch(identity1, identity2 string) bool {
+	if strings.Contains(strings.ToLower(identity1), strings.ToLower(identity2)) {
+		return true
+	}
+	if strings.Contains(strings.ToLower(identity2), strings.ToLower(identity1)) {
+		return true
+	}
+	return false
+}
+
 func targetCodesignIdentity(xcProj xcodeproj.XcodeProj, targatName, config string) (string, error) {
 	settings, err := xcProj.TargetBuildSettings(targatName, config)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch target (%s) settings, error: %s", targatName, err)
 	}
 	return settings.String("CODE_SIGN_IDENTITY")
-
-	// xcProj.TargetInformationPropertyList
 }
 
 func targetTeamID(xcProj xcodeproj.XcodeProj, targatName, config string) (string, error) {
