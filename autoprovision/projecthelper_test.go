@@ -1,10 +1,16 @@
 package autoprovision
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/bitrise-io/xcode-project/xcodeproj"
 )
+
+var schemeCases []string
+var xcProjCases []xcodeproj.XcodeProj
+var projHelpCases []ProjectHelper
+var configCases []string
 
 func TestNew(t *testing.T) {
 	tests := []struct {
@@ -82,55 +88,10 @@ func TestNew(t *testing.T) {
 }
 
 func TestUsesXcodeAutoCodeSigning(t *testing.T) {
-	//
-	// Init test cases
-	schemeCases := []string{
-		"Xcode-10_default",
-		"Xcode-10_default",
-		"Xcode-10_mac",
-		"Xcode-10_mac",
-		"TV_OS",
-		"TV_OS",
-	}
-	configCases := []string{
-		"Debug",
-		"Release",
-		"Debug",
-		"Release",
-		"Debug",
-		"Release",
-	}
-	projectCases := []string{
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_mac.xcodeproj",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_mac.xcodeproj",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/TV_OS.xcodeproj",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/TV_OS.xcodeproj",
-	}
-	var xcProjCases []xcodeproj.XcodeProj
-	var projHelpCases []ProjectHelper
-
-	for i, schemeCase := range schemeCases {
-		xcProj, _, err := findBuiltProject(
-			projectCases[i],
-			schemeCase,
-			configCases[i],
-		)
-		if err != nil {
-			t.Fatalf("Failed to generate XcodeProj for test case, error: %s", err)
-		}
-		xcProjCases = append(xcProjCases, xcProj)
-
-		projHelp, _, err := New(
-			projectCases[i],
-			schemeCase,
-			configCases[i],
-		)
-		if err != nil {
-			t.Fatalf("Failed to generate projectHelper for test case, error: %s", err)
-		}
-		projHelpCases = append(projHelpCases, *projHelp)
+	var err error
+	schemeCases, xcProjCases, projHelpCases, configCases, err = initTestCases()
+	if err != nil {
+		t.Fatalf("Failed to initialize test cases, error: %s", err)
 	}
 
 	//
@@ -202,62 +163,15 @@ func TestUsesXcodeAutoCodeSigning(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("UsesXcodeAutoCodeSigning() = %v, want %v", got, tt.want)
 			}
-
-			panic("")
 		})
 	}
 }
 
 func TestProjectHelper_ProjectTeamID(t *testing.T) {
-	//
-	// Init test cases
-	schemeCases := []string{
-		"Xcode-10_default",
-		"Xcode-10_default",
-		"Xcode-10_mac",
-		"Xcode-10_mac",
-		"TV_OS",
-		"TV_OS",
-	}
-	configCases := []string{
-		"Debug",
-		"Release",
-		"Debug",
-		"Release",
-		"Debug",
-		"Release",
-	}
-	projectCases := []string{
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_mac.xcodeproj",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_mac.xcodeproj",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/TV_OS.xcodeproj",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/TV_OS.xcodeproj",
-	}
-	var xcProjCases []xcodeproj.XcodeProj
-	var projHelpCases []ProjectHelper
-
-	for i, schemeCase := range schemeCases {
-		xcProj, _, err := findBuiltProject(
-			projectCases[i],
-			schemeCase,
-			configCases[i],
-		)
-		if err != nil {
-			t.Fatalf("Failed to generate XcodeProj for test case, error: %s", err)
-		}
-		xcProjCases = append(xcProjCases, xcProj)
-
-		projHelp, _, err := New(
-			projectCases[i],
-			schemeCase,
-			configCases[i],
-		)
-		if err != nil {
-			t.Fatalf("Failed to generate projectHelper for test case, error: %s", err)
-		}
-		projHelpCases = append(projHelpCases, *projHelp)
+	var err error
+	schemeCases, _, projHelpCases, configCases, err = initTestCases()
+	if err != nil {
+		t.Fatalf("Failed to initialize test cases, error: %s", err)
 	}
 
 	tests := []struct {
@@ -368,55 +282,10 @@ func Test_codesignIdentitesMatch(t *testing.T) {
 }
 
 func TestProjectHelper_ProjectCodeSignIdentity(t *testing.T) {
-	//
-	// Init test cases
-	schemeCases := []string{
-		"Xcode-10_default",
-		"Xcode-10_default",
-		"Xcode-10_mac",
-		"Xcode-10_mac",
-		"TV_OS",
-		"TV_OS",
-	}
-	configCases := []string{
-		"Debug",
-		"Release",
-		"Debug",
-		"Release",
-		"Debug",
-		"Release",
-	}
-	projectCases := []string{
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_mac.xcodeproj",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_mac.xcodeproj",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/TV_OS.xcodeproj",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/TV_OS.xcodeproj",
-	}
-	var xcProjCases []xcodeproj.XcodeProj
-	var projHelpCases []ProjectHelper
-
-	for i, schemeCase := range schemeCases {
-		xcProj, _, err := findBuiltProject(
-			projectCases[i],
-			schemeCase,
-			configCases[i],
-		)
-		if err != nil {
-			t.Fatalf("Failed to generate XcodeProj for test case, error: %s", err)
-		}
-		xcProjCases = append(xcProjCases, xcProj)
-
-		projHelp, _, err := New(
-			projectCases[i],
-			schemeCase,
-			configCases[i],
-		)
-		if err != nil {
-			t.Fatalf("Failed to generate projectHelper for test case, error: %s", err)
-		}
-		projHelpCases = append(projHelpCases, *projHelp)
+	var err error
+	schemeCases, _, projHelpCases, configCases, err = initTestCases()
+	if err != nil {
+		t.Fatalf("Failed to initialize test cases, error: %s", err)
 	}
 
 	tests := []struct {
@@ -475,4 +344,250 @@ func TestProjectHelper_ProjectCodeSignIdentity(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_resolveBundleID(t *testing.T) {
+	tests := []struct {
+		name          string
+		bundleID      string
+		buildSettings map[string]interface{}
+		want          string
+		wantErr       bool
+	}{
+		{
+			name:     "Bitrise.$(PRODUCT_NAME:rfc1034identifier)",
+			bundleID: "Bitrise.$(PRODUCT_NAME:rfc1034identifier)",
+			buildSettings: func() map[string]interface{} {
+				m := make(map[string]interface{})
+				m["PRODUCT_NAME"] = "Sample"
+				return m
+			}(),
+			want:    "Bitrise.Sample",
+			wantErr: false,
+		},
+		{
+			name:     "Bitrise.$(PRODUCT_NAME:rfc1034identifier)",
+			bundleID: "Bitrise.$(PRODUCT_NAME:rfc1034identifier)",
+			buildSettings: func() map[string]interface{} {
+				m := make(map[string]interface{})
+				m["PRODUCT_NAME"] = "Sample"
+				m["a"] = "Sample"
+				return m
+			}(),
+			want:    "Bitrise.Sample",
+			wantErr: false,
+		},
+		{
+			name:     "Bitrise.Test.$(PRODUCT_NAME:rfc1034identifier).Suffix",
+			bundleID: "Bitrise.Test.$(PRODUCT_NAME:rfc1034identifier).Suffix",
+			buildSettings: func() map[string]interface{} {
+				m := make(map[string]interface{})
+				m["PRODUCT_NAME"] = "Sample"
+				m["a"] = "Sample"
+				return m
+			}(),
+			want:    "Bitrise.Test.Sample.Suffix",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := resolveBundleID(tt.bundleID, tt.buildSettings)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("resolveBundleID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("resolveBundleID() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestProjectHelper_TargetBundleID(t *testing.T) {
+	//
+	// Init test cases
+	targetCases := []string{
+		"Xcode-10_default",
+		"Xcode-10_default",
+		"Xcode-10_mac",
+		"Xcode-10_mac",
+		"TV_OS",
+		"TV_OS",
+	}
+
+	schemeCases := []string{
+		"Xcode-10_default",
+		"Xcode-10_default",
+		"Xcode-10_mac",
+		"Xcode-10_mac",
+		"TV_OS",
+		"TV_OS",
+	}
+
+	configCases := []string{
+		"Debug",
+		"Release",
+		"Debug",
+		"Release",
+		"Debug",
+		"Release",
+	}
+	projectCases := []string{
+		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
+		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
+		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_mac.xcodeproj",
+		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_mac.xcodeproj",
+		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/TV_OS.xcodeproj",
+		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/TV_OS.xcodeproj",
+	}
+	var xcProjCases []xcodeproj.XcodeProj
+	var projHelpCases []ProjectHelper
+
+	for i, schemeCase := range schemeCases {
+		xcProj, _, err := findBuiltProject(
+			projectCases[i],
+			schemeCase,
+			configCases[i],
+		)
+		if err != nil {
+			t.Fatalf("Failed to generate XcodeProj for test case, error: %s", err)
+		}
+		xcProjCases = append(xcProjCases, xcProj)
+
+		projHelp, _, err := New(
+			projectCases[i],
+			schemeCase,
+			configCases[i],
+		)
+		if err != nil {
+			t.Fatalf("Failed to generate projectHelper for test case, error: %s", err)
+		}
+		projHelpCases = append(projHelpCases, *projHelp)
+	}
+
+	tests := []struct {
+		name       string
+		targetName string
+		conf       string
+		want       string
+		wantErr    bool
+	}{
+		{
+			name:       targetCases[0] + "Debug",
+			targetName: targetCases[0],
+			conf:       configCases[0],
+			want:       "com.bitrise.Xcode-10-default",
+			wantErr:    false,
+		},
+		{
+			name:       targetCases[1] + "Release",
+			targetName: targetCases[1],
+			conf:       configCases[1],
+			want:       "com.bitrise.Xcode-10-default",
+			wantErr:    false,
+		},
+		{
+			name:       targetCases[2] + "Release",
+			targetName: targetCases[2],
+			conf:       configCases[2],
+			want:       "com.bitrise.Xcode-10-mac",
+			wantErr:    false,
+		},
+		{
+			name:       targetCases[3] + "Release",
+			targetName: targetCases[3],
+			conf:       configCases[3],
+			want:       "com.bitrise.Xcode-10-mac",
+			wantErr:    false,
+		},
+		{
+			name:       targetCases[4] + "Release",
+			targetName: targetCases[4],
+			conf:       configCases[4],
+			want:       "com.bitrise.TV-OS",
+			wantErr:    false,
+		},
+		{
+			name:       targetCases[5] + "Release",
+			targetName: targetCases[5],
+			conf:       configCases[5],
+			want:       "com.bitrise.TV-OS",
+			wantErr:    false,
+		},
+	}
+	for i, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := projHelpCases[i]
+
+			got, err := p.TargetBundleID(tt.targetName, tt.conf)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ProjectHelper.TargetBundleID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ProjectHelper.TargetBundleID() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func initTestCases() ([]string, []xcodeproj.XcodeProj, []ProjectHelper, []string, error) {
+	//
+	// If the test cases already initialized return them
+	if schemeCases != nil {
+		return schemeCases, xcProjCases, projHelpCases, configCases, nil
+	}
+	//
+	// Init test cases
+	schemeCases = []string{
+		"Xcode-10_default",
+		"Xcode-10_default",
+		"Xcode-10_mac",
+		"Xcode-10_mac",
+		"TV_OS",
+		"TV_OS",
+	}
+	configCases = []string{
+		"Debug",
+		"Release",
+		"Debug",
+		"Release",
+		"Debug",
+		"Release",
+	}
+	projectCases := []string{
+		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
+		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
+		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_mac.xcodeproj",
+		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_mac.xcodeproj",
+		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/TV_OS.xcodeproj",
+		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/TV_OS.xcodeproj",
+	}
+	var xcProjCases []xcodeproj.XcodeProj
+	var projHelpCases []ProjectHelper
+
+	for i, schemeCase := range schemeCases {
+		xcProj, _, err := findBuiltProject(
+			projectCases[i],
+			schemeCase,
+			configCases[i],
+		)
+		if err != nil {
+			return nil, nil, nil, nil, fmt.Errorf("Failed to generate XcodeProj for test case, error: %s", err)
+		}
+		xcProjCases = append(xcProjCases, xcProj)
+
+		projHelp, _, err := New(
+			projectCases[i],
+			schemeCase,
+			configCases[i],
+		)
+		if err != nil {
+			return nil, nil, nil, nil, fmt.Errorf("Failed to generate projectHelper for test case, error: %s", err)
+		}
+		projHelpCases = append(projHelpCases, *projHelp)
+	}
+
+	return schemeCases, xcProjCases, projHelpCases, configCases, nil
 }

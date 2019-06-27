@@ -3,8 +3,10 @@ package autoprovision
 import (
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"strings"
 
+	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/sliceutil"
@@ -12,6 +14,7 @@ import (
 	"github.com/bitrise-io/xcode-project/xcodeproj"
 	"github.com/bitrise-io/xcode-project/xcscheme"
 	"github.com/bitrise-io/xcode-project/xcworkspace"
+	"howett.net/plist"
 )
 
 // ProjectHelper ...
@@ -351,3 +354,84 @@ func targetTeamID(xcProj xcodeproj.XcodeProj, targatName, config string) (string
 	return devTeam, err
 
 }
+
+// TargetBundleID returns the target bundle ID
+// First it tries to fetch the bundle ID from the `PRODUCT_BUNDLE_IDENTIFIER` build settings
+// If it's no available it will fetch the target's Info.plist and search for the `CFBundleIdentifier` key.
+// The CFBundleIdentifier's value is not resolved in the Info.plist, so it will try to resolve it by the resolveBundleID()
+// It returns  the target bundle ID
+func (p ProjectHelper) TargetBundleID(name, conf string) (string, error) {
+	settings, err := p.XcProj.TargetBuildSettings(name, conf)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch target (%s) settings, error: %s", name, err)
+	}
+
+	bundleID, err := settings.String("PRODUCT_BUNDLE_IDENTIFIER")
+	if bundleID != "" {
+		return bundleID, nil
+	}
+
+	log.Debugf("PRODUCT_BUNDLE_IDENTIFIER env not found in 'xcodebuild -showBuildSettings -project %s -target %s -configuration %s command's output", p.XcProj.Path, name, conf)
+	log.Debugf("checking the Info.plist file's CFBundleIdentifier property...")
+
+	infoPlistPath, err := settings.String("INFOPLIST_FILE")
+	if err != nil {
+		return "", fmt.Errorf("failed to find info.plst file, error: %s", err)
+	}
+
+	if infoPlistPath == "" {
+		return "", fmt.Errorf("failed to to determine bundle id: xcodebuild -showBuildSettings does not contains PRODUCT_BUNDLE_IDENTIFIER nor INFOPLIST_FILE' unless info_plist_path")
+	}
+
+	b, err := fileutil.ReadBytesFromFile(infoPlistPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read Info.plist, error: %s", err)
+	}
+
+	var options map[string]interface{}
+	if _, err := plist.Unmarshal(b, &options); err != nil {
+		return "", fmt.Errorf("failed to unmarshal Info.plist, error: %s ", err)
+	}
+
+	bundleID, ok := options["CFBundleIdentifier"].(string)
+	if !ok || bundleID == "" {
+		return "", fmt.Errorf("failed to parse CFBundleIdentifier from the Info.plist")
+	}
+
+	log.Warnf("CFBundleIdentifier defined with variable: %s, trying to resolve it...", bundleID)
+	resolved, err := resolveBundleID(bundleID, settings)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve bundle ID, error: %s", err)
+	}
+	log.Warnf("resolved CFBundleIdentifier: %s", resolved)
+
+	return resolved, nil
+}
+
+func resolveBundleID(bundleID string, buildSettings serialized.Object) (string, error) {
+	r, err := regexp.Compile(".+[.][$][(].+[:].+[)]*")
+	if err != nil {
+		return "", err
+	}
+
+	if !r.MatchString(bundleID) {
+		return "", fmt.Errorf("failed to match regex .+[.][$][(].+[:].+[)]* to %s bundleID", bundleID)
+	}
+
+	captures := r.FindString(bundleID)
+
+	prefix := strings.Split(captures, "$")[0]
+	envKey := strings.Split(strings.SplitAfter(captures, "(")[1], ":")[0]
+	suffix := strings.Join(strings.SplitAfter(captures, ")")[1:], "")
+
+	envValue, err := buildSettings.String(envKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to find enviriment variable value for key %s, error: %s", envKey, err)
+	}
+	return prefix + envValue + suffix, nil
+
+}
+
+// TODO
+// def target_entitlements(target_name)
+//   def force_code_sign_properties

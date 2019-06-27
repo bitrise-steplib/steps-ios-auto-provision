@@ -65,6 +65,7 @@
     "github.com/bitrise-io/xcode-project/xcodeproj",
     "github.com/bitrise-io/xcode-project/xcscheme",
     "github.com/bitrise-io/xcode-project/xcworkspace",
+    "howett.net/plist",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
