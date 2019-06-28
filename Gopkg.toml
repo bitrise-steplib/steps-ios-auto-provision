@@ -38,16 +38,8 @@
   name = "github.com/bitrise-io/xcode-project"
 
 [[constraint]]
-  name = "github.com/bitrise-steplib/steps-xcode-test"
-  version = "2.3.2"
-
-[[constraint]]
   name = "github.com/dgrijalva/jwt-go"
   version = "3.2.0"
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/godrei/go-appstoreconnect"
 
 [[constraint]]
   name = "github.com/google/go-querystring"

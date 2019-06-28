@@ -11,24 +11,22 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9bc5c8aac6885e92a7cfc5779c44eeae0ef757d5e277826bb8b4c2713ab899d8"
+  digest = "1:769f6040f83efe61df5afd32101a74247f6f98e6caad37446592ace6d1c78759"
   name = "github.com/bitrise-io/go-utils"
   packages = [
     "colorstring",
-    "fileutil",
     "log",
-    "pathutil",
   ]
   pruneopts = "UT"
   revision = "10ba6612803187a89b6935f06a617e9e1cd9d2bf"
 
 [[projects]]
-  digest = "1:26e714e21bef4fc07640fb796ccce6d4f9423e15b2d660e131a8e61a0ee576d5"
-  name = "github.com/bitrise-steplib/steps-xcode-test"
-  packages = ["pretty"]
+  branch = "master"
+  digest = "1:3d8c80c59d85c2ecf2b037c512d29016343956c100b6338bd923c1fd22ab4bb3"
+  name = "github.com/bitrise-io/xcode-project"
+  packages = ["serialized"]
   pruneopts = "UT"
-  revision = "c05bd3a50ee36040bd047cf4618615083a9d0b2c"
-  version = "2.3.2"
+  revision = "5929ad85d89233b3296d2d795e068a656db7fb25"
 
 [[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
@@ -51,9 +49,8 @@
   analyzer-version = 1
   input-imports = [
     "github.com/bitrise-io/bitrise-add-new-project/httputil",
-    "github.com/bitrise-io/go-utils/fileutil",
     "github.com/bitrise-io/go-utils/log",
-    "github.com/bitrise-steplib/steps-xcode-test/pretty",
+    "github.com/bitrise-io/xcode-project/serialized",
     "github.com/dgrijalva/jwt-go",
     "github.com/google/go-querystring/query",
   ]
