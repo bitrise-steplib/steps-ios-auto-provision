@@ -440,6 +440,13 @@ func resolveBundleID(bundleID string, buildSettings serialized.Object) (string, 
 
 }
 
+func (p ProjectHelper) targetEntitlements(name, config string) (serialized.Object, error) {
+	o, err := p.XcProj.TargetCodeSignEntitlements(name, config)
+	if err != nil && !serialized.IsKeyNotFoundError(err) {
+		return nil, err
+	}
+	return o, nil
+}
+
 // TODO
-// def target_entitlements(target_name)
 //   def force_code_sign_properties

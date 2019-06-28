@@ -2,13 +2,18 @@ package autoprovision
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
+
+	"github.com/bitrise-io/xcode-project/serialized"
 
 	"github.com/bitrise-io/xcode-project/xcodeproj"
 )
 
 var schemeCases []string
+var targetCases []string
 var xcProjCases []xcodeproj.XcodeProj
+var projectCases []string
 var projHelpCases []ProjectHelper
 var configCases []string
 
@@ -89,7 +94,7 @@ func TestNew(t *testing.T) {
 
 func TestUsesXcodeAutoCodeSigning(t *testing.T) {
 	var err error
-	schemeCases, xcProjCases, projHelpCases, configCases, err = initTestCases()
+	schemeCases, _, xcProjCases, projHelpCases, configCases, err = initTestCases()
 	if err != nil {
 		t.Fatalf("Failed to initialize test cases, error: %s", err)
 	}
@@ -169,7 +174,7 @@ func TestUsesXcodeAutoCodeSigning(t *testing.T) {
 
 func TestProjectHelper_ProjectTeamID(t *testing.T) {
 	var err error
-	schemeCases, _, projHelpCases, configCases, err = initTestCases()
+	schemeCases, _, _, projHelpCases, configCases, err = initTestCases()
 	if err != nil {
 		t.Fatalf("Failed to initialize test cases, error: %s", err)
 	}
@@ -283,7 +288,7 @@ func Test_codesignIdentitesMatch(t *testing.T) {
 
 func TestProjectHelper_ProjectCodeSignIdentity(t *testing.T) {
 	var err error
-	schemeCases, _, projHelpCases, configCases, err = initTestCases()
+	schemeCases, _, _, projHelpCases, configCases, err = initTestCases()
 	if err != nil {
 		t.Fatalf("Failed to initialize test cases, error: %s", err)
 	}
@@ -405,44 +410,11 @@ func Test_resolveBundleID(t *testing.T) {
 }
 
 func TestProjectHelper_TargetBundleID(t *testing.T) {
-	//
-	// Init test cases
-	targetCases := []string{
-		"Xcode-10_default",
-		"Xcode-10_default",
-		"Xcode-10_mac",
-		"Xcode-10_mac",
-		"TV_OS",
-		"TV_OS",
+	var err error
+	schemeCases, targetCases, xcProjCases, projHelpCases, configCases, err = initTestCases()
+	if err != nil {
+		t.Fatalf("Failed to initialize test cases, error: %s", err)
 	}
-
-	schemeCases := []string{
-		"Xcode-10_default",
-		"Xcode-10_default",
-		"Xcode-10_mac",
-		"Xcode-10_mac",
-		"TV_OS",
-		"TV_OS",
-	}
-
-	configCases := []string{
-		"Debug",
-		"Release",
-		"Debug",
-		"Release",
-		"Debug",
-		"Release",
-	}
-	projectCases := []string{
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_mac.xcodeproj",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_mac.xcodeproj",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/TV_OS.xcodeproj",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/TV_OS.xcodeproj",
-	}
-	var xcProjCases []xcodeproj.XcodeProj
-	var projHelpCases []ProjectHelper
 
 	for i, schemeCase := range schemeCases {
 		xcProj, _, err := findBuiltProject(
@@ -474,42 +446,42 @@ func TestProjectHelper_TargetBundleID(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name:       targetCases[0] + "Debug",
+			name:       targetCases[0] + " Debug",
 			targetName: targetCases[0],
 			conf:       configCases[0],
 			want:       "com.bitrise.Xcode-10-default",
 			wantErr:    false,
 		},
 		{
-			name:       targetCases[1] + "Release",
+			name:       targetCases[1] + " Release",
 			targetName: targetCases[1],
 			conf:       configCases[1],
 			want:       "com.bitrise.Xcode-10-default",
 			wantErr:    false,
 		},
 		{
-			name:       targetCases[2] + "Release",
+			name:       targetCases[2] + " Release",
 			targetName: targetCases[2],
 			conf:       configCases[2],
 			want:       "com.bitrise.Xcode-10-mac",
 			wantErr:    false,
 		},
 		{
-			name:       targetCases[3] + "Release",
+			name:       targetCases[3] + " Release",
 			targetName: targetCases[3],
 			conf:       configCases[3],
 			want:       "com.bitrise.Xcode-10-mac",
 			wantErr:    false,
 		},
 		{
-			name:       targetCases[4] + "Release",
+			name:       targetCases[4] + " Release",
 			targetName: targetCases[4],
 			conf:       configCases[4],
 			want:       "com.bitrise.TV-OS",
 			wantErr:    false,
 		},
 		{
-			name:       targetCases[5] + "Release",
+			name:       targetCases[5] + " Release",
 			targetName: targetCases[5],
 			conf:       configCases[5],
 			want:       "com.bitrise.TV-OS",
@@ -532,14 +504,23 @@ func TestProjectHelper_TargetBundleID(t *testing.T) {
 	}
 }
 
-func initTestCases() ([]string, []xcodeproj.XcodeProj, []ProjectHelper, []string, error) {
+func initTestCases() ([]string, []string, []xcodeproj.XcodeProj, []ProjectHelper, []string, error) {
 	//
 	// If the test cases already initialized return them
 	if schemeCases != nil {
-		return schemeCases, xcProjCases, projHelpCases, configCases, nil
+		return schemeCases, targetCases, xcProjCases, projHelpCases, configCases, nil
 	}
 	//
 	// Init test cases
+	targetCases = []string{
+		"Xcode-10_default",
+		"Xcode-10_default",
+		"Xcode-10_mac",
+		"Xcode-10_mac",
+		"TV_OS",
+		"TV_OS",
+	}
+
 	schemeCases = []string{
 		"Xcode-10_default",
 		"Xcode-10_default",
@@ -556,7 +537,7 @@ func initTestCases() ([]string, []xcodeproj.XcodeProj, []ProjectHelper, []string
 		"Debug",
 		"Release",
 	}
-	projectCases := []string{
+	projectCases = []string{
 		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
 		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
 		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_mac.xcodeproj",
@@ -574,7 +555,7 @@ func initTestCases() ([]string, []xcodeproj.XcodeProj, []ProjectHelper, []string
 			configCases[i],
 		)
 		if err != nil {
-			return nil, nil, nil, nil, fmt.Errorf("Failed to generate XcodeProj for test case, error: %s", err)
+			return nil, nil, nil, nil, nil, fmt.Errorf("Failed to generate XcodeProj for test case, error: %s", err)
 		}
 		xcProjCases = append(xcProjCases, xcProj)
 
@@ -584,10 +565,101 @@ func initTestCases() ([]string, []xcodeproj.XcodeProj, []ProjectHelper, []string
 			configCases[i],
 		)
 		if err != nil {
-			return nil, nil, nil, nil, fmt.Errorf("Failed to generate projectHelper for test case, error: %s", err)
+			return nil, nil, nil, nil, nil, fmt.Errorf("Failed to generate projectHelper for test case, error: %s", err)
 		}
 		projHelpCases = append(projHelpCases, *projHelp)
 	}
 
-	return schemeCases, xcProjCases, projHelpCases, configCases, nil
+	return schemeCases, targetCases, xcProjCases, projHelpCases, configCases, nil
+}
+
+func TestProjectHelper_targetEntitlements(t *testing.T) {
+	var err error
+	schemeCases, targetCases, xcProjCases, projHelpCases, configCases, err = initTestCases()
+	if err != nil {
+		t.Fatalf("Failed to initialize test cases, error: %s", err)
+	}
+
+	tests := []struct {
+		name       string
+		targetName string
+		conf       string
+		want       serialized.Object
+		wantErr    bool
+	}{
+		{
+			name:       targetCases[0] + " Debug",
+			targetName: targetCases[0],
+			conf:       configCases[0],
+			want: func() serialized.Object {
+				m := make(map[string]interface{})
+				m["com.apple.developer.siri"] = true
+				return m
+			}(),
+			wantErr: false,
+		},
+		{
+			name:       targetCases[1] + " Release",
+			targetName: targetCases[1],
+			conf:       configCases[1],
+			want: func() serialized.Object {
+				m := make(map[string]interface{})
+				m["com.apple.developer.siri"] = true
+				return m
+			}(),
+			wantErr: false,
+		},
+		{
+			name:       targetCases[2] + " Release",
+			targetName: targetCases[2],
+			conf:       configCases[2],
+			want: func() serialized.Object {
+				m := make(map[string]interface{})
+				m["com.apple.security.app-sandbox"] = true
+				m["com.apple.security.files.user-selected.read-only"] = true
+				return m
+			}(),
+			wantErr: false,
+		},
+		{
+			name:       targetCases[3] + " Release",
+			targetName: targetCases[3],
+			conf:       configCases[3],
+			want: func() serialized.Object {
+				m := make(map[string]interface{})
+				m["com.apple.security.app-sandbox"] = true
+				m["com.apple.security.files.user-selected.read-only"] = true
+				return m
+			}(),
+			wantErr: false,
+		},
+		{
+			name:       targetCases[4] + " Release",
+			targetName: targetCases[4],
+			conf:       configCases[4],
+			want:       nil,
+			wantErr:    false,
+		},
+		{
+			name:       targetCases[5] + " Release",
+			targetName: targetCases[5],
+			conf:       configCases[5],
+			want:       nil,
+			wantErr:    false,
+		},
+	}
+	for i, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := projHelpCases[i]
+
+			got, err := p.targetEntitlements(tt.targetName, tt.conf)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ProjectHelper.targetEntitlements() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ProjectHelper.targetEntitlements() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
