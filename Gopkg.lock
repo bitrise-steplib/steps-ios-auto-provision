@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "project-attribute"
-  digest = "1:8f07861e20beda79f0fec02d08ac59151f592f6f77bc1925b65cb44150bce772"
+  digest = "1:3fec2bc24fac5f70406d4b78143d88015eacd76018621221889233e179bc16b5"
   name = "github.com/bitrise-io/xcode-project"
   packages = [
     "serialized",
@@ -29,7 +29,7 @@
     "xcworkspace",
   ]
   pruneopts = "UT"
-  revision = "e88db87e5b68e8cf70a38d1bd6db63c31573e407"
+  revision = "5f2d63b1ee135afac1bdadc33893f673b4a0b5f2"
 
 [[projects]]
   digest = "1:1093f2eb4b344996604f7d8b29a16c5b22ab9e1b25652140d3fede39f640d5cd"
@@ -58,6 +58,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/bitrise-io/go-utils/fileutil",
     "github.com/bitrise-io/go-utils/log",
     "github.com/bitrise-io/go-utils/pathutil",
     "github.com/bitrise-io/go-utils/sliceutil",

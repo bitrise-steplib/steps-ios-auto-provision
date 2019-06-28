@@ -264,7 +264,15 @@ func (p ProjectHelper) ProjectTeamID(config string) (string, error) {
 		if currentTeamID == "" {
 			log.Warnf("no DEVELOPMENT_TEAM build settings found for target: %s, checking target attributes...", target.Name)
 
-			targetAttributesTeamID := p.XcProj.Proj.Attributes.TargetAttributes[target.ID].DevelopmentTeam
+			targetAttributes, err := p.XcProj.Proj.Attributes.TargetAttributes.Object(target.ID)
+			if err != nil {
+				return "", fmt.Errorf("failed to parse target %s target attributes, error: %s", target.ID, err)
+			}
+
+			targetAttributesTeamID, err := targetAttributes.String("DevelopmentTeam")
+			if err != nil && !serialized.IsKeyNotFoundError(err) {
+				return "", fmt.Errorf("failed to parse development team for target %s, error: %s", target.ID, err)
+			}
 			if targetAttributesTeamID == "" {
 				log.Warnf("no DevelopmentTeam target attribute found for target: %s", target.Name)
 				continue
