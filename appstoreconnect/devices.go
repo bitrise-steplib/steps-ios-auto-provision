@@ -37,18 +37,22 @@ const (
 	Disabled Status = "DISABLED"
 )
 
+// DeviceAttributes ...
+type DeviceAttributes struct {
+	DeviceClass DeviceClass      `json:"deviceClass"`
+	Model       string           `json:"model"`
+	Name        string           `json:"name"`
+	Platform    BundleIDPlatform `json:"platform"`
+	Status      Status           `json:"status"`
+	UDID        string           `json:"udid"`
+	AddedDate   string           `json:"addedDate"`
+}
+
 // Device ...
 type Device struct {
-	ID         string `json:"id"`
-	Attributes struct {
-		DeviceClass DeviceClass      `json:"deviceClass"`
-		Model       string           `json:"model"`
-		Name        string           `json:"name"`
-		Platform    BundleIDPlatform `json:"platform"`
-		Status      Status           `json:"status"`
-		UDID        string           `json:"udid"`
-		AddedDate   string           `json:"addedDate"`
-	} `json:"attributes"`
+	Type       string           `json:"type"`
+	ID         string           `json:"id"`
+	Attributes DeviceAttributes `json:"attributes"`
 }
 
 // DevicesResponse ...

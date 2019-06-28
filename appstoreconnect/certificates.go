@@ -32,20 +32,22 @@ const (
 	DeveloperIDApplication   CertificateType = "DEVELOPER_ID_APPLICATION"
 )
 
+// CertificateAttributes ...
+type CertificateAttributes struct {
+	CertificateContent string           `json:"certificateContent"`
+	DisplayName        string           `json:"displayName"`
+	ExpirationDate     string           `json:"expirationDate"`
+	Name               string           `json:"name"`
+	Platform           BundleIDPlatform `json:"platform"`
+	SerialNumber       string           `json:"serialNumber"`
+	CertificateType    CertificateType  `json:"certificateType"`
+}
+
 // Certificate ...
 type Certificate struct {
-	Attributes struct {
-		CertificateContent string           `json:"certificateContent"`
-		DisplayName        string           `json:"displayName"`
-		ExpirationDate     string           `json:"expirationDate"`
-		Name               string           `json:"name"`
-		Platform           BundleIDPlatform `json:"platform"`
-		SerialNumber       string           `json:"serialNumber"`
-		CertificateType    CertificateType  `json:"certificateType"`
-	} `json:"attributes"`
-
-	ID   string `json:"id"`
-	Type string `json:"type"`
+	Attributes CertificateAttributes `json:"attributes"`
+	ID         string                `json:"id"`
+	Type       string                `json:"type"`
 }
 
 // CertificatesResponse ...

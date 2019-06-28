@@ -25,14 +25,16 @@ type PagedDocumentLinks struct {
 	Next string `json:"next,omitempty"`
 }
 
+// BundleIDAttributes ...
+type BundleIDAttributes struct {
+	Identifier string `json:"identifier"`
+	Name       string `json:"name"`
+	Platform   string `json:"platform"`
+}
+
 // BundleID ...
 type BundleID struct {
-	Attributes struct {
-		Identifier string `json:"identifier"`
-		Name       string `json:"name"`
-		Platform   string `json:"platform"`
-		SeedID     string `json:"seedId"`
-	} `json:"attributes"`
+	Attributes BundleIDAttributes `json:"attributes"`
 
 	Relationships struct {
 		Profiles struct {

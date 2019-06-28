@@ -3,6 +3,8 @@ package appstoreconnect
 import (
 	"net/http"
 	"net/url"
+
+	"github.com/bitrise-io/xcode-project/serialized"
 )
 
 // ProfilesURL ...
@@ -12,6 +14,7 @@ const ProfilesURL = "profiles"
 type ListProfilesOptions struct {
 	FilterProfileState ProfileState `url:"filter[profileState],omitempty"`
 	FilterProfileType  ProfileType  `url:"filter[profileType],omitempty"`
+	FilterName         string       `url:"filter[name],omitempty"`
 	Include            string       `url:"include,omitempty"`
 
 	Limit  int    `url:"limit,omitempty"`
@@ -55,18 +58,21 @@ const (
 	TvOSAppInHouse     ProfileType = "TVOS_APP_INHOUSE"
 )
 
+// ProfileAttributes ...
+type ProfileAttributes struct {
+	Name           string           `json:"name"`
+	Platform       BundleIDPlatform `json:"platform"`
+	ProfileContent string           `json:"profileContent"`
+	UUID           string           `json:"uuid"`
+	CreatedDate    string           `json:"createdDate"`
+	ProfileState   ProfileState     `json:"profileState"`
+	ProfileType    ProfileType      `json:"profileType"`
+	ExpirationDate string           `json:"expirationDate"`
+}
+
 // Profile ...
 type Profile struct {
-	Attributes struct {
-		Name           string           `json:"name"`
-		Platform       BundleIDPlatform `json:"platform"`
-		ProfileContent string           `json:"profileContent"`
-		UUID           string           `json:"uuid"`
-		CreatedDate    string           `json:"createdDate"`
-		ProfileState   ProfileState     `json:"profileState"`
-		ProfileType    ProfileType      `json:"profileType"`
-		ExpirationDate string           `json:"expirationDate"`
-	} `json:"attributes"`
+	Attributes ProfileAttributes `json:"attributes"`
 
 	Relationships struct {
 		BundleID struct {
@@ -96,7 +102,12 @@ type Profile struct {
 
 // ProfilesResponse ...
 type ProfilesResponse struct {
-	Data  []Profile          `json:"data"`
+	Data     []Profile `json:"data"`
+	Included []struct {
+		Type       string            `json:"type"`
+		ID         string            `json:"id"`
+		Attributes serialized.Object `json:"attributes"`
+	} `json:"included"`
 	Links PagedDocumentLinks `json:"links,omitempty"`
 }
 
