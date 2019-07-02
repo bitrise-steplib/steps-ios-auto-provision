@@ -11,22 +11,33 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:769f6040f83efe61df5afd32101a74247f6f98e6caad37446592ace6d1c78759"
+  digest = "1:835a344b1d5a6adaf588926627d18ce472eb8876ced599eb43c775bedeacc2bc"
   name = "github.com/bitrise-io/go-utils"
   packages = [
     "colorstring",
+    "command",
+    "errorutil",
+    "fileutil",
     "log",
+    "pathutil",
+    "sliceutil",
   ]
   pruneopts = "UT"
   revision = "10ba6612803187a89b6935f06a617e9e1cd9d2bf"
 
 [[projects]]
-  branch = "master"
-  digest = "1:3d8c80c59d85c2ecf2b037c512d29016343956c100b6338bd923c1fd22ab4bb3"
+  branch = "project-attribute"
+  digest = "1:3fec2bc24fac5f70406d4b78143d88015eacd76018621221889233e179bc16b5"
   name = "github.com/bitrise-io/xcode-project"
-  packages = ["serialized"]
+  packages = [
+    "serialized",
+    "xcodebuild",
+    "xcodeproj",
+    "xcscheme",
+    "xcworkspace",
+  ]
   pruneopts = "UT"
-  revision = "5929ad85d89233b3296d2d795e068a656db7fb25"
+  revision = "5f2d63b1ee135afac1bdadc33893f673b4a0b5f2"
 
 [[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
@@ -44,15 +55,45 @@
   revision = "44c6ddd0a2342c386950e880b658017258da92fc"
   version = "v1.0.0"
 
+[[projects]]
+  digest = "1:1093f2eb4b344996604f7d8b29a16c5b22ab9e1b25652140d3fede39f640d5cd"
+  name = "golang.org/x/text"
+  packages = [
+    "internal/gen",
+    "internal/triegen",
+    "internal/ucd",
+    "transform",
+    "unicode/cldr",
+    "unicode/norm",
+  ]
+  pruneopts = "UT"
+  revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
+  version = "v0.3.2"
+
+[[projects]]
+  branch = "master"
+  digest = "1:c10265d5a71326618d37e97169eddb3582f78e8ac7dcf87403b4cf619efd519a"
+  name = "howett.net/plist"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "591f970eefbbeb04d7b37f334a0c4c3256e32876"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
     "github.com/bitrise-io/bitrise-add-new-project/httputil",
+    "github.com/bitrise-io/go-utils/fileutil",
     "github.com/bitrise-io/go-utils/log",
+    "github.com/bitrise-io/go-utils/pathutil",
+    "github.com/bitrise-io/go-utils/sliceutil",
     "github.com/bitrise-io/xcode-project/serialized",
+    "github.com/bitrise-io/xcode-project/xcodeproj",
+    "github.com/bitrise-io/xcode-project/xcscheme",
+    "github.com/bitrise-io/xcode-project/xcworkspace",
     "github.com/dgrijalva/jwt-go",
     "github.com/google/go-querystring/query",
+    "howett.net/plist",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
