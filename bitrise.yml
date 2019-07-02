@@ -23,6 +23,13 @@ app:
   - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
 
 workflows:
+  gotests:
+    steps: 
+    - go-list:
+    - golint:
+    # - errcheck:
+    - go-test:
+
   test:
     before_run:
     - audit-this-step
