@@ -7,6 +7,14 @@ import (
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
 
+// Profile ...
+type Profile struct {
+	Attributes   appstoreconnect.ProfileAttributes
+	Devices      []appstoreconnect.Device
+	BundleID     appstoreconnect.BundleID
+	Certificates []appstoreconnect.Certificate
+}
+
 // EnsureProfile ...
 // func EnsureProfile(platform Platform, distributionType DistributionType, capabilities []string, devices []Device, managed bool, expire time.Time) error {
 
@@ -44,14 +52,6 @@ func EnsureProfile(client *appstoreconnect.Client, profileType appstoreconnect.P
 
 func validateProfile(profile Profile) []string {
 	return nil
-}
-
-// Profile ...
-type Profile struct {
-	Attributes   appstoreconnect.ProfileAttributes
-	Devices      []appstoreconnect.Device
-	BundleID     appstoreconnect.BundleID
-	Certificates []appstoreconnect.Certificate
 }
 
 func fetchProfile(client *appstoreconnect.Client, profileType appstoreconnect.ProfileType, bundleID string) (*Profile, error) {
