@@ -13,7 +13,7 @@ type Config struct {
 	Scheme        string `env:"scheme,required"`
 	Configuration string `env:"configuration"`
 
-	DistributionType string `env:"distribution_type,required"`
+	distributionType string `env:"distribution_type,required"`
 	TeamID           string `env:"team_id"`
 
 	GenerateProfiles    string `env:"generate_profiles,opt[no,yes]"`
@@ -41,6 +41,26 @@ func (c Config) Print() {
 	// TODO: update stepconf.Print to receive the output writer
 	// and write test for this method
 	stepconf.Print(c)
+}
+
+func stringToDistribution(distribution string) Distribution {
+	switch distribution {
+	case "development":
+		return Development
+	case "app-store":
+		return AppStore
+	case "ad-hoc":
+		return AdHoc
+	case "enterprise":
+		return Enterprise
+	default:
+		return Unsupported
+	}
+}
+
+// Distribution returns a distribution type
+func (c Config) Distribution() Distribution {
+	return stringToDistribution(c.distributionType)
 }
 
 // CertificateURLs returns a list of certificate urls

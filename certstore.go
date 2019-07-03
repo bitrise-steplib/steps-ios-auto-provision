@@ -1,4 +1,4 @@
-package certstore
+package main
 
 import (
 	"errors"
@@ -12,13 +12,50 @@ import (
 	"github.com/bitrise-tools/go-xcode/certificateutil"
 )
 
+// Category returns the type of the Distribution
+func (d *Distribution) Category() DistributionType {
+	switch *d {
+	case Unsupported:
+		return UnsupportedCategory
+	case Invalid:
+		return InvalidCategory
+	case Development:
+		return DevelopmentCategory
+	default:
+		return DistributionCategory
+	}
+}
+
+// DistributionType is an Apple code signing certifcate distribution type
+type DistributionType int
+
+// Development or Distribution
+const (
+	InvalidCategory DistributionType = iota
+	DevelopmentCategory
+	DistributionCategory
+	UnsupportedCategory
+)
+
+// ToString returns a string representation of DistributionType
+func (t *DistributionType) String() string {
+	switch *t {
+	case DevelopmentCategory:
+		return "Development"
+	case DistributionCategory:
+		return "Distribution"
+	default:
+		return "unsupported"
+	}
+}
+
 // P12URL ...
 type P12URL struct {
 	URL, Passphrase string
 }
 
-// Download ...
-func Download(URLs []P12URL) ([]certificateutil.CertificateInfoModel, error) {
+// DownloadCertificates downloads and parses a list of p12 files
+func DownloadCertificates(URLs []P12URL) ([]certificateutil.CertificateInfoModel, error) {
 	var certInfos []certificateutil.CertificateInfoModel
 	for i, p12 := range URLs {
 		log.Debugf("Downloading p12 file number %d from %s", i, p12.URL)
@@ -74,39 +111,25 @@ func FilterLatestValidCertificates(certificates []certificateutil.CertificateInf
 	return filteredCertificates.ValidCertificates
 }
 
-// CertificateDistributionTarget is an Apple code signing certiifcate distribution type
-type CertificateDistributionTarget int
-
-// Development or Distribution
-const (
-	Invalid CertificateDistributionTarget = iota
-	Development
-	Distribution
-	Unsupported
-)
-
-// Find returns a Certificates matching to the given filters.
-func Find(certificates []certificateutil.CertificateInfoModel, name, team string, distribution CertificateDistributionTarget) ([]certificateutil.CertificateInfoModel, error) {
+// FilterCertificates returns the certificates matching to the given common name, developer team ID, and distribution type.
+func FilterCertificates(certificates []certificateutil.CertificateInfoModel, distribution DistributionType, name, team string) ([]certificateutil.CertificateInfoModel, error) {
 	// filter by distribution type
-	if distribution != Development && distribution != Distribution {
+	if distribution != DevelopmentCategory && distribution != DistributionCategory {
 		return nil, errors.New("invalid certificate distribution type specified")
 	}
 
 	var filteredCertificates []certificateutil.CertificateInfoModel
 	for _, certificate := range certificates {
 		isDistribution := isDistributionCertificate(certificate)
-		if distribution == Distribution && isDistribution {
+		if distribution == DistributionCategory && isDistribution {
 			filteredCertificates = append(filteredCertificates, certificate)
-		} else if distribution != Distribution && !isDistribution {
+		} else if distribution != DistributionCategory && !isDistribution {
 			filteredCertificates = append(filteredCertificates, certificate)
 		}
 	}
 
 	if len(filteredCertificates) == 0 {
-		if distribution == Development {
-			return nil, errors.New("no development certificate found")
-		}
-		return nil, errors.New("no distribution certificate found")
+		return nil, fmt.Errorf("no %s certificates found", distribution.String())
 	}
 
 	// filter by team
@@ -115,7 +138,7 @@ func Find(certificates []certificateutil.CertificateInfoModel, name, team string
 		filteredCertificates = certsByTeam[team]
 
 		if len(filteredCertificates) == 0 {
-			return nil, fmt.Errorf("no certificate found for team: %s", team)
+			return nil, fmt.Errorf("no certificates found for required team: %s", team)
 		}
 	}
 
@@ -125,7 +148,7 @@ func Find(certificates []certificateutil.CertificateInfoModel, name, team string
 		filteredCertificates = certsByName[team]
 
 		if len(filteredCertificates) == 0 {
-			return nil, fmt.Errorf("no certificate found for name: %s", name)
+			return nil, fmt.Errorf("no certificate found for required common name: %s", name)
 		}
 	}
 

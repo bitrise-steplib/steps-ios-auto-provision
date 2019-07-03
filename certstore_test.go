@@ -1,4 +1,4 @@
-package certstore
+package main
 
 import (
 	"reflect"
@@ -47,7 +47,7 @@ func TestDownload(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := Download(tt.URLs)
+			got, err := DownloadCertificates(tt.URLs)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Download() error = %v, wantErr %v", err, tt.wantErr)
 				return
