@@ -3,6 +3,7 @@ package appstoreconnect
 import (
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/bitrise-io/xcode-project/serialized"
 )
@@ -98,6 +99,33 @@ type Profile struct {
 	} `json:"relationships"`
 
 	ID string `json:"id"`
+}
+
+// Xcode Managed profile examples:
+// XC Ad Hoc: *
+// XC: *
+// XC Ad Hoc: { bundle id }
+// XC: { bundle id }
+// iOS Team Provisioning Profile: *
+// iOS Team Ad Hoc Provisioning Profile: *
+// iOS Team Ad Hoc Provisioning Profile: {bundle id}
+// iOS Team Provisioning Profile: {bundle id}
+// tvOS Team Provisioning Profile: *
+// tvOS Team Ad Hoc Provisioning Profile: *
+// tvOS Team Ad Hoc Provisioning Profile: {bundle id}
+// tvOS Team Provisioning Profile: {bundle id}
+// Mac Team Provisioning Profile: *
+// Mac Team Ad Hoc Provisioning Profile: *
+// Mac Team Ad Hoc Provisioning Profile: {bundle id}
+// Mac Team Provisioning Profile: {bundle id}
+func (p Profile) isXcodeManaged() bool {
+	if strings.HasPrefix(p.Attributes.Name, "XC") ||
+		strings.HasPrefix(p.Attributes.Name, "iOS Team") && strings.Contains(p.Attributes.Name, "Provisioning Profile") ||
+		strings.HasPrefix(p.Attributes.Name, "tvOS Team") && strings.Contains(p.Attributes.Name, "Provisioning Profile") ||
+		strings.HasPrefix(p.Attributes.Name, "Mac Team") && strings.Contains(p.Attributes.Name, "Provisioning Profile") {
+		return true
+	}
+	return false
 }
 
 // ProfilesResponse ...

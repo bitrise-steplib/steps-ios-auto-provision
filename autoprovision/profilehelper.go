@@ -3,6 +3,7 @@ package autoprovision
 import (
 	"fmt"
 
+	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/xcode-project/serialized"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
@@ -36,7 +37,9 @@ func profileName(profileType appstoreconnect.ProfileType, bundleID string) (stri
 }
 
 // EnsureProfile ...
-func EnsureProfile(client *appstoreconnect.Client, profileType appstoreconnect.ProfileType, bundleID string, capabilityIDs []string, deviceIDs []string) (*Profile, error) {
+func EnsureProfile(client *appstoreconnect.Client, profileType appstoreconnect.ProfileType, bundleID string,
+	capabilityIDs []string, deviceIDs []string, isXcodeManaged, generateProfiles bool) (*Profile, error) {
+
 	profile, err := fetchProfile(client, profileType, bundleID)
 	if err != nil {
 		return nil, err
@@ -46,8 +49,15 @@ func EnsureProfile(client *appstoreconnect.Client, profileType appstoreconnect.P
 	}
 
 	// validate profile
+	if isXcodeManaged && generateProfiles {
+		log.Warnf("Project uses Xcode managed signing, but generate_profiles set to true, trying to generate Provisioning Profiles")
+	}
 
 	return nil, nil
+}
+
+func ensureManualProfiles() {
+
 }
 
 func validateProfile(profile Profile) []string {
