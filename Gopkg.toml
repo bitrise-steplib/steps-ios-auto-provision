@@ -3,7 +3,7 @@
   name = "github.com/bitrise-io/go-utils"
 
 [[constraint]]
-  branch = "certificateutil"
+  branch = "TOOL-915-support-multiple-identities-in-p12"
   name = "github.com/bitrise-tools/go-xcode"
 
 [[constraint]]
@@ -13,10 +13,6 @@
 [[constraint]]
   name = "github.com/stretchr/testify"
   branch = "master"
-
-[[constraint]]
-  branch = "master"
-  name = "software.sslmate.com/src/go-pkcs12"
 
 [prune]
   go-tests = true
