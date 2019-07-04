@@ -59,6 +59,40 @@ const (
 	TvOSAppInHouse     ProfileType = "TVOS_APP_INHOUSE"
 )
 
+// ProfileTypeDevelopmentPair returns the distribution profile type developmnet pair.
+// E.g IOSAppStore development pair is IOSAppDevelopment
+func (t ProfileType) ProfileTypeDevelopmentPair() ProfileType {
+	switch t {
+	case IOSAppStore, IOSAppAdHoc, IOSAppInHouse:
+		return IOSAppDevelopment
+	case MacAppStore, MacAppDirect:
+		return MacAppDevelopment
+	case TvOSAppStore, TvOSAppAdHoc, TvOSAppInHouse:
+		return TvOSAppDevelopment
+	case IOSAppDevelopment, MacAppDevelopment, TvOSAppDevelopment:
+		return ""
+	}
+	return ""
+}
+
+// ReadableString returns the readable version of the ProjectType
+// e.g: IOSAppDevelopment => development
+func (t ProfileType) ReadableString() string {
+	switch t {
+	case IOSAppStore, MacAppStore, TvOSAppStore:
+		return "app store"
+	case IOSAppInHouse, TvOSAppInHouse:
+		return "enterprise"
+	case IOSAppAdHoc, TvOSAppAdHoc:
+		return "ad-hoc"
+	case IOSAppDevelopment, MacAppDevelopment, TvOSAppDevelopment:
+		return "development"
+	case MacAppDirect:
+		return "development ID"
+	}
+	return ""
+}
+
 // ProfileAttributes ...
 type ProfileAttributes struct {
 	Name           string           `json:"name"`
@@ -212,6 +246,54 @@ type ProfileCreateRequestData struct {
 // ProfileCreateRequest ...
 type ProfileCreateRequest struct {
 	Data ProfileCreateRequestData `json:"data"`
+}
+
+// NewProfileCreateRequest returns a ProfileCreateRequest structure
+func NewProfileCreateRequest(profileType ProfileType, name, bundleID string, certificates []Certificate, devices []Device) ProfileCreateRequest {
+	certificateData := func() (data ProfileCreateRequestDataRelationshipsCertificates) {
+		var certDatas []ProfileCreateRequestDataRelationshipData
+		for _, cert := range certificates {
+			certDatas = append(certDatas, ProfileCreateRequestDataRelationshipData{
+				ID:   cert.ID,
+				Type: "certificates",
+			})
+		}
+		return ProfileCreateRequestDataRelationshipsCertificates{Data: certDatas}
+	}()
+	bundleIDData := ProfileCreateRequestDataRelationshipsBundleID{
+		Data: ProfileCreateRequestDataRelationshipData{
+			ID:   bundleID,
+			Type: "bundleIds",
+		},
+	}
+	deviceData := func() (data ProfileCreateRequestDataRelationshipsDevices) {
+		var deviceDatas []ProfileCreateRequestDataRelationshipData
+		for _, device := range devices {
+			deviceDatas = append(deviceDatas, ProfileCreateRequestDataRelationshipData{
+				ID:   device.ID,
+				Type: "devices",
+			})
+		}
+		return ProfileCreateRequestDataRelationshipsDevices{Data: deviceDatas}
+	}()
+
+	attributes := ProfileCreateRequestDataAttributes{
+		Name:        name,
+		ProfileType: profileType,
+	}
+	relationships := ProfileCreateRequestDataRelationships{
+		BundleID:     bundleIDData,
+		Certificates: certificateData,
+		Devices:      deviceData,
+	}
+
+	data := ProfileCreateRequestData{
+		Attributes:    attributes,
+		Relationships: relationships,
+		Type:          "profiles",
+	}
+
+	return ProfileCreateRequest{Data: data}
 }
 
 // ProfileResponse ...

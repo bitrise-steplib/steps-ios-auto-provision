@@ -25,10 +25,12 @@ app:
 workflows:
   gotests:
     steps: 
-    - go-list:
-    - golint:
+    # - go-list:
+    # - golint:
     # - errcheck:
     - go-test:
+        inputs:
+        - packages: "github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect/"
 
   test:
     before_run:

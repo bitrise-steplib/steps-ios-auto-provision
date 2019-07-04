@@ -8,53 +8,53 @@ import (
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
 
-func Test_fetchProfile(t *testing.T) {
-	tests := []struct {
-		name        string
-		client      *appstoreconnect.Client
-		profileType appstoreconnect.ProfileType
-		bundleID    string
-		want        *Profile
-		wantErr     bool
-	}{
-		{
-			name:        "Fetch development profile for bundleID - com.bitrise.code-sign-test",
-			client:      initTestClient(t),
-			profileType: appstoreconnect.IOSAppDevelopment,
-			bundleID:    "com.bitrise.code-sign-test",
-			want:        &Profile{},
-			wantErr:     false,
-		},
-		{
-			name:        "Fetch app store profile for bundleID - com.bitrise.code-sign-test",
-			client:      initTestClient(t),
-			profileType: appstoreconnect.IOSAppStore,
-			bundleID:    "com.bitrise.code-sign-test",
-			want:        &Profile{},
-			wantErr:     false,
-		},
-		{
-			name:        "Fetch ad-hoc profile for bundleID - com.bitrise.code-sign-test",
-			client:      initTestClient(t),
-			profileType: appstoreconnect.IOSAppAdHoc,
-			bundleID:    "com.bitrise.code-sign-test",
-			want:        &Profile{},
-			wantErr:     false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := fetchProfile(tt.client, tt.profileType, tt.bundleID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("fetchProfile() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got == nil {
-				t.Errorf("No Bitrise profile found for %v with a %v profile type.\nMakes sure there is a profile named Bitrise {ProfileType} (%v) on App Store Connect and it's valid.", tt.bundleID, tt.profileType, tt.bundleID)
-			}
-		})
-	}
-}
+// func Test_fetchProfile(t *testing.T) {
+// 	tests := []struct {
+// 		name        string
+// 		client      *appstoreconnect.Client
+// 		profileType appstoreconnect.ProfileType
+// 		bundleID    string
+// 		want        *Profile
+// 		wantErr     bool
+// 	}{
+// 		{
+// 			name:        "Fetch development profile for bundleID - com.bitrise.code-sign-test",
+// 			client:      initTestClient(t),
+// 			profileType: appstoreconnect.IOSAppDevelopment,
+// 			bundleID:    "com.bitrise.code-sign-test",
+// 			want:        &Profile{},
+// 			wantErr:     false,
+// 		},
+// 		{
+// 			name:        "Fetch app store profile for bundleID - com.bitrise.code-sign-test",
+// 			client:      initTestClient(t),
+// 			profileType: appstoreconnect.IOSAppStore,
+// 			bundleID:    "com.bitrise.code-sign-test",
+// 			want:        &Profile{},
+// 			wantErr:     false,
+// 		},
+// 		{
+// 			name:        "Fetch ad-hoc profile for bundleID - com.bitrise.code-sign-test",
+// 			client:      initTestClient(t),
+// 			profileType: appstoreconnect.IOSAppAdHoc,
+// 			bundleID:    "com.bitrise.code-sign-test",
+// 			want:        &Profile{},
+// 			wantErr:     false,
+// 		},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			got, err := fetchProfile(tt.client, tt.profileType, tt.bundleID)
+// 			if (err != nil) != tt.wantErr {
+// 				t.Errorf("fetchProfile() error = %v, wantErr %v", err, tt.wantErr)
+// 				return
+// 			}
+// 			if got == nil {
+// 				t.Errorf("No Bitrise profile found for %v with a %v profile type.\nMakes sure there is a profile named Bitrise {ProfileType} (%v) on App Store Connect and it's valid.", tt.bundleID, tt.profileType, tt.bundleID)
+// 			}
+// 		})
+// 	}
+// }
 
 // initTestClient creates an AppStore client with a JWT token to communicate with the App Store connect API
 // Export the BITRISE_PRIVATE_KEY_PATH, BITRISE_JWT_KEY_ID, and the BITRISE_JWT_ISSUER envs
@@ -86,87 +86,225 @@ func initTestClient(t *testing.T) *appstoreconnect.Client {
 	return c
 }
 
-func Test_profileName(t *testing.T) {
+// func Test_profileName(t *testing.T) {
+// 	tests := []struct {
+// 		name        string
+// 		profileType appstoreconnect.ProfileType
+// 		bundleID    string
+// 		want        string
+// 		wantErr     bool
+// 	}{
+// 		{
+// 			name:        "Test Bitrise iOS development profile generation for com.bitrise.code-sign-test bundleID",
+// 			profileType: appstoreconnect.IOSAppDevelopment,
+// 			bundleID:    "com.bitrise.code-sign-test bundleID",
+// 			want:        "Bitrise development - (com.bitrise.code-sign-test bundleID)",
+// 			wantErr:     false,
+// 		},
+// 		{
+// 			name:        "Test Bitrise iOS app store profile generation for com.bitrise.code-sign-test bundleID",
+// 			profileType: appstoreconnect.IOSAppStore,
+// 			bundleID:    "com.bitrise.code-sign-test bundleID",
+// 			want:        "Bitrise app-store - (com.bitrise.code-sign-test bundleID)",
+// 			wantErr:     false,
+// 		},
+// 		{
+// 			name:        "Test Bitrise iOS ad-hoc profile generation for com.bitrise.code-sign-test bundleID",
+// 			profileType: appstoreconnect.IOSAppAdHoc,
+// 			bundleID:    "com.bitrise.code-sign-test bundleID",
+// 			want:        "Bitrise ad-hoc - (com.bitrise.code-sign-test bundleID)",
+// 			wantErr:     false,
+// 		},
+// 		{
+// 			name:        "Test Bitrise TVOS development profile generation for com.bitrise.code-sign-test bundleID",
+// 			profileType: appstoreconnect.TvOSAppDevelopment,
+// 			bundleID:    "com.bitrise.code-sign-test bundleID",
+// 			want:        "Bitrise development - (com.bitrise.code-sign-test bundleID)",
+// 			wantErr:     false,
+// 		},
+// 		{
+// 			name:        "Test Bitrise TVOS app store profile generation for com.bitrise.code-sign-test bundleID",
+// 			profileType: appstoreconnect.TvOSAppStore,
+// 			bundleID:    "com.bitrise.code-sign-test bundleID",
+// 			want:        "Bitrise app-store - (com.bitrise.code-sign-test bundleID)",
+// 			wantErr:     false,
+// 		},
+// 		{
+// 			name:        "Test Bitrise TVOS ad-hoc profile generation for com.bitrise.code-sign-test bundleID",
+// 			profileType: appstoreconnect.TvOSAppAdHoc,
+// 			bundleID:    "com.bitrise.code-sign-test bundleID",
+// 			want:        "Bitrise ad-hoc - (com.bitrise.code-sign-test bundleID)",
+// 			wantErr:     false,
+// 		},
+// 		{
+// 			name:        "Test Bitrise Mac development profile generation for com.bitrise.code-sign-test bundleID",
+// 			profileType: appstoreconnect.MacAppDevelopment,
+// 			bundleID:    "com.bitrise.code-sign-test bundleID",
+// 			want:        "",
+// 			wantErr:     true,
+// 		},
+// 		{
+// 			name:        "Test Bitrise Mac app store profile generation for com.bitrise.code-sign-test bundleID",
+// 			profileType: appstoreconnect.MacAppStore,
+// 			bundleID:    "com.bitrise.code-sign-test bundleID",
+// 			want:        "",
+// 			wantErr:     true,
+// 		},
+// 		{
+// 			name:        "Test Bitrise Mac developer ID store profile generation for com.bitrise.code-sign-test bundleID",
+// 			profileType: appstoreconnect.MacAppDirect,
+// 			bundleID:    "com.bitrise.code-sign-test bundleID",
+// 			want:        "",
+// 			wantErr:     true,
+// 		},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			got, err := profileName(tt.profileType, tt.bundleID)
+// 			if (err != nil) != tt.wantErr {
+// 				t.Errorf("profileName() error = %v, wantErr %v", err, tt.wantErr)
+// 				return
+// 			}
+// 			if got != tt.want {
+// 				t.Errorf("profileName() = %v, want %v", got, tt.want)
+// 			}
+// 		})
+// 	}
+// }
+
+func TestEnsureProfiles(t *testing.T) {
+	client := initTestClient(t)
+
 	tests := []struct {
-		name        string
-		profileType appstoreconnect.ProfileType
-		bundleID    string
-		want        string
-		wantErr     bool
+		name             string
+		profileType      appstoreconnect.ProfileType
+		bundleID         string
+		capabilityIDs    []string
+		devices          []appstoreconnect.Device
+		certifcates      []appstoreconnect.Certificate
+		isXcodeManaged   bool
+		generateProfiles bool
+		wantProfileCount int
+		wantErr          bool
 	}{
+		// {
+		// 	name:             "iOS Development signing, profile generation enabled - com.bitrise.code-sign-test",
+		// 	profileType:      appstoreconnect.IOSAppDevelopment,
+		// 	bundleID:         "com.bitrise.code-sign-test",
+		// 	capabilityIDs:    nil,
+		// 	devices:          nil,
+		// 	certifcates:      nil,
+		// 	isXcodeManaged:   false,
+		// 	generateProfiles: true,
+		// 	wantProfileCount: 1,
+		// 	wantErr:          false,
+		// },
+		// {
+		// 	name:             "iOS App Store signing, profile generation enabled - com.bitrise.code-sign-test",
+		// 	profileType:      appstoreconnect.IOSAppStore,
+		// 	bundleID:         "com.bitrise.code-sign-test",
+		// 	capabilityIDs:    nil,
+		// 	devices:          nil,
+		// 	certifcates:      nil,
+		// 	isXcodeManaged:   false,
+		// 	generateProfiles: true,
+		// 	wantProfileCount: 2,
+		// 	wantErr:          false,
+		// },
+		// {
+		// 	name:             "iOS Enterprise signing, profile generation enabled - com.bitrise.code-sign-test",
+		// 	profileType:      appstoreconnect.IOSAppInHouse,
+		// 	bundleID:         "com.bitrise.code-sign-test",
+		// 	capabilityIDs:    nil,
+		// 	devices:          nil,
+		// 	certifcates:      nil,
+		// 	isXcodeManaged:   false,
+		// 	generateProfiles: true,
+		// 	wantProfileCount: 0,
+		// 	wantErr:          true, // Enterprise subscription needed. Depends on the new Apple Developer Team.
+		// },
+		// {
+		// 	name:             "iOS Ad Hoc signing, profile generation enabled - com.bitrise.code-sign-test",
+		// 	profileType:      appstoreconnect.IOSAppAdHoc,
+		// 	bundleID:         "com.bitrise.code-sign-test",
+		// 	capabilityIDs:    nil,
+		// 	devices:          nil,
+		// 	certifcates:      nil,
+		// 	isXcodeManaged:   false,
+		// 	generateProfiles: true,
+		// 	wantProfileCount: 2,
+		// 	wantErr:          false,
+		// },
 		{
-			name:        "Test Bitrise iOS development profile generation for com.bitrise.code-sign-test bundleID",
-			profileType: appstoreconnect.IOSAppDevelopment,
-			bundleID:    "com.bitrise.code-sign-test bundleID",
-			want:        "Bitrise development - (com.bitrise.code-sign-test bundleID)",
-			wantErr:     false,
+			name:          "iOS Development signing, profile generation enabled - com.bitrise.Test-Xcode-Managed",
+			profileType:   appstoreconnect.IOSAppDevelopment,
+			bundleID:      "7ZDPMNJW89",
+			capabilityIDs: nil,
+			devices: []appstoreconnect.Device{
+				appstoreconnect.Device{
+					Type:       "Device",
+					ID:         "T6SV2G2HNM",
+					Attributes: appstoreconnect.DeviceAttributes{},
+				},
+			},
+			certifcates: []appstoreconnect.Certificate{
+				appstoreconnect.Certificate{
+					ID:         "7JF32NQGYF",
+					Type:       "Certificate",
+					Attributes: appstoreconnect.CertificateAttributes{},
+				},
+			},
+			isXcodeManaged:   false,
+			generateProfiles: true,
+			wantProfileCount: 1,
+			wantErr:          false,
 		},
-		{
-			name:        "Test Bitrise iOS app store profile generation for com.bitrise.code-sign-test bundleID",
-			profileType: appstoreconnect.IOSAppStore,
-			bundleID:    "com.bitrise.code-sign-test bundleID",
-			want:        "Bitrise app-store - (com.bitrise.code-sign-test bundleID)",
-			wantErr:     false,
-		},
-		{
-			name:        "Test Bitrise iOS ad-hoc profile generation for com.bitrise.code-sign-test bundleID",
-			profileType: appstoreconnect.IOSAppAdHoc,
-			bundleID:    "com.bitrise.code-sign-test bundleID",
-			want:        "Bitrise ad-hoc - (com.bitrise.code-sign-test bundleID)",
-			wantErr:     false,
-		},
-		{
-			name:        "Test Bitrise TVOS development profile generation for com.bitrise.code-sign-test bundleID",
-			profileType: appstoreconnect.TvOSAppDevelopment,
-			bundleID:    "com.bitrise.code-sign-test bundleID",
-			want:        "Bitrise development - (com.bitrise.code-sign-test bundleID)",
-			wantErr:     false,
-		},
-		{
-			name:        "Test Bitrise TVOS app store profile generation for com.bitrise.code-sign-test bundleID",
-			profileType: appstoreconnect.TvOSAppStore,
-			bundleID:    "com.bitrise.code-sign-test bundleID",
-			want:        "Bitrise app-store - (com.bitrise.code-sign-test bundleID)",
-			wantErr:     false,
-		},
-		{
-			name:        "Test Bitrise TVOS ad-hoc profile generation for com.bitrise.code-sign-test bundleID",
-			profileType: appstoreconnect.TvOSAppAdHoc,
-			bundleID:    "com.bitrise.code-sign-test bundleID",
-			want:        "Bitrise ad-hoc - (com.bitrise.code-sign-test bundleID)",
-			wantErr:     false,
-		},
-		{
-			name:        "Test Bitrise Mac development profile generation for com.bitrise.code-sign-test bundleID",
-			profileType: appstoreconnect.MacAppDevelopment,
-			bundleID:    "com.bitrise.code-sign-test bundleID",
-			want:        "",
-			wantErr:     true,
-		},
-		{
-			name:        "Test Bitrise Mac app store profile generation for com.bitrise.code-sign-test bundleID",
-			profileType: appstoreconnect.MacAppStore,
-			bundleID:    "com.bitrise.code-sign-test bundleID",
-			want:        "",
-			wantErr:     true,
-		},
-		{
-			name:        "Test Bitrise Mac developer ID store profile generation for com.bitrise.code-sign-test bundleID",
-			profileType: appstoreconnect.MacAppDirect,
-			bundleID:    "com.bitrise.code-sign-test bundleID",
-			want:        "",
-			wantErr:     true,
-		},
+		// {
+		// 	name:             "iOS App Store signing, profile generation enabled - com.bitrise.Test-Xcode-Managed",
+		// 	profileType:      appstoreconnect.IOSAppStore,
+		// 	bundleID:         "com.bitrise.Test-Xcode-Managed",
+		// 	capabilityIDs:    nil,
+		// 	devices:          nil,
+		// 	certifcates:      nil,
+		// 	isXcodeManaged:   false,
+		// 	generateProfiles: true,
+		// 	wantProfileCount: 2,
+		// 	wantErr:          false,
+		// },
+		// {
+		// 	name:             "iOS Enterprise signing, profile generation enabled - com.bitrise.Test-Xcode-Managed",
+		// 	profileType:      appstoreconnect.IOSAppInHouse,
+		// 	bundleID:         "com.bitrise.Test-Xcode-Managed",
+		// 	capabilityIDs:    nil,
+		// 	devices:          nil,
+		// 	certifcates:      nil,
+		// 	isXcodeManaged:   false,
+		// 	generateProfiles: true,
+		// 	wantProfileCount: 0,
+		// 	wantErr:          true, // Enterprise subscription needed. Depends on the new Apple Developer Team.
+		// },
+		// {
+		// 	name:             "iOS Ad Hoc signing, profile generation enabled - com.bitrise.Test-Xcode-Managed",
+		// 	profileType:      appstoreconnect.IOSAppAdHoc,
+		// 	bundleID:         "com.bitrise.Test-Xcode-Managed",
+		// 	capabilityIDs:    nil,
+		// 	devices:          nil,
+		// 	certifcates:      nil,
+		// 	isXcodeManaged:   false,
+		// 	generateProfiles: true,
+		// 	wantProfileCount: 2,
+		// 	wantErr:          false,
+		// },
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := profileName(tt.profileType, tt.bundleID)
+			got, err := EnsureProfiles(client, tt.profileType, tt.bundleID, tt.capabilityIDs, tt.devices, tt.certifcates, tt.isXcodeManaged, tt.generateProfiles)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("profileName() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("EnsureProfiles() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("profileName() = %v, want %v", got, tt.want)
+			if len(got) != tt.wantProfileCount {
+				t.Errorf("EnsureProfiles() = generated profile count: %v, want %v", len(got), tt.wantProfileCount)
 			}
 		})
 	}

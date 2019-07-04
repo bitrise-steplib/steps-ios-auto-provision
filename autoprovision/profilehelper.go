@@ -2,6 +2,7 @@ package autoprovision
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/xcode-project/serialized"
@@ -15,9 +16,6 @@ type Profile struct {
 	BundleID     appstoreconnect.BundleID
 	Certificates []appstoreconnect.Certificate
 }
-
-// EnsureProfile ...
-// func EnsureProfile(platform Platform, distributionType DistributionType, capabilities []string, devices []Device, managed bool, expire time.Time) error {
 
 func profileName(profileType appstoreconnect.ProfileType, bundleID string) (string, error) {
 	var distr string
@@ -36,28 +34,131 @@ func profileName(profileType appstoreconnect.ProfileType, bundleID string) (stri
 	return fmt.Sprintf("Bitrise %s - (%s)", distr, bundleID), nil
 }
 
-// EnsureProfile ...
-func EnsureProfile(client *appstoreconnect.Client, profileType appstoreconnect.ProfileType, bundleID string,
-	capabilityIDs []string, deviceIDs []string, isXcodeManaged, generateProfiles bool) (*Profile, error) {
+// EnsureProfiles returns the profiles for the selected profile type.
+// If the selected profile type is not a development one, it will return it's development pair too.
+// For profile generation provide the devices to regeister to the developer / ad-hoc profile (devices registered on bitrise)
+// and the certificates (development and distribution) which need to be included in the profiles
+func EnsureProfiles(client *appstoreconnect.Client, profileType appstoreconnect.ProfileType, bundleID string,
+	capabilityIDs []string, devices []appstoreconnect.Device, certificates []appstoreconnect.Certificate, isXcodeManaged, generateProfiles bool) ([]Profile, error) {
+	var profiles []Profile
 
-	profile, err := fetchProfile(client, profileType, bundleID)
-	if err != nil {
-		return nil, err
+	profileTypes := []appstoreconnect.ProfileType{profileType}
+	if developmentPair := profileType.ProfileTypeDevelopmentPair(); developmentPair != "" {
+		profileTypes = append(profileTypes, developmentPair)
 	}
-	if profile != nil {
-		return profile, nil
-	}
+
+	log.Debugf("distribution types: %s", strings.Join(
+		func() []string {
+			var s []string
+			for _, pType := range profileTypes {
+				s = append(s, pType.ReadableString())
+			}
+			return s
+		}(), ","))
 
 	// validate profile
 	if isXcodeManaged && generateProfiles {
 		log.Warnf("Project uses Xcode managed signing, but generate_profiles set to true, trying to generate Provisioning Profiles")
-	}
 
-	return nil, nil
+		var err error
+		for _, profType := range profileTypes {
+			var p Profile
+			p, err = ensureManualProfile(client, profType, bundleID, certificates, devices)
+			if err != nil {
+				break
+			}
+			profiles = append(profiles, p)
+		}
+
+		// The manual profile generation failed
+		// Rollback to Xcode Managed ones
+		if err != nil {
+			log.Errorf("generate_profiles set to true, but failed to generate Provisioning Profiles with error: %s", err)
+			log.Infof("\nTrying to use Xcode managed Provisioning Profiles")
+
+			for _, profType := range profileTypes {
+				profiles := []Profile{} // Empty the manual profiles
+				var p Profile
+				p, err = ensureManagedProfile(client, profType, bundleID)
+				if err != nil {
+					return nil, fmt.Errorf("failed to get %s Xcode Managed profile for %s, error: %s", profType.ReadableString(), bundleID, err)
+				}
+				profiles = append(profiles, p)
+			}
+		}
+	} else if isXcodeManaged {
+		for _, profType := range profileTypes {
+			p, err := ensureManagedProfile(client, profType, bundleID)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get %s Xcode Managed profile for %s, error: %s", profType.ReadableString(), bundleID, err)
+			}
+			profiles = append(profiles, p)
+		}
+	} else {
+		for _, profType := range profileTypes {
+			p, err := ensureManualProfile(client, profType, bundleID, certificates, devices)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get %s Manual profile for %s, error: %s", profType.ReadableString(), bundleID, err)
+			}
+			profiles = append(profiles, p)
+		}
+	}
+	return profiles, nil
+
 }
 
-func ensureManualProfiles() {
+func ensureManualProfile(client *appstoreconnect.Client, profileType appstoreconnect.ProfileType,
+	bundleID string, certificates []appstoreconnect.Certificate, devices []appstoreconnect.Device) (Profile, error) {
 
+	profile, err := fetchProfile(client, profileType, bundleID)
+	if err != nil {
+		return Profile{}, err
+	}
+	if profile == nil {
+		name, err := profileName(profileType, bundleID)
+		if err != nil {
+			return Profile{}, fmt.Errorf("failed to generate name for manual profile, error: %s", err)
+		}
+
+		// Create new Bitrise profile on App Store Connect
+		profileResponse, err := client.Provisioning.CreateProfile(
+			appstoreconnect.NewProfileCreateRequest(
+				profileType,
+				name,
+				bundleID,
+				certificates,
+				devices,
+			),
+		)
+		if err != nil {
+			return Profile{}, fmt.Errorf("failed to create Manual %s provisioning profile for %s bundle ID, error: %s", profileType.ReadableString(), bundleID, err)
+		}
+		profile = &Profile{
+			Attributes: appstoreconnect.ProfileAttributes{
+				Name:           profileResponse.Data.Attributes.Name,
+				Platform:       profileResponse.Data.Attributes.Platform,
+				ProfileContent: profileResponse.Data.Attributes.ProfileContent,
+				UUID:           profileResponse.Data.Attributes.UUID,
+				CreatedDate:    profileResponse.Data.Attributes.CreatedDate,
+				ProfileState:   profileResponse.Data.Attributes.ProfileState,
+				ProfileType:    profileResponse.Data.Attributes.ProfileType,
+				ExpirationDate: profileResponse.Data.Attributes.ExpirationDate,
+			},
+			Devices:      []appstoreconnect.Device{},
+			BundleID:     appstoreconnect.BundleID{},
+			Certificates: []appstoreconnect.Certificate{},
+		}
+		if err != nil {
+			return Profile{}, fmt.Errorf("failed to generate %s manual profile for %s bundle ID, error: %s", profileType.ReadableString(), bundleID, err)
+		}
+	}
+	// return Profile{}, fmt.Errorf("failed to find Manual provisioning profile with bundle id: %s for %s", bundleID, profileType)
+	return *profile, nil
+}
+
+func ensureManagedProfile(client *appstoreconnect.Client, profileType appstoreconnect.ProfileType, bundleID string) (Profile, error) {
+	// TODO
+	return Profile{}, nil
 }
 
 func validateProfile(profile Profile) []string {
@@ -191,4 +292,8 @@ func certificateAttributes(attributes serialized.Object) (*appstoreconnect.Certi
 		ExpirationDate:     expirationDate,
 		CertificateType:    appstoreconnect.CertificateType(certificateType),
 	}, nil
+}
+
+func ProfileDevices() {
+
 }
