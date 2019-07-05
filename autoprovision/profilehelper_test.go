@@ -238,7 +238,7 @@ func TestEnsureProfiles(t *testing.T) {
 		{
 			name:          "iOS Development signing, profile generation enabled - com.bitrise.Test-Xcode-Managed",
 			profileType:   appstoreconnect.IOSAppDevelopment,
-			bundleID:      "7ZDPMNJW89",
+			bundleID:      "com.bitrise.Test-Xcode-Managed",
 			capabilityIDs: nil,
 			devices: []appstoreconnect.Device{
 				appstoreconnect.Device{

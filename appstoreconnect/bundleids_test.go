@@ -1,7 +1,6 @@
 package appstoreconnect
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -11,17 +10,12 @@ func TestProvisioningService_ListBundleIDs(t *testing.T) {
 	tests := []struct {
 		name    string
 		opt     *ListBundleIDsOptions
-		want    *BundleIdsResponse
 		wantErr bool
 	}{
 		{
 			name: "Get bundle ID if for com.bitrise.Test-Xcode-Managed",
 			opt: &ListBundleIDsOptions{
 				FilterIdentifier: "com.bitrise.Test-Xcode-Managed",
-			},
-			want: &BundleIdsResponse{
-				Data:  []BundleID{BundleID{}},
-				Links: PagedDocumentLinks{},
 			},
 			wantErr: false,
 		},
@@ -36,8 +30,8 @@ func TestProvisioningService_ListBundleIDs(t *testing.T) {
 				t.Errorf("ProvisioningService.ListBundleIDs() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ProvisioningService.ListBundleIDs() = %v, want %v", got, tt.want)
+			if got == nil {
+				t.Errorf("ProvisioningService.ListBundleIDs() = is NIL")
 			}
 		})
 	}

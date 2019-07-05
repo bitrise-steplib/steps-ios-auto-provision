@@ -120,12 +120,16 @@ func ensureManualProfile(client *appstoreconnect.Client, profileType appstorecon
 			return Profile{}, fmt.Errorf("failed to generate name for manual profile, error: %s", err)
 		}
 
+		bundleIDEntity, err := client.Provisioning.FetchBundleID(bundleID)
+		if err != nil {
+			return Profile{}, fmt.Errorf("failed to create Manual %s provisioning profile for %s bundle ID, error: %s", profileType.ReadableString(), bundleID, err)
+		}
 		// Create new Bitrise profile on App Store Connect
 		profileResponse, err := client.Provisioning.CreateProfile(
 			appstoreconnect.NewProfileCreateRequest(
 				profileType,
 				name,
-				bundleID,
+				bundleIDEntity.ID,
 				certificates,
 				devices,
 			),

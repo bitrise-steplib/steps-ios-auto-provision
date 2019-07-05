@@ -30,7 +30,7 @@ workflows:
     # - errcheck:
     - go-test:
         inputs:
-        - packages: "github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect/"
+        - packages: "github.com/bitrise-steplib/steps-ios-auto-provision/autoprovision/"
 
   test:
     before_run:
