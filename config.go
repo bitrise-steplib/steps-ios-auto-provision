@@ -43,7 +43,7 @@ func (c Config) Print() {
 	stepconf.Print(c)
 }
 
-func stringToDistribution(distribution string) Distribution {
+func stringToDistribution(distribution string) ProfileType {
 	switch distribution {
 	case "development":
 		return Development
@@ -59,7 +59,7 @@ func stringToDistribution(distribution string) Distribution {
 }
 
 // Distribution returns a distribution type
-func (c Config) Distribution() Distribution {
+func (c Config) Distribution() ProfileType {
 	return stringToDistribution(c.distributionType)
 }
 
