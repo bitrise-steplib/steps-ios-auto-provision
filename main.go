@@ -6,35 +6,6 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 )
 
-// ProfileType is an iOS app distribution type
-type ProfileType int
-
-// Development or ProfileType
-const (
-	Invalid ProfileType = iota
-	Development
-	AdHoc
-	Enterprise
-	AppStore
-	Unsupported
-)
-
-// String returns a string representation of ProfileType
-func (d *ProfileType) String() string {
-	switch *d {
-	case Development:
-		return "Development"
-	case AdHoc:
-		return "Ad Hoc"
-	case Enterprise:
-		return "Enterprise"
-	case AppStore:
-		return "App Store"
-	default:
-		return "unsupported"
-	}
-}
-
 func failf(s string, args ...interface{}) {
 	log.Errorf(s, args...)
 	os.Exit(1)

@@ -146,7 +146,6 @@ func queryAppStoreConnectCertificates(client *appstoreconnect.Client, certificat
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse certificate, error: %s", err)
 			}
-			log.Infof("Parsed App Store Connect certificate: %s", cert)
 
 			certInfo := certificateutil.NewCertificateInfo(*cert, nil)
 
