@@ -16,7 +16,6 @@ const (
 	InvalidCertificateType CertificateType = iota
 	DevelopmentCertificate
 	DistributionCertificate
-	UnsupportedCertificateType
 )
 
 // ToString returns a string representation of CertificateType
@@ -27,7 +26,7 @@ func (t *CertificateType) String() string {
 	case DistributionCertificate:
 		return "Distribution"
 	default:
-		return "unsupported"
+		return "invalid"
 	}
 }
 
@@ -98,10 +97,9 @@ func filterCertificates(certificates []certificateutil.CertificateInfoModel, cer
 	// filter by distribution type
 	var filteredCertificates []certificateutil.CertificateInfoModel
 	for _, certificate := range certificates {
-		isDistribution := isDistributionCertificate(certificate)
-		if certificateType == DistributionCertificate && isDistribution {
+		if certificateType == DistributionCertificate && isDistributionCertificate(certificate) {
 			filteredCertificates = append(filteredCertificates, certificate)
-		} else if certificateType != DistributionCertificate && !isDistribution {
+		} else if certificateType != DistributionCertificate && !isDistributionCertificate(certificate) {
 			filteredCertificates = append(filteredCertificates, certificate)
 		}
 	}
@@ -111,14 +109,14 @@ func filterCertificates(certificates []certificateutil.CertificateInfoModel, cer
 		log.Debugf("certificate Serial: %s, Name: %s, Team ID: %s, Team: %s, Expiration: %s", cert.Serial, cert.CommonName, cert.TeamID, cert.TeamName, cert.EndDate)
 	}
 
+	if len(filteredCertificates) == 0 {
+		return nil
+	}
+
 	// filter by team
 	if teamID != "" {
 		certsByTeam := mapCertsToTeams(filteredCertificates)
 		filteredCertificates = certsByTeam[teamID]
-
-		if len(filteredCertificates) == 0 {
-			return nil
-		}
 	}
 
 	log.Debugf("Valid certificates with type %s, Team ID: %s", certificateType, teamID)
@@ -126,14 +124,21 @@ func filterCertificates(certificates []certificateutil.CertificateInfoModel, cer
 		log.Debugf("certificate Serial: %s, Name: %s, Team ID: %s, Team: %s, Expiration: %s", cert.Serial, cert.CommonName, cert.TeamID, cert.TeamName, cert.EndDate)
 	}
 
+	if len(filteredCertificates) == 0 {
+		return nil
+	}
+
 	// filter by name
 	if commonName != "" {
-		certsByName := mapCertsToNames(certificates)
-		filteredCertificates = certsByName[teamID]
+		nameToCertificates := mapCertsToNames(certificates)
 
-		if len(filteredCertificates) == 0 {
-			return nil
+		var matchingNameCerts []certificateutil.CertificateInfoModel
+		for name, certificates := range nameToCertificates {
+			if strings.HasPrefix(strings.ToLower(name), strings.ToLower(commonName)) {
+				matchingNameCerts = append(matchingNameCerts, certificates...)
+			}
 		}
+		filteredCertificates = matchingNameCerts
 	}
 
 	log.Debugf("Valid certificates with type %s, Team ID: %s, Name: ", certificateType, teamID, commonName)
