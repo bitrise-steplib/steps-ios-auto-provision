@@ -2,8 +2,13 @@ package autoprovision
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"testing"
+
+	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-io/go-utils/pathutil"
 
 	"github.com/bitrise-io/xcode-project/serialized"
 	"github.com/bitrise-io/xcode-project/xcodeproj"
@@ -17,6 +22,12 @@ var projHelpCases []ProjectHelper
 var configCases []string
 
 func TestNew(t *testing.T) {
+	var err error
+	schemeCases, _, xcProjCases, projHelpCases, configCases, err = initTestCases()
+	if err != nil {
+		t.Fatalf("Failed to initialize test cases, error: %s", err)
+	}
+
 	tests := []struct {
 		name              string
 		projOrWSPath      string
@@ -27,7 +38,7 @@ func TestNew(t *testing.T) {
 	}{
 		{
 			name:              "Xcode 10 workspace - iOS",
-			projOrWSPath:      "/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
+			projOrWSPath:      xcProjCases[0].Path,
 			schemeName:        "Xcode-10_default",
 			configurationName: "Debug",
 			wantConfiguration: "Debug",
@@ -35,7 +46,7 @@ func TestNew(t *testing.T) {
 		},
 		{
 			name:              "Xcode 10 workspace - iOS - Default configuration",
-			projOrWSPath:      "/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
+			projOrWSPath:      xcProjCases[0].Path,
 			schemeName:        "Xcode-10_default",
 			configurationName: "",
 			wantConfiguration: "Release",
@@ -43,7 +54,7 @@ func TestNew(t *testing.T) {
 		},
 		{
 			name:              "Xcode 10 workspace - iOS - Default configuration - Gdańsk scheme",
-			projOrWSPath:      "/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
+			projOrWSPath:      xcProjCases[0].Path,
 			schemeName:        "Gdańsk",
 			configurationName: "",
 			wantConfiguration: "Release",
@@ -51,7 +62,7 @@ func TestNew(t *testing.T) {
 		},
 		{
 			name:              "Xcode-10_mac project - MacOS - Debug configuration",
-			projOrWSPath:      "/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_mac.xcodeproj",
+			projOrWSPath:      xcProjCases[2].Path,
 			schemeName:        "Xcode-10_mac",
 			configurationName: "Debug",
 			wantConfiguration: "Debug",
@@ -59,15 +70,15 @@ func TestNew(t *testing.T) {
 		},
 		{
 			name:              "Xcode-10_mac project - MacOS - Default configuration",
-			projOrWSPath:      "/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_mac.xcodeproj",
+			projOrWSPath:      xcProjCases[2].Path,
 			schemeName:        "Xcode-10_mac",
 			configurationName: "",
 			wantConfiguration: "Release",
 			wantErr:           false,
 		},
 		{
-			name:              "TV_OS.xcodeproj project - MacOS - Default configuration",
-			projOrWSPath:      "/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/TV_OS.xcodeproj",
+			name:              "TV_OS.xcodeproj project - TVOS - Default configuration",
+			projOrWSPath:      xcProjCases[4].Path,
 			schemeName:        "TV_OS",
 			configurationName: "",
 			wantConfiguration: "Release",
@@ -509,6 +520,15 @@ func initTestCases() ([]string, []string, []xcodeproj.XcodeProj, []ProjectHelper
 	if schemeCases != nil {
 		return schemeCases, targetCases, xcProjCases, projHelpCases, configCases, nil
 	}
+
+	p, err := pathutil.NormalizedOSTempDirPath("_autoprov")
+	if err != nil {
+		log.Errorf("Failed to create tmp dir error: %s", err)
+	}
+	cmd := command.New("git", "clone", "-b", "project", "https://github.com/bitrise-io/sample-artifacts.git", p).SetStderr(os.Stderr).SetStdout(os.Stdout)
+	if err := cmd.Run(); err != nil {
+		log.Errorf("Failed to git clone the sample project files error: %s", err)
+	}
 	//
 	// Init test cases
 	targetCases = []string{
@@ -537,12 +557,12 @@ func initTestCases() ([]string, []string, []xcodeproj.XcodeProj, []ProjectHelper
 		"Release",
 	}
 	projectCases = []string{
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_default.xcworkspace",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_mac.xcodeproj",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/Xcode-10_mac.xcodeproj",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/TV_OS.xcodeproj",
-		"/Users/akosbirmacher/Develop/go/src/github.com/bitrise-steplib/steps-ios-auto-provision/_tmp/TV_OS.xcodeproj",
+		p + "/ios_project_files/Xcode-10_default.xcworkspace",
+		p + "/ios_project_files/Xcode-10_default.xcworkspace",
+		p + "/ios_project_files/Xcode-10_mac.xcodeproj",
+		p + "/ios_project_files/Xcode-10_mac.xcodeproj",
+		p + "/ios_project_files/TV_OS.xcodeproj",
+		p + "/ios_project_files/TV_OS.xcodeproj",
 	}
 	var xcProjCases []xcodeproj.XcodeProj
 	var projHelpCases []ProjectHelper
