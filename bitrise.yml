@@ -27,7 +27,7 @@ workflows:
     steps: 
     - go-list:
     - golint:
-    - errcheck:
+    # - errcheck:
     - go-test:
 
   test:

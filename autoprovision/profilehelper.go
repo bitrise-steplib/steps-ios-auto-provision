@@ -161,9 +161,9 @@ func ensureManualProfile(client *appstoreconnect.Client, profileType appstorecon
 				ProfileType:    profileResponse.Data.Attributes.ProfileType,
 				ExpirationDate: profileResponse.Data.Attributes.ExpirationDate,
 			},
-			Devices:      []appstoreconnect.Device{},      // TODO fetch devices for profile
-			BundleID:     appstoreconnect.BundleID{},      // TODO fetch bundleID for profile
-			Certificates: []appstoreconnect.Certificate{}, // TODO fetch certificates for profile
+			Devices:      devices,
+			BundleID:     bundleIDEntity,
+			Certificates: []appstoreconnect.Certificate{certificate},
 		}
 		if err != nil {
 			return Profile{}, fmt.Errorf("failed to generate %s manual profile for %s bundle ID, error: %s", profileType.ReadableString(), bundleID, err)
@@ -314,8 +314,4 @@ func certificateAttributes(attributes serialized.Object) (*appstoreconnect.Certi
 		ExpirationDate:     expirationDate,
 		CertificateType:    appstoreconnect.CertificateType(certificateType),
 	}, nil
-}
-
-func ProfileDevices() {
-
 }
