@@ -316,3 +316,18 @@ func (s ProvisioningService) CreateProfile(body ProfileCreateRequest) (*ProfileR
 
 	return r, nil
 }
+
+// DeleteProfile ...
+func (s ProvisioningService) DeleteProfile(id string) (*ProfileResponse, error) {
+	req, err := s.client.NewRequest(http.MethodDelete, ProfilesURL+"/"+id, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	r := &ProfileResponse{}
+	if _, err := s.client.Do(req, r); err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}
