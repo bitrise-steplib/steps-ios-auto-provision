@@ -1,18 +1,37 @@
-[[constraint]]
-  branch = "pkcs12"
+# conflicts "github.com/bitrise-io/bitrise-add-new-project"
+[[override]]
+  branch = "TOOL-574-update-pkcs12"
   name = "github.com/bitrise-io/go-utils"
 
 [[constraint]]
-  branch = "TOOL-915-support-multiple-identities-in-p12"
+  branch = "TOOL-574-support-multiple-identities-in-p12"
   name = "github.com/bitrise-tools/go-xcode"
 
-[[constraint]]
-  branch = "has_scheme"
-  name = "github.com/bitrise-tools/xcode-project"
+# [[constraint]]
+#   branch = "has_scheme"
+#   name = "github.com/bitrise-tools/xcode-project"
+
 
 [[constraint]]
-  name = "github.com/stretchr/testify"
+  name = "github.com/bitrise-io/bitrise-add-new-project"
+  version = "0.2.1"
+
+[[constraint]]
+  branch = "project-attribute"
+  name = "github.com/bitrise-io/xcode-project"
+
+[[constraint]]
+  name = "github.com/dgrijalva/jwt-go"
+  version = "3.2.0"
+
+[[constraint]]
+  name = "github.com/google/go-querystring"
+  version = "1.0.0"
+
+[[constraint]]
   branch = "master"
+  name = "howett.net/plist"
+
 
 [prune]
   go-tests = true
