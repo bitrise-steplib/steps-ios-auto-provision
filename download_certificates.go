@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/x509"
 	"encoding/base64"
 	"errors"
@@ -9,10 +10,12 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-io/go-utils/retry"
+	"github.com/bitrise-io/go-xcode/certificateutil"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
-	"github.com/bitrise-tools/go-xcode/certificateutil"
 )
 
 type p12URL struct {
@@ -21,18 +24,18 @@ type p12URL struct {
 
 // DownloadLocalCertificates downloads and parses a list of p12 files
 func DownloadLocalCertificates(URLs []p12URL) ([]certificateutil.CertificateInfoModel, error) {
+	httpClient := &http.Client{
+		Timeout: 10 * time.Second,
+	}
 	var certInfos []certificateutil.CertificateInfoModel
 	for i, p12 := range URLs {
 		log.Debugf("Downloading p12 file number %d from %s", i, p12.URL)
-		p12CertInfos, err := downloadPKCS12(p12.URL, p12.Passphrase)
+
+		p12CertInfos, err := downloadPKCS12(httpClient, p12.URL, p12.Passphrase)
 		if err != nil {
 			return nil, err
 		}
-
-		log.Debugf("Codesign identities included:")
-		for _, cert := range p12CertInfos {
-			log.Debugf("certificate Serial: %s, Name: %s, Team ID: %s, Team: %s, Expiration: %s", cert.Serial, cert.CommonName, cert.TeamID, cert.TeamName, cert.EndDate)
-		}
+		log.Debugf("Codesign identities included: %s", certsToString(p12CertInfos))
 
 		certInfos = append(certInfos, p12CertInfos...)
 	}
@@ -42,30 +45,23 @@ func DownloadLocalCertificates(URLs []p12URL) ([]certificateutil.CertificateInfo
 }
 
 // downloadPKCS12 downloads a pkcs12 format file and parses certificates and matching private keys.
-func downloadPKCS12(certificateURL, passphrase string) ([]certificateutil.CertificateInfoModel, error) {
-	contents, err := downloadFile(certificateURL)
+func downloadPKCS12(httpClient *http.Client, certificateURL, passphrase string) ([]certificateutil.CertificateInfoModel, error) {
+	contents, err := downloadFile(httpClient, certificateURL)
 	if err != nil {
 		return nil, err
 	} else if contents == nil {
 		return nil, fmt.Errorf("certificate (%s) is empty", certificateURL)
 	}
 
-	identities, err := certificateutil.CertificatesFromPKCS12Content(contents, passphrase)
+	infos, err := certificateutil.CertificatesFromPKCS12Content(contents, passphrase)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse certificate (%s), err: %s", certificateURL, err)
-	}
-
-	infos := []certificateutil.CertificateInfoModel{}
-	for _, identity := range identities {
-		if identity.Certificate != nil {
-			infos = append(infos, certificateutil.NewCertificateInfo(*identity.Certificate, identity.PrivateKey))
-		}
 	}
 
 	return infos, nil
 }
 
-func downloadFile(src string) ([]byte, error) {
+func downloadFile(httpClient *http.Client, src string) ([]byte, error) {
 	url, err := url.Parse(src)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse url (%s), error: %s", src, err)
@@ -78,26 +74,45 @@ func downloadFile(src string) ([]byte, error) {
 		return ioutil.ReadFile(src)
 	}
 
-	// ToDo: add timeout, retry
 	// Remote file
-	resp, err := http.Get(src)
+	req, err := http.NewRequest(http.MethodGet, url.String(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to download (%s), error: %s", src, err)
+		return nil, fmt.Errorf("failed to create request, error: %s", err)
 	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			log.Warnf("failed to close (%s) body, error: %s", src, err)
+
+	var contents []byte
+	err = retry.Times(2).Wait(5 * time.Second).Try(func(attempt uint) error {
+		log.Debugf("Downloading %s, attempt %d", src, attempt)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		req.WithContext(ctx)
+
+		resp, err := httpClient.Do(req)
+		if err != nil {
+			return fmt.Errorf("failed to download (%s), error: %s", src, err)
 		}
-	}()
+		defer func() {
+			if err := resp.Body.Close(); err != nil {
+				log.Warnf("failed to close (%s) body, error: %s", src, err)
+			}
+		}()
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("download (%s) failed with status code (%d)", src, resp.StatusCode)
-	}
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("download (%s) failed with status code (%d)", src, resp.StatusCode)
+		}
 
-	contents, err := ioutil.ReadAll(resp.Body)
+		contents, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read response (%s), error: %s", src, err)
+		}
+
+		return nil
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to read response (%s), error: %s", src, err)
+		return nil, err
 	}
+
 	return contents, nil
 }
 

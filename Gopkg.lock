@@ -11,7 +11,7 @@
 
 [[projects]]
   branch = "TOOL-574-update-pkcs12"
-  digest = "1:08d2aa0a1be58b0af7dd1e4775bb347fdcabc63a118e144c43aa0af2f0dda8c7"
+  digest = "1:87f89895f8f8547fab5af31ced5fc67bb09b6c3588d584113bd276941e4ece6f"
   name = "github.com/bitrise-io/go-utils"
   packages = [
     "colorstring",
@@ -24,21 +24,29 @@
     "pkcs12",
     "pkcs12/internal/rc2",
     "pointers",
+    "retry",
     "sliceutil",
   ]
   pruneopts = "UT"
-  revision = "779fdb817886fbb25a938641dd9be8451915efd9"
+  revision = "e9efdf33afce82596e720f1207814373850412da"
+
+[[projects]]
+  branch = "TOOL-574-support-multiple-identities-in-p12"
+  digest = "1:0da8d1e78f162f482a17edc5a5ed1c97130eef9e584773dd01f32984d15c9de5"
+  name = "github.com/bitrise-io/go-xcode"
+  packages = ["certificateutil"]
+  pruneopts = "UT"
+  revision = "dcd7adfd96fb6b44322234960efd0a43bbc7d16c"
 
 [[projects]]
   branch = "project-attribute"
-  digest = "1:3fec2bc24fac5f70406d4b78143d88015eacd76018621221889233e179bc16b5"
+  digest = "1:d02c33fa56a7f11e87333df84e439c93e29929ad80b9e09ec74aa0f1e1387e8b"
   name = "github.com/bitrise-io/xcode-project"
   packages = [
     "serialized",
     "xcodebuild",
     "xcodeproj",
     "xcscheme",
-    "xcworkspace",
   ]
   pruneopts = "UT"
   revision = "5f2d63b1ee135afac1bdadc33893f673b4a0b5f2"
@@ -50,14 +58,6 @@
   packages = ["stepconf"]
   pruneopts = "UT"
   revision = "cecc766da84859e37e780d9d1c416f0f3993e6b1"
-
-[[projects]]
-  branch = "TOOL-574-support-multiple-identities-in-p12"
-  digest = "1:939b3eeca8769a443cc64a8fa714602909c44d6b4668401cb75f556497ccb7e9"
-  name = "github.com/bitrise-tools/go-xcode"
-  packages = ["certificateutil"]
-  pruneopts = "UT"
-  revision = "ed1e524f22ec7cf462c691168527fd6075023ea4"
 
 [[projects]]
   branch = "master"
@@ -125,20 +125,15 @@
     "github.com/bitrise-io/bitrise-add-new-project/httputil",
     "github.com/bitrise-io/go-utils/fileutil",
     "github.com/bitrise-io/go-utils/log",
-    "github.com/bitrise-io/go-utils/pathutil",
-    "github.com/bitrise-io/go-utils/sliceutil",
+    "github.com/bitrise-io/go-utils/retry",
+    "github.com/bitrise-io/go-xcode/certificateutil",
     "github.com/bitrise-io/xcode-project/serialized",
-    "github.com/bitrise-io/xcode-project/xcodeproj",
-    "github.com/bitrise-io/xcode-project/xcscheme",
-    "github.com/bitrise-io/xcode-project/xcworkspace",
     "github.com/bitrise-tools/go-steputils/stepconf",
-    "github.com/bitrise-tools/go-xcode/certificateutil",
     "github.com/bitrise-tools/xcode-project/xcodeproj",
     "github.com/bitrise-tools/xcode-project/xcscheme",
     "github.com/bitrise-tools/xcode-project/xcworkspace",
     "github.com/dgrijalva/jwt-go",
     "github.com/google/go-querystring/query",
-    "howett.net/plist",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -1,88 +1,13 @@
 package main
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/x509"
-	"crypto/x509/pkix"
 	"io/ioutil"
-	"math/big"
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/bitrise-tools/go-xcode/certificateutil"
+	"github.com/bitrise-io/go-xcode/certificateutil"
 )
-
-// generateTestCertificate creates a mock certificate for test purposes
-func generateTestCertificate(serial int64, teamID, teamName, commonName string, expiry time.Time) (*x509.Certificate, *rsa.PrivateKey, error) {
-	CAtemplate := &x509.Certificate{
-		IsCA:                  true,
-		BasicConstraintsValid: true,
-		SubjectKeyId:          []byte{1, 2, 3},
-		SerialNumber:          big.NewInt(1234),
-		Subject: pkix.Name{
-			Country:      []string{"US"},
-			Organization: []string{"Pear Worldwide Developer Relations"},
-			CommonName:   "Pear Worldwide Developer Relations CA",
-		},
-		NotBefore: time.Now(),
-		NotAfter:  time.Now().AddDate(1, 0, 0),
-		// see http://golang.org/pkg/crypto/x509/#KeyUsage
-		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-		KeyUsage:    x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
-	}
-
-	// generate private key
-	privatekey, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// Self-signed certificate, parent is the template
-	CAcertData, err := x509.CreateCertificate(rand.Reader, CAtemplate, CAtemplate, &privatekey.PublicKey, privatekey)
-	if err != nil {
-		return nil, nil, err
-	}
-	CAcert, err := x509.ParseCertificate(CAcertData)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	template := &x509.Certificate{
-		IsCA:                  true,
-		BasicConstraintsValid: true,
-		SerialNumber:          big.NewInt(serial),
-		Subject: pkix.Name{
-			Country:            []string{"US"},
-			Organization:       []string{teamName},
-			OrganizationalUnit: []string{teamID},
-			CommonName:         commonName,
-		},
-		NotBefore: time.Now(),
-		NotAfter:  expiry,
-		// see http://golang.org/pkg/crypto/x509/#KeyUsage
-		KeyUsage: x509.KeyUsageDigitalSignature,
-	}
-
-	// generate private key
-	privatekey, err = rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	certData, err := x509.CreateCertificate(rand.Reader, template, CAcert, &privatekey.PublicKey, privatekey)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	cert, err := x509.ParseCertificate(certData)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return cert, privatekey, nil
-}
 
 func TestDownloadLocalCertificates(t *testing.T) {
 	const teamID = "MYTEAMID"
@@ -91,7 +16,7 @@ func TestDownloadLocalCertificates(t *testing.T) {
 	expiry := time.Now().AddDate(1, 0, 0)
 	serial := int64(1234)
 
-	cert, privateKey, err := generateTestCertificate(serial, teamID, teamName, commonName, expiry)
+	cert, privateKey, err := certificateutil.GenerateTestCertificate(serial, teamID, teamName, commonName, expiry)
 	if err != nil {
 		t.Errorf("init: failed to generate certificate, error: %s", err)
 	}
@@ -128,7 +53,7 @@ func TestDownloadLocalCertificates(t *testing.T) {
 	}{
 		{
 			name: "Certificate matches generated.",
-			URLs: []p12URL{p12URL{
+			URLs: []p12URL{{
 				URL:        p12path,
 				Passphrase: passphrase,
 			}},

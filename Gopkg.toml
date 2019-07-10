@@ -5,7 +5,7 @@
 
 [[constraint]]
   branch = "TOOL-574-support-multiple-identities-in-p12"
-  name = "github.com/bitrise-tools/go-xcode"
+  name = "github.com/bitrise-io/go-xcode"
 
 # [[constraint]]
 #   branch = "has_scheme"
@@ -27,11 +27,6 @@
 [[constraint]]
   name = "github.com/google/go-querystring"
   version = "1.0.0"
-
-[[constraint]]
-  branch = "master"
-  name = "howett.net/plist"
-
 
 [prune]
   go-tests = true

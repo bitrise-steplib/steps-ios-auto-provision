@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/bitrise-io/go-utils/log"
-	"github.com/bitrise-tools/go-xcode/certificateutil"
+	"github.com/bitrise-io/go-xcode/certificateutil"
 )
 
 func TestGetMatchingCertificates(t *testing.T) {
@@ -21,14 +21,14 @@ func TestGetMatchingCertificates(t *testing.T) {
 	expiry := time.Now().AddDate(1, 0, 0)
 	serial := int64(1234)
 
-	cert, privateKey, err := generateTestCertificate(serial, teamID, teamName, commonNameIOSDevelopment, expiry)
+	cert, privateKey, err := certificateutil.GenerateTestCertificate(serial, teamID, teamName, commonNameIOSDevelopment, expiry)
 	if err != nil {
 		t.Errorf("init: failed to generate certificate, error: %s", err)
 	}
 	devCert := certificateutil.NewCertificateInfo(*cert, privateKey)
 	t.Logf("Test certificate generated. %s", devCert)
 
-	cert, privateKey, err = generateTestCertificate(serial, teamID, teamName, commonNameIOSDistribution, expiry)
+	cert, privateKey, err = certificateutil.GenerateTestCertificate(serial, teamID, teamName, commonNameIOSDistribution, expiry)
 	if err != nil {
 		t.Errorf("init: failed to generate certificate, error: %s", err)
 	}
