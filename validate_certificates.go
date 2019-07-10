@@ -8,35 +8,6 @@ import (
 	"github.com/bitrise-io/go-xcode/certificateutil"
 )
 
-// ProfileType is an iOS app distribution type
-type ProfileType int
-
-// Development or ProfileType
-const (
-	Invalid ProfileType = iota
-	Development
-	AdHoc
-	Enterprise
-	AppStore
-	Unsupported
-)
-
-// String returns a string representation of ProfileType
-func (p ProfileType) String() string {
-	switch p {
-	case Development:
-		return "Development"
-	case AdHoc:
-		return "Ad Hoc"
-	case Enterprise:
-		return "Enterprise"
-	case AppStore:
-		return "App Store"
-	default:
-		return "unsupported"
-	}
-}
-
 // CertificateType is an Apple code signing certifcate distribution type
 type CertificateType int
 
@@ -77,7 +48,7 @@ func certsToString(certs []certificateutil.CertificateInfoModel) string {
 }
 
 // GetMatchingCertificates returns validated and matching with App Store Connect API certificates
-func GetMatchingCertificates(certificates []certificateutil.CertificateInfoModel, AppStoreConnectCertificates map[CertificateType][]AppStoreConnectCertificate, distribution ProfileType, typeToName map[CertificateType]string, teamID string) (map[CertificateType][]AppStoreConnectCertificate, error) {
+func GetMatchingCertificates(certificates []certificateutil.CertificateInfoModel, AppStoreConnectCertificates map[CertificateType][]AppStoreConnectCertificate, requiredCertificateTypes []CertificateType, typeToName map[CertificateType]string, teamID string) (map[CertificateType][]AppStoreConnectCertificate, error) {
 	fmt.Println()
 	log.Infof("Filtering out invalid or duplicated name certificates.")
 
@@ -92,17 +63,11 @@ func GetMatchingCertificates(certificates []certificateutil.CertificateInfoModel
 	log.Infof("Valid and deduplicated common name certificates: %s", certsToString(preFilteredCerts.ValidCertificates))
 
 	fmt.Println()
-	log.Infof("Filtering certificates for selected distribution method (%s), certificate name (development: %s; distribution: %s) and developer Team ID (%s)", distribution, typeToName[DevelopmentCertificate], typeToName[DistributionCertificate], teamID)
+	log.Infof("Filtering certificates for required certificate types (%s), certificate name (development: %s; distribution: %s) and developer Team ID (%s)", requiredCertificateTypes, typeToName[DevelopmentCertificate], typeToName[DistributionCertificate], teamID)
 
 	localCertificates := map[CertificateType][]certificateutil.CertificateInfoModel{}
 	for _, certType := range []CertificateType{DevelopmentCertificate, DistributionCertificate} {
 		localCertificates[certType] = filterCertificates(preFilteredCerts.ValidCertificates, certType, typeToName[certType], teamID)
-	}
-
-	requiredCertificateTypes := []CertificateType{DevelopmentCertificate}
-	if distribution != Development {
-		log.Infof("Selected app distribution type %s requires both Development and Distribution certificate types.", distribution)
-		requiredCertificateTypes = append(requiredCertificateTypes, DistributionCertificate)
 	}
 
 	for _, certificateType := range requiredCertificateTypes {

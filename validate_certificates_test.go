@@ -38,7 +38,7 @@ func TestGetMatchingCertificates(t *testing.T) {
 	type args struct {
 		certificates                []certificateutil.CertificateInfoModel
 		AppStoreConnectCertificates map[CertificateType][]AppStoreConnectCertificate
-		distribution                ProfileType
+		requiredCertificatetypes    []CertificateType
 		typeToName                  map[CertificateType]string
 		teamID                      string
 	}
@@ -53,7 +53,7 @@ func TestGetMatchingCertificates(t *testing.T) {
 			args: args{
 				certificates:                []certificateutil.CertificateInfoModel{devCert},
 				AppStoreConnectCertificates: map[CertificateType][]AppStoreConnectCertificate{},
-				distribution:                Development,
+				requiredCertificatetypes:    []CertificateType{DevelopmentCertificate},
 				typeToName: map[CertificateType]string{
 					DevelopmentCertificate: "iPhone Developer",
 				},
@@ -67,7 +67,7 @@ func TestGetMatchingCertificates(t *testing.T) {
 			args: args{
 				certificates:                []certificateutil.CertificateInfoModel{},
 				AppStoreConnectCertificates: map[CertificateType][]AppStoreConnectCertificate{},
-				distribution:                Development,
+				requiredCertificatetypes:    []CertificateType{DevelopmentCertificate, DistributionCertificate},
 				typeToName: map[CertificateType]string{
 					DevelopmentCertificate: "iPhone Developer",
 				},
@@ -81,7 +81,7 @@ func TestGetMatchingCertificates(t *testing.T) {
 			args: args{
 				certificates:                []certificateutil.CertificateInfoModel{devCert},
 				AppStoreConnectCertificates: map[CertificateType][]AppStoreConnectCertificate{},
-				distribution:                AppStore,
+				requiredCertificatetypes:    []CertificateType{DevelopmentCertificate, DistributionCertificate},
 				typeToName: map[CertificateType]string{
 					DevelopmentCertificate: "iPhone Developer",
 				},
@@ -100,7 +100,7 @@ func TestGetMatchingCertificates(t *testing.T) {
 						appStoreConnectID: "apicertid",
 					}},
 				},
-				distribution: Development,
+				requiredCertificatetypes: []CertificateType{DevelopmentCertificate},
 				typeToName: map[CertificateType]string{
 					DevelopmentCertificate: "iPhone Developer",
 				},
@@ -125,7 +125,7 @@ func TestGetMatchingCertificates(t *testing.T) {
 						},
 					},
 				},
-				distribution: AppStore,
+				requiredCertificatetypes: []CertificateType{DevelopmentCertificate, DistributionCertificate},
 				typeToName: map[CertificateType]string{
 					DevelopmentCertificate: "iPhone Developer",
 				},
@@ -146,7 +146,7 @@ func TestGetMatchingCertificates(t *testing.T) {
 						},
 					},
 				},
-				distribution: AppStore,
+				requiredCertificatetypes: []CertificateType{DevelopmentCertificate, DistributionCertificate},
 				typeToName: map[CertificateType]string{
 					DevelopmentCertificate: "iPhone Developer",
 				},
@@ -173,7 +173,7 @@ func TestGetMatchingCertificates(t *testing.T) {
 						},
 					},
 				},
-				distribution: AppStore,
+				requiredCertificatetypes: []CertificateType{DevelopmentCertificate, DistributionCertificate},
 				typeToName: map[CertificateType]string{
 					DevelopmentCertificate:  "iPhone Developer",
 					DistributionCertificate: "iPhone Distribution",
@@ -186,7 +186,7 @@ func TestGetMatchingCertificates(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetMatchingCertificates(tt.args.certificates, tt.args.AppStoreConnectCertificates, tt.args.distribution, tt.args.typeToName, tt.args.teamID)
+			got, err := GetMatchingCertificates(tt.args.certificates, tt.args.AppStoreConnectCertificates, tt.args.requiredCertificatetypes, tt.args.typeToName, tt.args.teamID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetMatchingCertificates() error = %v, wantErr %v", err, tt.wantErr)
 				return

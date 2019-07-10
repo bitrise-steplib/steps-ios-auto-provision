@@ -43,6 +43,35 @@ func (c Config) Print() {
 	stepconf.Print(c)
 }
 
+// ProfileType is an iOS app distribution type
+type ProfileType int
+
+// Development or ProfileType
+const (
+	Invalid ProfileType = iota
+	Development
+	AdHoc
+	Enterprise
+	AppStore
+	Unsupported
+)
+
+// String returns a string representation of ProfileType
+func (p ProfileType) String() string {
+	switch p {
+	case Development:
+		return "Development"
+	case AdHoc:
+		return "Ad Hoc"
+	case Enterprise:
+		return "Enterprise"
+	case AppStore:
+		return "App Store"
+	default:
+		return "unsupported"
+	}
+}
+
 func stringToDistribution(distribution string) ProfileType {
 	switch distribution {
 	case "development":
