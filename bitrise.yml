@@ -69,6 +69,7 @@ workflows:
     after_run:
     - test_bundle_id
     - test_xcode_managed
+    - test_xcode_managed_generate_enabled
     - test_workspace
     - test_tvos
     - test_tvos_development
@@ -88,6 +89,18 @@ workflows:
     - _common
 
   test_xcode_managed:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-ios-multi-target.git
+    - BRANCH: automatic
+    - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
+    - BITRISE_SCHEME: code-sign-test
+    - BITRISE_CONFIGURATION: 
+    - DISTRIBUTION_TYPE: app-store
+    - GENERATE_PROFILES: "no"
+    after_run:
+    - _common
+
+  test_xcode_managed_generate_enabled:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-ios-multi-target.git
     - BRANCH: automatic

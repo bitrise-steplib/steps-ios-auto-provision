@@ -87,7 +87,7 @@ begin
   Log.info('Ensure Provisioning Profiles on Developer Portal')
 
   profile_helper = ProfileHelper.new(project_helper, cert_helper)
-  xcode_managed_signing = profile_helper.ensure_profiles(params.distribution_type, params.generate_profiles == 'yes', params.min_profile_days_valid)
+  xcode_managed_signing = profile_helper.ensure_profiles(params.distribution_type, auth.test_devices, params.generate_profiles == 'yes', params.min_profile_days_valid)
   ###
 
   unless xcode_managed_signing

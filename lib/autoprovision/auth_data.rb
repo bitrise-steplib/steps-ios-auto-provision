@@ -1,4 +1,4 @@
-require_relative 'test_device'
+require_relative 'device'
 
 # AuthData
 class AuthData
@@ -14,7 +14,7 @@ class AuthData
 
     @test_devices = []
     test_devices_json = auth_data['test_devices']
-    test_devices_json.each { |device_data| @test_devices.push(TestDevice.new(device_data)) } unless test_devices_json.to_s.empty?
+    test_devices_json.each { |device_data| @test_devices.push(Device.new(device_data)) } unless test_devices_json.to_s.empty?
   end
 
   def validate

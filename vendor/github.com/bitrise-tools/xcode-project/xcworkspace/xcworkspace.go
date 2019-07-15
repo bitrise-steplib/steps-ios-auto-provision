@@ -8,10 +8,11 @@ import (
 
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-tools/xcode-project/serialized"
-	"github.com/bitrise-tools/xcode-project/xcodebuild"
-	"github.com/bitrise-tools/xcode-project/xcodeproj"
-	"github.com/bitrise-tools/xcode-project/xcscheme"
+	"github.com/bitrise-io/xcode-project/serialized"
+	"github.com/bitrise-io/xcode-project/xcodebuild"
+	"github.com/bitrise-io/xcode-project/xcodeproj"
+	"github.com/bitrise-io/xcode-project/xcscheme"
+	"golang.org/x/text/unicode/norm"
 )
 
 // Workspace represents an Xcode workspace
@@ -23,22 +24,23 @@ type Workspace struct {
 	Path string
 }
 
-// Scheme returns the scheme by name and it's container's absolute path.
-func (w Workspace) Scheme(name string) (*xcscheme.Scheme, string, error) {
+// Scheme returns the scheme with the given name and it's container's file path
+func (w Workspace) Scheme(name string) (xcscheme.Scheme, string, error) {
 	schemesByContainer, err := w.Schemes()
 	if err != nil {
-		return nil, "", err
+		return xcscheme.Scheme{}, "", err
 	}
 
+	normName := norm.NFC.String(name)
 	for container, schemes := range schemesByContainer {
 		for _, scheme := range schemes {
-			if scheme.Name == name {
-				return &scheme, container, nil
+			if norm.NFC.String(scheme.Name) == normName {
+				return scheme, container, nil
 			}
 		}
 	}
 
-	return nil, "", xcscheme.NotFoundError{Scheme: name, Container: w.Name}
+	return xcscheme.Scheme{}, "", SchemeNotFoundError{scheme: name, container: w.Name}
 }
 
 // SchemeBuildSettings ...

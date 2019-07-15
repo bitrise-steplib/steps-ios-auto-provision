@@ -2,15 +2,15 @@
 
 
 [[projects]]
-  digest = "1:c0b39ecb4571b7c447a7de369bdba8e8233874015854ae9418814735102f0804"
-  name = "github.com/bitrise-io/bitrise-add-new-project"
-  packages = ["httputil"]
+  branch = "master"
+  digest = "1:dacd83ec550d6d5c2ac83e57f20d45a25a39d79c73be4451771f92572a1f6344"
+  name = "github.com/bitrise-io/go-steputils"
+  packages = ["stepconf"]
   pruneopts = "UT"
-  revision = "443debb90a5ff488fcdc9e32d9b6b24dfbec7f49"
-  version = "0.2.1"
+  revision = "cecc766da84859e37e780d9d1c416f0f3993e6b1"
 
 [[projects]]
-  branch = "TOOL-574-update-pkcs12"
+  branch = "master"
   digest = "1:87f89895f8f8547fab5af31ced5fc67bb09b6c3588d584113bd276941e4ece6f"
   name = "github.com/bitrise-io/go-utils"
   packages = [
@@ -28,19 +28,19 @@
     "sliceutil",
   ]
   pruneopts = "UT"
-  revision = "e9efdf33afce82596e720f1207814373850412da"
+  revision = "5dfd5a5f1271cffb2bc0b1cf4c3815139da8175a"
 
 [[projects]]
-  branch = "TOOL-574-support-multiple-identities-in-p12"
+  branch = "master"
   digest = "1:0da8d1e78f162f482a17edc5a5ed1c97130eef9e584773dd01f32984d15c9de5"
   name = "github.com/bitrise-io/go-xcode"
   packages = ["certificateutil"]
   pruneopts = "UT"
-  revision = "dcd7adfd96fb6b44322234960efd0a43bbc7d16c"
+  revision = "58833faa79ba5098a2056e6cf60f5b59cd22167d"
 
 [[projects]]
-  branch = "project-attribute"
-  digest = "1:d02c33fa56a7f11e87333df84e439c93e29929ad80b9e09ec74aa0f1e1387e8b"
+  branch = "master"
+  digest = "1:a35d42c66f8e5c1f1a29b247a312353eea1607512936d067d80126fcb38bc39f"
   name = "github.com/bitrise-io/xcode-project"
   packages = [
     "serialized",
@@ -49,7 +49,7 @@
     "xcscheme",
   ]
   pruneopts = "UT"
-  revision = "5f2d63b1ee135afac1bdadc33893f673b4a0b5f2"
+  revision = "5929ad85d89233b3296d2d795e068a656db7fb25"
 
 [[projects]]
   branch = "master"
@@ -72,20 +72,12 @@
   revision = "5929ad85d89233b3296d2d795e068a656db7fb25"
 
 [[projects]]
-  digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
-  name = "github.com/dgrijalva/jwt-go"
+  digest = "1:88e0b0baeb9072f0a4afbcf12dda615fc8be001d1802357538591155998da21b"
+  name = "github.com/hashicorp/go-version"
   packages = ["."]
   pruneopts = "UT"
-  revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
-  version = "v3.2.0"
-
-[[projects]]
-  digest = "1:a63cff6b5d8b95638bfe300385d93b2a6d9d687734b863da8e09dc834510a690"
-  name = "github.com/google/go-querystring"
-  packages = ["query"]
-  pruneopts = "UT"
-  revision = "44c6ddd0a2342c386950e880b658017258da92fc"
-  version = "v1.0.0"
+  revision = "ac23dc3fea5d1a983c43f6a0f6e2c13f0195d8bd"
+  version = "v1.2.0"
 
 [[projects]]
   branch = "master"
@@ -122,18 +114,16 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/bitrise-io/bitrise-add-new-project/httputil",
-    "github.com/bitrise-io/go-utils/fileutil",
+    "github.com/bitrise-io/go-steputils/stepconf",
+    "github.com/bitrise-io/go-utils/command",
     "github.com/bitrise-io/go-utils/log",
     "github.com/bitrise-io/go-utils/retry",
     "github.com/bitrise-io/go-xcode/certificateutil",
-    "github.com/bitrise-io/xcode-project/serialized",
     "github.com/bitrise-tools/go-steputils/stepconf",
     "github.com/bitrise-tools/xcode-project/xcodeproj",
     "github.com/bitrise-tools/xcode-project/xcscheme",
     "github.com/bitrise-tools/xcode-project/xcworkspace",
-    "github.com/dgrijalva/jwt-go",
-    "github.com/google/go-querystring/query",
+    "github.com/hashicorp/go-version",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
