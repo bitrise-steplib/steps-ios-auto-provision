@@ -12,12 +12,13 @@ import (
 	"github.com/hashicorp/go-version"
 )
 
+// Keychain descritbes a macOS Keychain
 type Keychain struct {
 	Path     string
 	Password string
 }
 
-
+// ListKeychains returns the paths of available keychains
 func ListKeychains() ([]string, error) {
 	outbuf := bytes.NewBuffer([]byte{})
 	cmd := command.New("security", "list-keychain").SetStdout(outbuf).SetStderr(outbuf)
@@ -25,7 +26,7 @@ func ListKeychains() ([]string, error) {
 	log.Debugf("$ %s", cmd.PrintableCommandArgs())
 	if err := cmd.Run(); err != nil {
 		log.Errorf(outbuf.String())
-		return nil, fmt.Errorf("run command: %s", err)
+		return nil, fmt.Errorf("list keychain command failed: %s", err)
 	}
 
 	out := outbuf.String()
@@ -45,11 +46,13 @@ func ListKeychains() ([]string, error) {
 // a Keychain object representing the created
 // keychain is returned.
 func CreateKeychain(path, password string, out, errout io.Writer) (*Keychain, error) {
-	cmd := command.New("security", "-v", "create-keychain", "-p", password, path).SetStdout(out).SetStderr(errout)
+	params := []string{"-v", "create-keychain", "-p", "***", path}
+	log.Debugf("$ %s", command.New("security", params...).PrintableCommandArgs())
+	params[3] = password
 
-	// log.Debugf("$ %s", cmd.PrintableCommandArgs())
+	cmd := command.New("security", params...).SetStdout(out).SetStderr(errout)
 	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("run command: %s", err)
+		return nil, fmt.Errorf("create keychain command failed: %s", err)
 	}
 
 	return &Keychain{
@@ -65,7 +68,7 @@ func (kc Keychain) ImportCertificate(path, passphrase string) error {
 
 	log.Debugf("$ %s", cmd.PrintableCommandArgs())
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("run command: %s", err)
+		return fmt.Errorf("import certificate command: %s", err)
 	}
 
 	return nil
@@ -78,7 +81,7 @@ func (kc Keychain) SetKeyPartitionList() error {
 
 	log.Debugf("$ %s", cmd.PrintableCommandArgs())
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("run command: %s", err)
+		return fmt.Errorf("set partition list command failed: %s", err)
 	}
 
 	return nil
@@ -90,7 +93,7 @@ func (kc Keychain) SetLockSettings() error {
 
 	log.Debugf("$ %s", cmd.PrintableCommandArgs())
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("run command: %s", err)
+		return fmt.Errorf("set keychain lock settings command: %s", err)
 	}
 
 	return nil
@@ -108,7 +111,7 @@ func (kc Keychain) AddToSearchPath() error {
 
 	log.Debugf("$ %s", cmd.PrintableCommandArgs())
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("run command: %s", err)
+		return fmt.Errorf("add keychain to search path failed: %s", err)
 	}
 
 	return nil
@@ -121,7 +124,7 @@ func (kc Keychain) SetAsDefault() error {
 
 	log.Debugf("$ %s", cmd.PrintableCommandArgs())
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("run command: %s", err)
+		return fmt.Errorf("set keychain as default command failed: %s", err)
 	}
 
 	return nil
@@ -133,7 +136,7 @@ func (kc Keychain) Unlock() error {
 
 	log.Debugf("$ %s", cmd.PrintableCommandArgs())
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("run command: %s", err)
+		return fmt.Errorf("unlock keychain command failed: %s", err)
 	}
 
 	return nil
