@@ -11,7 +11,15 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:835a344b1d5a6adaf588926627d18ce472eb8876ced599eb43c775bedeacc2bc"
+  digest = "1:dacd83ec550d6d5c2ac83e57f20d45a25a39d79c73be4451771f92572a1f6344"
+  name = "github.com/bitrise-io/go-steputils"
+  packages = ["stepconf"]
+  pruneopts = "UT"
+  revision = "cecc766da84859e37e780d9d1c416f0f3993e6b1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:f684d4ee223300248f97e85e3830a8f1c8d2155fe93e16ec87de17039919b52f"
   name = "github.com/bitrise-io/go-utils"
   packages = [
     "colorstring",
@@ -19,7 +27,9 @@
     "errorutil",
     "fileutil",
     "log",
+    "parseutil",
     "pathutil",
+    "pointers",
     "sliceutil",
   ]
   pruneopts = "UT"
@@ -56,6 +66,14 @@
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:88e0b0baeb9072f0a4afbcf12dda615fc8be001d1802357538591155998da21b"
+  name = "github.com/hashicorp/go-version"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ac23dc3fea5d1a983c43f6a0f6e2c13f0195d8bd"
+  version = "v1.2.0"
+
+[[projects]]
   digest = "1:1093f2eb4b344996604f7d8b29a16c5b22ab9e1b25652140d3fede39f640d5cd"
   name = "golang.org/x/text"
   packages = [
@@ -83,6 +101,8 @@
   analyzer-version = 1
   input-imports = [
     "github.com/bitrise-io/bitrise-add-new-project/httputil",
+    "github.com/bitrise-io/go-steputils/stepconf",
+    "github.com/bitrise-io/go-utils/command",
     "github.com/bitrise-io/go-utils/fileutil",
     "github.com/bitrise-io/go-utils/log",
     "github.com/bitrise-io/go-utils/pathutil",
@@ -93,6 +113,7 @@
     "github.com/bitrise-io/xcode-project/xcworkspace",
     "github.com/dgrijalva/jwt-go",
     "github.com/google/go-querystring/query",
+    "github.com/hashicorp/go-version",
     "howett.net/plist",
   ]
   solver-name = "gps-cdcl"
