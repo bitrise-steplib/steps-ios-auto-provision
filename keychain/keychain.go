@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/hashicorp/go-version"
@@ -15,7 +16,7 @@ import (
 // Keychain descritbes a macOS Keychain
 type Keychain struct {
 	Path     string
-	Password string
+	Password stepconf.Secret
 }
 
 // ListKeychains returns the paths of available keychains
@@ -45,10 +46,10 @@ func ListKeychains() ([]string, error) {
 // if the keychain could not be created, otherwise
 // a Keychain object representing the created
 // keychain is returned.
-func CreateKeychain(path, password string, out, errout io.Writer) (*Keychain, error) {
-	params := []string{"-v", "create-keychain", "-p", "***", path}
+func CreateKeychain(path string, password stepconf.Secret, out, errout io.Writer) (*Keychain, error) {
+	params := []string{"-v", "create-keychain", "-p", "*****", path}
 	log.Debugf("$ %s", command.New("security", params...).PrintableCommandArgs())
-	params[3] = password
+	params[3] = string(password)
 
 	cmd := command.New("security", params...).SetStdout(out).SetStderr(errout)
 	if err := cmd.Run(); err != nil {
@@ -63,10 +64,12 @@ func CreateKeychain(path, password string, out, errout io.Writer) (*Keychain, er
 
 // ImportCertificate adds the certificate at path, protected by
 // passphrase to the kc keychain.
-func (kc Keychain) ImportCertificate(path, passphrase string) error {
-	cmd := command.New("security", "import", path, "-k", kc.Path, "-P", passphrase, "-A").SetStdout(os.Stdout).SetStderr(os.Stderr)
+func (kc Keychain) ImportCertificate(path string, passphrase stepconf.Secret) error {
+	params := []string{"import", path, "-k", kc.Path, "-P", "*****", "-A"}
+	log.Debugf("$ %s", command.New("security", params...).PrintableCommandArgs())
+	params[5] = string(passphrase)
 
-	log.Debugf("$ %s", cmd.PrintableCommandArgs())
+	cmd := command.New("security", params...).SetStdout(os.Stdout).SetStderr(os.Stderr)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("import certificate command: %s", err)
 	}
@@ -77,9 +80,11 @@ func (kc Keychain) ImportCertificate(path, passphrase string) error {
 // SetKeyPartitionList sets the partition list
 // for the keychain to allow access for tools.
 func (kc Keychain) SetKeyPartitionList() error {
-	cmd := command.New("security", "set-key-partition-list", "-S", "apple-tool:,apple:", "-k", kc.Password, kc.Path).SetStdout(os.Stdout).SetStderr(os.Stderr)
+	params := []string{"set-key-partition-list", "-S", "apple-tool:,apple:", "-k", "*****", kc.Path}
+	log.Debugf("$ %s", command.New("security", params...).PrintableCommandArgs())
+	params[4] = string(kc.Password)
 
-	log.Debugf("$ %s", cmd.PrintableCommandArgs())
+	cmd := command.New("security", params...).SetStdout(os.Stdout).SetStderr(os.Stderr)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("set partition list command failed: %s", err)
 	}
@@ -132,9 +137,11 @@ func (kc Keychain) SetAsDefault() error {
 
 // Unlock unlocks the keychain
 func (kc Keychain) Unlock() error {
-	cmd := command.New("security", "-v", "unlock-keychain", "-p", kc.Password, kc.Path).SetStdout(os.Stdout).SetStderr(os.Stderr)
+	params := []string{"-v", "unlock-keychain", "-p", "*****", kc.Path}
+	log.Debugf("$ %s", command.New("security", params...).PrintableCommandArgs())
+	params[3] = string(kc.Password)
 
-	log.Debugf("$ %s", cmd.PrintableCommandArgs())
+	cmd := command.New("security", params...).SetStdout(os.Stdout).SetStderr(os.Stderr)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("unlock keychain command failed: %s", err)
 	}
