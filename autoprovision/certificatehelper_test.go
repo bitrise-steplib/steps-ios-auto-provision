@@ -200,3 +200,68 @@ func TestGetMatchingCertificates(t *testing.T) {
 		})
 	}
 }
+
+func Test_matchLocalCertificatesToConnectCertificates(t *testing.T) {
+	log.SetEnableDebugLog(true)
+
+	const teamID = "MYTEAMID"
+	const commonName = "iPhone Developer: test"
+	const teamName = "BITFALL FEJLESZTO KORLATOLT FELELOSSEGU TARSASAG"
+	serial := int64(1234)
+
+	certs := []certificateutil.CertificateInfoModel{}
+	for i := 1; i < 4; i++ {
+		cert, privateKey, err := certificateutil.GenerateTestCertificate(serial, teamID, teamName, commonName, time.Now().AddDate(0, 0, i))
+		if err != nil {
+			t.Errorf("init: failed to generate certificate, error: %s", err)
+		}
+		certInfo := certificateutil.NewCertificateInfo(*cert, privateKey)
+		t.Logf("Test certificate generated. %s", certInfo)
+
+		certs = append(certs, certInfo)
+	}
+
+	mapConnect := func(certs []certificateutil.CertificateInfoModel) []AppStoreConnectCertificate {
+		var connectCerts []AppStoreConnectCertificate
+		for i, c := range certs {
+			connectCerts = append(connectCerts, AppStoreConnectCertificate{
+				certificate:       c,
+				appStoreConnectID: string(i),
+			})
+		}
+		return connectCerts
+	}
+
+	tests := []struct {
+		name                string
+		localCertificates   []certificateutil.CertificateInfoModel
+		connectCertificates []AppStoreConnectCertificate
+		want                []AppStoreConnectCertificate
+	}{
+		{
+			name:                "no newer",
+			localCertificates:   certs[:0],
+			connectCertificates: mapConnect(certs[:0]),
+			want:                mapConnect(certs[:0]),
+		},
+		{
+			name:                "one newer",
+			localCertificates:   certs[:0],
+			connectCertificates: mapConnect(certs[:1]),
+			want:                nil,
+		},
+		{
+			name:                "two newer",
+			localCertificates:   certs[:0],
+			connectCertificates: mapConnect(certs[:2]),
+			want:                nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := matchLocalCertificatesToConnectCertificates(tt.localCertificates, tt.connectCertificates); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("matchLocalCertificatesToConnectCertificates() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

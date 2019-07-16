@@ -246,20 +246,23 @@ func matchLocalCertificatesToConnectCertificates(localCertificates []certificate
 	}
 
 	for _, localCert := range localCertificates {
+		connectCerts := nameToConnectCertificates[localCert.CommonName]
+		if len(connectCerts) == 0 {
+			continue
+		}
+
+		var latestConnectCert *AppStoreConnectCertificate
 		for _, connectCert := range nameToConnectCertificates[localCert.CommonName] {
-			var latestConnectCert *AppStoreConnectCertificate
-			if connectCert.certificate.EndDate.After(localCert.EndDate) {
-				if latestConnectCert == nil {
-					latestConnectCert = &connectCert
-				} else if connectCert.certificate.EndDate.After(latestConnectCert.certificate.EndDate) {
-					latestConnectCert = &connectCert
-				}
+			if connectCert.certificate.EndDate.After(localCert.EndDate) &&
+				(latestConnectCert == nil || connectCert.certificate.EndDate.After(latestConnectCert.certificate.EndDate)) {
+				latestConnectCert = &connectCert
 			}
-			if latestConnectCert != nil {
-				log.Warnf("Provided an older version of certificate $s", localCert)
-				log.Warnf("The most recent version of the certificate found on Apple Developer Portal: expiry date: %s, serial: %s", latestConnectCert.certificate.EndDate, latestConnectCert.certificate.Serial)
-				log.Warnf("Please upload this version to Bitrise.")
-			}
+		}
+
+		if latestConnectCert != nil {
+			log.Warnf("Provided an older version of certificate $s", localCert)
+			log.Warnf("The most recent version of the certificate found on Apple Developer Portal: expiry date: %s, serial: %s", latestConnectCert.certificate.EndDate, latestConnectCert.certificate.Serial)
+			log.Warnf("Please upload this version to Bitrise.")
 		}
 	}
 

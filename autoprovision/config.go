@@ -175,9 +175,9 @@ func downloadFile(httpClient *http.Client, src string) ([]byte, error) {
 	err = retry.Times(2).Wait(5 * time.Second).Try(func(attempt uint) error {
 		log.Debugf("Downloading %s, attempt %d", src, attempt)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 		defer cancel()
-		req.WithContext(ctx)
+		req = req.WithContext(ctx)
 
 		resp, err := httpClient.Do(req)
 		if err != nil {
