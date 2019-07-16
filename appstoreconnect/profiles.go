@@ -46,6 +46,7 @@ type ProfileType string
 
 // ProfileTypes ...
 const (
+	InvalidProfileType ProfileType = "Invalid"
 	IOSAppDevelopment  ProfileType = "IOS_APP_DEVELOPMENT"
 	IOSAppStore        ProfileType = "IOS_APP_STORE"
 	IOSAppAdHoc        ProfileType = "IOS_APP_ADHOC"

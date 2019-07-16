@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-steplib/steps-ios-auto-provision/autoprovision"
 )
 
 func failf(s string, args ...interface{}) {
@@ -12,7 +13,7 @@ func failf(s string, args ...interface{}) {
 }
 
 func main() {
-	_, err := ParseConfig()
+	_, err := autoprovision.ParseConfig()
 	if err != nil {
 		failf(err.Error())
 	}

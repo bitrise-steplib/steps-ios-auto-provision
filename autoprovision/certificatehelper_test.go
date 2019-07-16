@@ -1,4 +1,4 @@
-package main
+package autoprovision
 
 import (
 	"reflect"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-xcode/certificateutil"
+	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
 
 func TestGetMatchingCertificates(t *testing.T) {
@@ -37,84 +38,84 @@ func TestGetMatchingCertificates(t *testing.T) {
 
 	type args struct {
 		certificates                []certificateutil.CertificateInfoModel
-		AppStoreConnectCertificates map[CertificateType][]AppStoreConnectCertificate
-		requiredCertificatetypes    []CertificateType
-		typeToName                  map[CertificateType]string
+		AppStoreConnectCertificates map[appstoreconnect.CertificateType][]AppStoreConnectCertificate
+		requiredCertificatetypes    []appstoreconnect.CertificateType
+		typeToName                  map[appstoreconnect.CertificateType]string
 		teamID                      string
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    map[CertificateType][]AppStoreConnectCertificate
+		want    map[appstoreconnect.CertificateType][]AppStoreConnectCertificate
 		wantErr bool
 	}{
 		{
 			name: "one local cert, not found on App Store Connect",
 			args: args{
 				certificates:                []certificateutil.CertificateInfoModel{devCert},
-				AppStoreConnectCertificates: map[CertificateType][]AppStoreConnectCertificate{},
-				requiredCertificatetypes:    []CertificateType{DevelopmentCertificate},
-				typeToName: map[CertificateType]string{
-					DevelopmentCertificate: "iPhone Developer",
+				AppStoreConnectCertificates: map[appstoreconnect.CertificateType][]AppStoreConnectCertificate{},
+				requiredCertificatetypes:    []appstoreconnect.CertificateType{appstoreconnect.IOSDevelopment},
+				typeToName: map[appstoreconnect.CertificateType]string{
+					appstoreconnect.IOSDevelopment: "iPhone Developer",
 				},
 				teamID: "",
 			},
-			want:    map[CertificateType][]AppStoreConnectCertificate{},
+			want:    map[appstoreconnect.CertificateType][]AppStoreConnectCertificate{},
 			wantErr: true,
 		},
 		{
 			name: "no local certificates",
 			args: args{
 				certificates:                []certificateutil.CertificateInfoModel{},
-				AppStoreConnectCertificates: map[CertificateType][]AppStoreConnectCertificate{},
-				requiredCertificatetypes:    []CertificateType{DevelopmentCertificate, DistributionCertificate},
-				typeToName: map[CertificateType]string{
-					DevelopmentCertificate: "iPhone Developer",
+				AppStoreConnectCertificates: map[appstoreconnect.CertificateType][]AppStoreConnectCertificate{},
+				requiredCertificatetypes:    []appstoreconnect.CertificateType{appstoreconnect.IOSDevelopment, appstoreconnect.IOSDistribution},
+				typeToName: map[appstoreconnect.CertificateType]string{
+					appstoreconnect.IOSDevelopment: "iPhone Developer",
 				},
 				teamID: "",
 			},
-			want:    map[CertificateType][]AppStoreConnectCertificate{},
+			want:    map[appstoreconnect.CertificateType][]AppStoreConnectCertificate{},
 			wantErr: true,
 		},
 		{
 			name: "App store distribution but only development local certificate present",
 			args: args{
 				certificates:                []certificateutil.CertificateInfoModel{devCert},
-				AppStoreConnectCertificates: map[CertificateType][]AppStoreConnectCertificate{},
-				requiredCertificatetypes:    []CertificateType{DevelopmentCertificate, DistributionCertificate},
-				typeToName: map[CertificateType]string{
-					DevelopmentCertificate: "iPhone Developer",
+				AppStoreConnectCertificates: map[appstoreconnect.CertificateType][]AppStoreConnectCertificate{},
+				requiredCertificatetypes:    []appstoreconnect.CertificateType{appstoreconnect.IOSDevelopment, appstoreconnect.IOSDistribution},
+				typeToName: map[appstoreconnect.CertificateType]string{
+					appstoreconnect.IOSDevelopment: "iPhone Developer",
 				},
 				teamID: "",
 			},
-			want:    map[CertificateType][]AppStoreConnectCertificate{},
+			want:    map[appstoreconnect.CertificateType][]AppStoreConnectCertificate{},
 			wantErr: true,
 		},
 		{
 			name: "Development distribution local and app store cert present.",
 			args: args{
 				certificates: []certificateutil.CertificateInfoModel{devCert},
-				AppStoreConnectCertificates: map[CertificateType][]AppStoreConnectCertificate{
-					DevelopmentCertificate: []AppStoreConnectCertificate{{
+				AppStoreConnectCertificates: map[appstoreconnect.CertificateType][]AppStoreConnectCertificate{
+					appstoreconnect.IOSDevelopment: []AppStoreConnectCertificate{{
 						certificate:       devCert,
 						appStoreConnectID: "apicertid",
 					}},
 				},
-				requiredCertificatetypes: []CertificateType{DevelopmentCertificate},
-				typeToName: map[CertificateType]string{
-					DevelopmentCertificate: "iPhone Developer",
+				requiredCertificatetypes: []appstoreconnect.CertificateType{appstoreconnect.IOSDevelopment},
+				typeToName: map[appstoreconnect.CertificateType]string{
+					appstoreconnect.IOSDevelopment: "iPhone Developer",
 				},
 				teamID: "",
 			},
-			want:    map[CertificateType][]AppStoreConnectCertificate{},
+			want:    map[appstoreconnect.CertificateType][]AppStoreConnectCertificate{},
 			wantErr: false,
 		},
 		{
 			name: "App Store distribution local and app store dev cert present, distribution only on App Store Connect.",
 			args: args{
 				certificates: []certificateutil.CertificateInfoModel{devCert},
-				AppStoreConnectCertificates: map[CertificateType][]AppStoreConnectCertificate{
-					DevelopmentCertificate: []AppStoreConnectCertificate{
+				AppStoreConnectCertificates: map[appstoreconnect.CertificateType][]AppStoreConnectCertificate{
+					appstoreconnect.IOSDevelopment: []AppStoreConnectCertificate{
 						{
 							certificate:       devCert,
 							appStoreConnectID: "apicertid_dev",
@@ -125,62 +126,62 @@ func TestGetMatchingCertificates(t *testing.T) {
 						},
 					},
 				},
-				requiredCertificatetypes: []CertificateType{DevelopmentCertificate, DistributionCertificate},
-				typeToName: map[CertificateType]string{
-					DevelopmentCertificate: "iPhone Developer",
+				requiredCertificatetypes: []appstoreconnect.CertificateType{appstoreconnect.IOSDevelopment, appstoreconnect.IOSDistribution},
+				typeToName: map[appstoreconnect.CertificateType]string{
+					appstoreconnect.IOSDevelopment: "iPhone Developer",
 				},
 				teamID: "",
 			},
-			want:    map[CertificateType][]AppStoreConnectCertificate{},
+			want:    map[appstoreconnect.CertificateType][]AppStoreConnectCertificate{},
 			wantErr: true,
 		},
 		{
 			name: "App Store distribution local and app store dev cert present, distribution only local.",
 			args: args{
 				certificates: []certificateutil.CertificateInfoModel{devCert, distributionCert},
-				AppStoreConnectCertificates: map[CertificateType][]AppStoreConnectCertificate{
-					DevelopmentCertificate: []AppStoreConnectCertificate{
+				AppStoreConnectCertificates: map[appstoreconnect.CertificateType][]AppStoreConnectCertificate{
+					appstoreconnect.IOSDevelopment: []AppStoreConnectCertificate{
 						{
 							certificate:       devCert,
 							appStoreConnectID: "apicertid_dev",
 						},
 					},
 				},
-				requiredCertificatetypes: []CertificateType{DevelopmentCertificate, DistributionCertificate},
-				typeToName: map[CertificateType]string{
-					DevelopmentCertificate: "iPhone Developer",
+				requiredCertificatetypes: []appstoreconnect.CertificateType{appstoreconnect.IOSDevelopment, appstoreconnect.IOSDistribution},
+				typeToName: map[appstoreconnect.CertificateType]string{
+					appstoreconnect.IOSDevelopment: "iPhone Developer",
 				},
 				teamID: "",
 			},
-			want:    map[CertificateType][]AppStoreConnectCertificate{},
+			want:    map[appstoreconnect.CertificateType][]AppStoreConnectCertificate{},
 			wantErr: true,
 		},
 		{
 			name: "App Store distribution local and app store dev and distribution cert present.",
 			args: args{
 				certificates: []certificateutil.CertificateInfoModel{devCert, distributionCert},
-				AppStoreConnectCertificates: map[CertificateType][]AppStoreConnectCertificate{
-					DevelopmentCertificate: []AppStoreConnectCertificate{
+				AppStoreConnectCertificates: map[appstoreconnect.CertificateType][]AppStoreConnectCertificate{
+					appstoreconnect.IOSDevelopment: []AppStoreConnectCertificate{
 						{
 							certificate:       devCert,
 							appStoreConnectID: "apicertid_dev",
 						},
 					},
-					DistributionCertificate: []AppStoreConnectCertificate{
+					appstoreconnect.IOSDistribution: []AppStoreConnectCertificate{
 						{
 							certificate:       distributionCert,
 							appStoreConnectID: "apicertid_dist",
 						},
 					},
 				},
-				requiredCertificatetypes: []CertificateType{DevelopmentCertificate, DistributionCertificate},
-				typeToName: map[CertificateType]string{
-					DevelopmentCertificate:  "iPhone Developer",
-					DistributionCertificate: "iPhone Distribution",
+				requiredCertificatetypes: []appstoreconnect.CertificateType{appstoreconnect.IOSDevelopment, appstoreconnect.IOSDistribution},
+				typeToName: map[appstoreconnect.CertificateType]string{
+					appstoreconnect.IOSDevelopment:  "iPhone Developer",
+					appstoreconnect.IOSDistribution: "iPhone Distribution",
 				},
 				teamID: "",
 			},
-			want:    map[CertificateType][]AppStoreConnectCertificate{},
+			want:    map[appstoreconnect.CertificateType][]AppStoreConnectCertificate{},
 			wantErr: false,
 		},
 	}
