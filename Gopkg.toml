@@ -45,6 +45,10 @@
   name = "github.com/google/go-querystring"
   version = "1.0.0"
 
+[[constraint]]
+  branch = "master"
+  name = "howett.net/plist"
+
 [prune]
   go-tests = true
   unused-packages = true
