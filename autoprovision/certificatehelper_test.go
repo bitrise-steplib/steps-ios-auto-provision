@@ -1,15 +1,6 @@
 package autoprovision
 
-import (
-	"reflect"
-	"testing"
-	"time"
-
-	"github.com/bitrise-io/go-utils/log"
-	"github.com/bitrise-io/go-xcode/certificateutil"
-	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
-)
-
+/*
 func TestGetMatchingCertificates(t *testing.T) {
 	log.SetEnableDebugLog(true)
 
@@ -265,3 +256,4 @@ func Test_matchLocalCertificatesToConnectCertificates(t *testing.T) {
 		})
 	}
 }
+*/
