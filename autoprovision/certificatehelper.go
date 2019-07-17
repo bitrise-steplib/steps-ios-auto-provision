@@ -99,17 +99,17 @@ func certsToString(certs []certificateutil.CertificateInfoModel) string {
 }
 
 // GetMatchingCertificates returns validated and matching with App Store Connect API certificates
-func GetMatchingCertificates(certificates []certificateutil.CertificateInfoModel, AppStoreConnectCertificates map[appstoreconnect.CertificateType][]AppStoreConnectCertificate, requiredCertificateTypes []appstoreconnect.CertificateType, typeToName map[appstoreconnect.CertificateType]string, teamID string) (map[appstoreconnect.CertificateType][]AppStoreConnectCertificate, error) {
+func GetMatchingCertificates(certificates []certificateutil.CertificateInfoModel, appStoreConnectCertificates map[appstoreconnect.CertificateType][]AppStoreConnectCertificate, requiredCertificateTypes []appstoreconnect.CertificateType, typeToName map[appstoreconnect.CertificateType]string, teamID string) (map[appstoreconnect.CertificateType][]AppStoreConnectCertificate, error) {
 	fmt.Println()
 	log.Infof("Filtering out invalid or duplicated name certificates.")
 
 	preFilteredCerts := certificateutil.FilterValidCertificateInfos(certificates)
 
 	if len(preFilteredCerts.InvalidCertificates) != 0 {
-		log.Debugf("Ignoring expired or not yet valid certificates: %s")
+		log.Debugf("Ignoring expired or not yet valid certificates: %s", preFilteredCerts.InvalidCertificates)
 	}
 	if len(preFilteredCerts.DuplicatedCertificates) != 0 {
-		log.Warnf("Ignoring duplicated certificates with the same name: %s")
+		log.Warnf("Ignoring duplicated certificates with the same name: %s", preFilteredCerts.DuplicatedCertificates)
 	}
 	log.Infof("Valid and deduplicated common name certificates: %s", certsToString(preFilteredCerts.ValidCertificates))
 
@@ -134,7 +134,7 @@ func GetMatchingCertificates(certificates []certificateutil.CertificateInfoModel
 		}
 	}
 
-	for certType, certs := range AppStoreConnectCertificates {
+	for certType, certs := range appStoreConnectCertificates {
 		log.Debugf("App Store Connect %s certificates:", certType)
 		for _, cert := range certs {
 			log.Debugf("%s", cert.certificate)
@@ -146,7 +146,7 @@ func GetMatchingCertificates(certificates []certificateutil.CertificateInfoModel
 
 	matchingCerts := map[appstoreconnect.CertificateType][]AppStoreConnectCertificate{}
 	for _, certType := range []appstoreconnect.CertificateType{appstoreconnect.IOSDevelopment, appstoreconnect.IOSDistribution} {
-		matchingCerts[certType] = matchLocalCertificatesToConnectCertificates(localCertificates[certType], AppStoreConnectCertificates[certType])
+		matchingCerts[certType] = matchLocalCertificatesToConnectCertificates(localCertificates[certType], appStoreConnectCertificates[certType])
 		log.Debugf("Certificates type %s having matches on App Store Connect", certType)
 		for _, cert := range matchingCerts[certType] {
 			log.Debugf("%s", cert.certificate)
@@ -235,9 +235,9 @@ func isDistributionCertificate(cert certificateutil.CertificateInfoModel) bool {
 }
 
 func matchLocalCertificatesToConnectCertificates(localCertificates []certificateutil.CertificateInfoModel, connectCertificates []AppStoreConnectCertificate) []AppStoreConnectCertificate {
-	hashToConnectCertificates := map[string]AppStoreConnectCertificate{}
+	serialToConnectCertificates := map[string]AppStoreConnectCertificate{}
 	for _, cert := range connectCertificates {
-		hashToConnectCertificates[cert.certificate.SHA1Fingerprint] = cert
+		serialToConnectCertificates[cert.certificate.Serial] = cert
 	}
 
 	nameToConnectCertificates := map[string][]AppStoreConnectCertificate{}
@@ -268,7 +268,7 @@ func matchLocalCertificatesToConnectCertificates(localCertificates []certificate
 
 	var matchingCertificates []AppStoreConnectCertificate
 	for _, localCert := range localCertificates {
-		connectCert, found := hashToConnectCertificates[localCert.SHA1Fingerprint]
+		connectCert, found := serialToConnectCertificates[localCert.Serial]
 		if !found {
 			log.Warnf("Certificate not found on Apple Developer Portal: %s", localCert)
 			continue
