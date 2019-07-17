@@ -1,6 +1,9 @@
 package appstoreconnect
 
-import "net/http"
+import (
+	"net/http"
+	"strings"
+)
 
 // BundleIDCapabilitiesURL ...
 const BundleIDCapabilitiesURL = "bundleIdCapabilities"
@@ -122,12 +125,28 @@ type BundleIDCapability struct {
 
 // BundleIDCapabilityResponse ...
 type BundleIDCapabilityResponse struct {
-	Data BundleIDCapability `json:"data"`
+	Data []BundleIDCapability `json:"data"`
 }
 
 // EnableCapability ...
 func (s ProvisioningService) EnableCapability(body BundleIDCapabilityCreateRequest) (*BundleIDCapabilityResponse, error) {
 	req, err := s.client.NewRequest(http.MethodPost, BundleIDCapabilitiesURL, body)
+	if err != nil {
+		return nil, err
+	}
+
+	r := &BundleIDCapabilityResponse{}
+	if _, err := s.client.Do(req, r); err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}
+
+// CapabilitiesOf ...
+func (s ProvisioningService) CapabilitiesOf(bundleID BundleID) (*BundleIDCapabilityResponse, error) {
+	capabilityURL := strings.TrimLeft(bundleID.Relationships.Capabilities.Links.Related, baseURL+"v1")
+	req, err := s.client.NewRequest(http.MethodGet, capabilityURL, nil)
 	if err != nil {
 		return nil, err
 	}
