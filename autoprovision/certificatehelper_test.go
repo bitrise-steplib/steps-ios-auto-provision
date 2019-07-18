@@ -80,7 +80,8 @@ func TestGetValidCertificates(t *testing.T) {
 				typeToName: map[CertificateType]string{
 					Development: "iPhone Developer",
 				},
-				teamID: "",
+				teamID:      "",
+				logAllCerts: true,
 			},
 			want:    map[CertificateType][]APICertificate{},
 			wantErr: true,
@@ -94,7 +95,8 @@ func TestGetValidCertificates(t *testing.T) {
 				typeToName: map[CertificateType]string{
 					Development: "iPhone Developer",
 				},
-				teamID: "",
+				teamID:      "",
+				logAllCerts: true,
 			},
 			want:    map[CertificateType][]APICertificate{},
 			wantErr: true,
@@ -110,7 +112,8 @@ func TestGetValidCertificates(t *testing.T) {
 				typeToName: map[CertificateType]string{
 					Development: "iPhone Developer",
 				},
-				teamID: "",
+				teamID:      "",
+				logAllCerts: true,
 			},
 			want:    map[CertificateType][]APICertificate{},
 			wantErr: true,
@@ -131,7 +134,8 @@ func TestGetValidCertificates(t *testing.T) {
 				typeToName: map[CertificateType]string{
 					Development: "iPhone Developer",
 				},
-				teamID: "",
+				teamID:      "",
+				logAllCerts: true,
 			},
 			want: map[CertificateType][]APICertificate{
 				Development: []APICertificate{{
@@ -163,7 +167,8 @@ func TestGetValidCertificates(t *testing.T) {
 				typeToName: map[CertificateType]string{
 					Development: "iPhone Developer",
 				},
-				teamID: "",
+				teamID:      "",
+				logAllCerts: true,
 			},
 			want:    map[CertificateType][]APICertificate{},
 			wantErr: true,
@@ -188,7 +193,8 @@ func TestGetValidCertificates(t *testing.T) {
 				typeToName: map[CertificateType]string{
 					Development: "iPhone Developer",
 				},
-				teamID: "",
+				teamID:      "",
+				logAllCerts: true,
 			},
 			want:    map[CertificateType][]APICertificate{},
 			wantErr: true,
@@ -219,7 +225,8 @@ func TestGetValidCertificates(t *testing.T) {
 					Development:  "iPhone Developer",
 					Distribution: "iPhone Distribution",
 				},
-				teamID: "",
+				teamID:      "",
+				logAllCerts: true,
 			},
 			want: map[CertificateType][]APICertificate{
 				Development: []APICertificate{{
