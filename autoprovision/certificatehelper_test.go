@@ -1,6 +1,8 @@
 package autoprovision
 
 import (
+	"fmt"
+	"math/big"
 	"reflect"
 	"testing"
 	"time"
@@ -12,15 +14,15 @@ import (
 
 func mockAPIClient(certs map[CertificateType][]APICertificate) certificateSource {
 	return certificateSource{
-		queryCertificateBySerialFunc: func(client *appstoreconnect.Client, serial string) ([]APICertificate, error) {
+		queryCertificateBySerialFunc: func(client *appstoreconnect.Client, serial *big.Int) (APICertificate, error) {
 			for _, certList := range certs {
 				for _, cert := range certList {
-					if cert.Certificate.Serial == serial {
-						return []APICertificate{cert}, nil
+					if cert.Certificate.Certificate.SerialNumber == serial {
+						return cert, nil
 					}
 				}
 			}
-			return nil, nil
+			return APICertificate{}, fmt.Errorf("certificate with serial %s not found", serial.String())
 		},
 		queryAllCertificatesFunc: func(client *appstoreconnect.Client) (map[CertificateType][]APICertificate, error) {
 			return certs, nil
@@ -46,11 +48,11 @@ func TestGetValidCertificates(t *testing.T) {
 	devCert := certificateutil.NewCertificateInfo(*cert, privateKey)
 	t.Logf("Test certificate generated. %s", devCert)
 
-	cert, privateKey, err = certificateutil.GenerateTestCertificate(int64(2), teamID, teamName, commonNameIOSDistribution, expiry)
+	distCert, privateKey, err := certificateutil.GenerateTestCertificate(int64(2), teamID, teamName, commonNameIOSDistribution, expiry)
 	if err != nil {
 		t.Errorf("init: failed to generate certificate, error: %s", err)
 	}
-	distributionCert := certificateutil.NewCertificateInfo(*cert, privateKey)
+	distributionCert := certificateutil.NewCertificateInfo(*distCert, privateKey)
 	t.Logf("Test certificate generated. %s", distributionCert)
 
 	type args struct {
@@ -176,7 +178,7 @@ func TestGetValidCertificates(t *testing.T) {
 				client: mockAPIClient(map[CertificateType][]APICertificate{
 					Development: []APICertificate{{
 						Certificate: devCert,
-						ID:          "apicertid_dev",
+						ID:          "dev",
 					}},
 				}),
 				requiredCertificateTypes: map[CertificateType]bool{
@@ -308,6 +310,80 @@ func Test_logUpdatedAPICertificates(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := logUpdatedAPICertificates(tt.localCertificates, tt.APICertificates); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("matchLocalCertificatesToConnectCertificates() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_queryCertificateBySerial(t *testing.T) {
+	log.SetEnableDebugLog(true)
+
+	c := initTestClient(t)
+	bitriseBotSerial, ok := big.NewInt(1).SetString("6807132550712878682", 10)
+	if !ok {
+		t.Errorf("init: failed to create serial")
+	}
+
+	type args struct {
+		client *appstoreconnect.Client
+		serial *big.Int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []APICertificate
+		wantErr bool
+	}{
+		{
+			args: args{
+				client: c,
+				serial: bitriseBotSerial,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := queryCertificateBySerial(tt.args.client, tt.args.serial)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("queryCertificateBySerial() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("queryCertificateBySerial() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_queryAllIOSCertificates(t *testing.T) {
+	log.SetEnableDebugLog(true)
+
+	c := initTestClient(t)
+
+	type args struct {
+		client *appstoreconnect.Client
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    map[CertificateType][]APICertificate
+		wantErr bool
+	}{
+		{
+			args: args{
+				client: c,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := queryAllIOSCertificates(tt.args.client)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("queryAllIOSCertificates() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("queryAllIOSCertificates() = %v, want %v", got, tt.want)
 			}
 		})
 	}

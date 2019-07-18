@@ -33,25 +33,6 @@ const (
 	DeveloperIDApplication   CertificateType = "DEVELOPER_ID_APPLICATION"
 )
 
-func (c CertificateType) String() string {
-	switch c {
-	case IOSDevelopment:
-		return "Development"
-	case IOSDistribution:
-		return "Distribution"
-	case MacDistribution:
-		return "macOS Distribution"
-	case MacInstallerDistribution:
-		return "macOS Installer Distribution"
-	case DeveloperIDKext:
-		return "Developer ID KEXT"
-	case DeveloperIDApplication:
-		return "Developer ID Application"
-	default:
-		return ""
-	}
-}
-
 // CertificateAttributes ...
 type CertificateAttributes struct {
 	CertificateContent string           `json:"certificateContent"`

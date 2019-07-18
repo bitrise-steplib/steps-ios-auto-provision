@@ -4,6 +4,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"fmt"
+	"math/big"
 	"strings"
 
 	"github.com/bitrise-io/go-utils/log"
@@ -39,7 +40,7 @@ type APICertificate struct {
 	ID          string
 }
 
-type getCertificateBySerial func(*appstoreconnect.Client, string) ([]APICertificate, error)
+type getCertificateBySerial func(*appstoreconnect.Client, *big.Int) (APICertificate, error)
 
 type getAllCertificates func(*appstoreconnect.Client) (map[CertificateType][]APICertificate, error)
 
@@ -57,7 +58,7 @@ func APIClient(client *appstoreconnect.Client) certificateSource {
 	}
 }
 
-func (c *certificateSource) queryCertificateBySerial(serial string) ([]APICertificate, error) {
+func (c *certificateSource) queryCertificateBySerial(serial *big.Int) (APICertificate, error) {
 	return c.queryCertificateBySerialFunc(c.client, serial)
 }
 
@@ -91,30 +92,42 @@ func queryAllIOSCertificates(client *appstoreconnect.Client) (map[CertificateTyp
 }
 
 func queryCertificatesByType(client *appstoreconnect.Client, certificateType appstoreconnect.CertificateType) ([]APICertificate, error) {
-	response, err := client.Provisioning.ListCertificates(&appstoreconnect.ListCertificatesOptions{
-		FilterCertificateType: certificateType,
-	})
-	if err != nil {
-		return nil, err
-	}
+	nextPageURL := ""
+	var responseCertificates []appstoreconnect.Certificate
+	for {
+		response, err := client.Provisioning.ListCertificates(&appstoreconnect.ListCertificatesOptions{
+			FilterCertificateType: certificateType,
+			Limit:                 10,
+			Next:                  nextPageURL,
+		})
+		if err != nil {
+			return nil, err
+		}
+		responseCertificates = append(responseCertificates, response.Data...)
 
-	return parseCertificatesResponse(response)
+		nextPageURL = response.Links.Next
+		if nextPageURL == "" {
+			return parseCertificatesResponse(responseCertificates)
+		}
+	}
 }
 
-func queryCertificateBySerial(client *appstoreconnect.Client, serial string) ([]APICertificate, error) {
-	response, err := client.Provisioning.ListCertificates(&appstoreconnect.ListCertificatesOptions{
-		FilterSerialNumber: serial,
-	})
+func queryCertificateBySerial(client *appstoreconnect.Client, serial *big.Int) (APICertificate, error) {
+	response, err := client.Provisioning.FetchCertificate(serial.Text(16))
 	if err != nil {
-		return nil, err
+		return APICertificate{}, err
 	}
 
-	return parseCertificatesResponse(response)
+	certs, err := parseCertificatesResponse([]appstoreconnect.Certificate{response})
+	if err != nil {
+		return APICertificate{}, err
+	}
+	return certs[0], nil
 }
 
-func parseCertificatesResponse(response *appstoreconnect.CertificatesResponse) ([]APICertificate, error) {
+func parseCertificatesResponse(response []appstoreconnect.Certificate) ([]APICertificate, error) {
 	var certifacteInfos []APICertificate
-	for _, connectCertResponse := range response.Data {
+	for _, connectCertResponse := range response {
 		if connectCertResponse.Type == "certificates" {
 			certificateData, err := base64.StdEncoding.DecodeString(connectCertResponse.Attributes.CertificateContent)
 			if err != nil {
@@ -235,18 +248,12 @@ func MatchLocalToAPICertificates(client certificateSource, certificateType Certi
 	var matchingCertificates []APICertificate
 
 	for _, localCert := range localCertificates {
-		APIcerts, err := client.queryCertificateBySerial(localCert.Serial)
+		cert, err := client.queryCertificateBySerial(localCert.Certificate.SerialNumber)
 		if err != nil {
 			return nil, fmt.Errorf("failed to query certificate by serial, error: %s", err)
 		}
-		if len(APIcerts) == 0 {
-			log.Warnf("Certificate not found on Developer Portal: %s", localCert)
-			continue
-		} else if len(APIcerts) > 1 {
-			return nil, fmt.Errorf("more than one certificate with serial %s found on Developer Portal", localCert.Serial)
-		}
 
-		matchingCertificates = append(matchingCertificates, APIcerts[0])
+		matchingCertificates = append(matchingCertificates, cert)
 	}
 
 	return matchingCertificates, nil
