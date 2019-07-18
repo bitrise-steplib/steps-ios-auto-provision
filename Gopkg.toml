@@ -1,8 +1,44 @@
 
-[prune]
-  go-tests = true
-  unused-packages = true
+[[constraint]]
+  branch = "master"
+  name = "github.com/bitrise-io/bitrise-add-new-project"
 
 [[constraint]]
   branch = "master"
+  name = "github.com/bitrise-io/go-steputils"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/bitrise-io/go-utils"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/bitrise-io/go-xcode"
+
+[[constraint]]
+  branch = "project-attribute"
   name = "github.com/bitrise-io/xcode-project"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/bitrise-tools/go-steputils"
+
+[[constraint]]
+  name = "github.com/dgrijalva/jwt-go"
+  version = "3.2.0"
+
+[[constraint]]
+  name = "github.com/google/go-querystring"
+  version = "1.0.0"
+
+[[constraint]]
+  name = "github.com/hashicorp/go-version"
+  version = "1.2.0"
+
+[[constraint]]
+  branch = "master"
+  name = "howett.net/plist"
+
+[prune]
+  go-tests = true
+  unused-packages = true

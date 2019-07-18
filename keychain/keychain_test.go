@@ -32,7 +32,7 @@ func TestCreateKeychain(t *testing.T) {
 		t.Log(outbuf.String(), errbuf.String())
 		t.Errorf("error creating keychain: %s", err)
 	}
-	
+
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		t.Log(outbuf.String())
 		t.Log(errbuf.String())
@@ -42,13 +42,16 @@ func TestCreateKeychain(t *testing.T) {
 
 func TestImportCertificate(t *testing.T) {
 	cwd, err := os.Getwd()
+	if err != nil {
+		t.Errorf("setup: faliled to get working dir, error: %s", err)
+	}
 	dirTest := filepath.Join(cwd, "..", "test")
 	pathGolden := filepath.Join(dirTest, "testkeychain")
 	dirTmp, err := ioutil.TempDir("", "test-import-certificate")
 	if err != nil {
 		t.Errorf("setup: create temp dir for keychain: %s", err)
 	}
-	
+
 	pathTesting := filepath.Join(dirTmp, testKeychainFilename)
 
 	cmd := exec.Command("cp", pathGolden, pathTesting)
