@@ -174,8 +174,10 @@ func GetValidCertificates(localCertificates []certificateutil.CertificateInfoMod
 		}
 
 		if requiredCertificateTypes[certificateType] && len(matchingCertificates) == 0 {
-			if logErr := LogAllAPICertificates(client, typeToCerts); logErr != nil {
-				log.Errorf("failed to log all Developer Portal certificates, error: %s", logErr)
+			if !logAllCerts {
+				if err := LogAllAPICertificates(client, typeToCerts); err != nil {
+					log.Errorf("failed to log all Developer Portal certificates, error: %s", err)
+				}
 			}
 
 			return nil, fmt.Errorf("not found any of the following %s certificates uploaded to Bitrise on Developer Portal: %s", certificateType, localCertificates)
