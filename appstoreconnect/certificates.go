@@ -92,13 +92,13 @@ func (s ProvisioningService) FetchCertificate(serialNumber string) (Certificate,
 		FilterSerialNumber: serialNumber,
 	})
 	if err != nil {
-		return Certificate{}, fmt.Errorf("failed to fetch certificate %s from App Store Connect, error :%s", serialNumber, err)
+		return Certificate{}, fmt.Errorf("failed to fetch certificate %s, error :%s", serialNumber, err)
 	}
 
 	if len(r.Data) == 0 {
-		return Certificate{}, fmt.Errorf("no certificate entity found for %s", serialNumber)
+		return Certificate{}, fmt.Errorf("no certificate with serial %s found", serialNumber)
 	} else if len(r.Data) == 0 {
-		return Certificate{}, fmt.Errorf("multiple certificate entity found for %s . Entyties: %s", serialNumber, r.Data)
+		return Certificate{}, fmt.Errorf("multiple certificates with serial %s found: %s", serialNumber, r.Data)
 	}
 	return r.Data[0], nil
 }

@@ -48,7 +48,14 @@ func TestGetValidCertificates(t *testing.T) {
 	devCert := certificateutil.NewCertificateInfo(*cert, privateKey)
 	t.Logf("Test certificate generated. %s", devCert)
 
-	distCert, privateKey, err := certificateutil.GenerateTestCertificate(int64(2), teamID, teamName, commonNameIOSDistribution, expiry)
+	cert, privateKey, err = certificateutil.GenerateTestCertificate(int64(2), teamID, teamName, "iPhone Developer: test2", expiry)
+	if err != nil {
+		t.Errorf("init: failed to generate certificate, error: %s", err)
+	}
+	devCert2 := certificateutil.NewCertificateInfo(*cert, privateKey)
+	t.Logf("Test certificate generated. %s", devCert)
+
+	distCert, privateKey, err := certificateutil.GenerateTestCertificate(int64(10), teamID, teamName, commonNameIOSDistribution, expiry)
 	if err != nil {
 		t.Errorf("init: failed to generate certificate, error: %s", err)
 	}
@@ -85,6 +92,35 @@ func TestGetValidCertificates(t *testing.T) {
 			},
 			want:    map[CertificateType][]APICertificate{},
 			wantErr: true,
+		},
+		{
+			name: "2 dev local with same name; 1 dev API; dev required",
+			args: args{
+				localCertificates: []certificateutil.CertificateInfoModel{
+					devCert,
+					devCert,
+					devCert2,
+				},
+				client: mockAPIClient(map[CertificateType][]APICertificate{
+					Development: []APICertificate{{
+						Certificate: devCert,
+						ID:          "devcert",
+					}},
+				}),
+				requiredCertificateTypes: map[CertificateType]bool{Development: true, Distribution: false},
+				typeToName: map[CertificateType]string{
+					Development: "iPhone Developer",
+				},
+				teamID:      "",
+				logAllCerts: true,
+			},
+			want: map[CertificateType][]APICertificate{
+				Development: []APICertificate{{
+					Certificate: devCert,
+					ID:          "dev1",
+				}},
+			},
+			wantErr: false,
 		},
 		{
 			name: "no local; no API; dev+dist requried",
@@ -141,6 +177,34 @@ func TestGetValidCertificates(t *testing.T) {
 				Development: []APICertificate{{
 					Certificate: devCert,
 					ID:          "apicertid",
+				}},
+			},
+			wantErr: false,
+		},
+		{
+			name: "2 dev local; 1 dev API; dev required",
+			args: args{
+				localCertificates: []certificateutil.CertificateInfoModel{
+					devCert,
+					devCert2,
+				},
+				client: mockAPIClient(map[CertificateType][]APICertificate{
+					Development: []APICertificate{{
+						Certificate: devCert,
+						ID:          "dev1",
+					}},
+				}),
+				requiredCertificateTypes: map[CertificateType]bool{Development: true, Distribution: false},
+				typeToName: map[CertificateType]string{
+					Development: "iPhone Developer",
+				},
+				teamID:      "",
+				logAllCerts: true,
+			},
+			want: map[CertificateType][]APICertificate{
+				Development: []APICertificate{{
+					Certificate: devCert,
+					ID:          "dev1",
 				}},
 			},
 			wantErr: false,
