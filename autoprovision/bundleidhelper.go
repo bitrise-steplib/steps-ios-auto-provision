@@ -30,7 +30,9 @@ func EnsureApp(client *appstoreconnect.Client, projectHelper ProjectHelper, conf
 	}(projectHelper.Platform)
 
 	for _, t := range projectHelper.Targets {
-		// t.ProductType ==
+		if !t.IsExecutableProduct() {
+			continue
+		}
 		targetBundleID, err := projectHelper.TargetBundleID(t.Name, configurationName)
 		if err != nil {
 			return nil, fmt.Errorf("failed to find target's (%s) bundleID, error: %s", t.Name, err)
