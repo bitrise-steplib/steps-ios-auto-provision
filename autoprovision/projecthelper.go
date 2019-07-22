@@ -434,7 +434,7 @@ func resolveBundleID(bundleID string, buildSettings serialized.Object) (string, 
 
 	envValue, err := buildSettings.String(envKey)
 	if err != nil {
-		return "", fmt.Errorf("failed to find enviriment variable value for key %s, error: %s", envKey, err)
+		return "", fmt.Errorf("failed to find enviroment variable value for key %s, error: %s", envKey, err)
 	}
 	return prefix + envValue + suffix, nil
 
