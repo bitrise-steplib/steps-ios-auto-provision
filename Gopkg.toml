@@ -1,24 +1,27 @@
 
-
 [[constraint]]
-  name = "github.com/bitrise-io/bitrise-add-new-project"
-  version = "0.2.1"
+  branch = "master"
+  name = "github.com/bitrise-io/go-steputils"
 
 [[constraint]]
   branch = "master"
   name = "github.com/bitrise-io/go-utils"
 
 [[constraint]]
+  branch = "master"
+  name = "github.com/bitrise-io/go-xcode"
+
+[[constraint]]
   branch = "project-attribute"
   name = "github.com/bitrise-io/xcode-project"
 
 [[constraint]]
-  name = "github.com/dgrijalva/jwt-go"
-  version = "3.2.0"
+  branch = "master"
+  name = "github.com/bitrise-tools/go-steputils"
 
 [[constraint]]
-  name = "github.com/google/go-querystring"
-  version = "1.0.0"
+  name = "github.com/hashicorp/go-version"
+  version = "1.2.0"
 
 [[constraint]]
   branch = "master"
