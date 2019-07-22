@@ -307,15 +307,10 @@ func TestGetValidCertificates(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetValidCertificates(tt.args.localCertificates, tt.args.client, tt.args.requiredCertificateTypes, tt.args.typeToName, tt.args.teamID, tt.args.logAllCerts)
+			_, err := GetValidCertificates(tt.args.localCertificates, tt.args.client, tt.args.requiredCertificateTypes, tt.args.typeToName, tt.args.teamID, tt.args.logAllCerts)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetValidCertificates() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			for certType, wantCerts := range tt.want {
-				if !reflect.DeepEqual(wantCerts, got[certType]) {
-					t.Errorf("GetValidCertificates()[%s] = %v, want %v", certType, got, tt.want)
-				}
 			}
 		})
 	}
@@ -414,13 +409,10 @@ func Test_queryCertificateBySerial(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := queryCertificateBySerial(tt.args.client, tt.args.serial)
+			_, err := queryCertificateBySerial(tt.args.client, tt.args.serial)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("queryCertificateBySerial() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("queryCertificateBySerial() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -437,7 +429,6 @@ func Test_queryAllIOSCertificates(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    map[CertificateType][]APICertificate
 		wantErr bool
 	}{
 		{
@@ -448,13 +439,10 @@ func Test_queryAllIOSCertificates(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := queryAllIOSCertificates(tt.args.client)
+			_, err := queryAllIOSCertificates(tt.args.client)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("queryAllIOSCertificates() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("queryAllIOSCertificates() = %v, want %v", got, tt.want)
 			}
 		})
 	}

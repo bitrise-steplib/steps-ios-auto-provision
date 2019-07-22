@@ -46,7 +46,7 @@ type certificateSource struct {
 	queryAllCertificatesFunc     func(*appstoreconnect.Client) (map[CertificateType][]APICertificate, error)
 }
 
-func APIClient(client *appstoreconnect.Client) certificateSource {
+func apiClient(client *appstoreconnect.Client) certificateSource {
 	return certificateSource{
 		client:                       client,
 		queryCertificateBySerialFunc: queryCertificateBySerial,
@@ -158,6 +158,7 @@ func certsToString(certs []certificateutil.CertificateInfoModel) string {
 	return certInfo
 }
 
+// GetValidCertificates ...
 func GetValidCertificates(localCertificates []certificateutil.CertificateInfoModel, client certificateSource, requiredCertificateTypes map[CertificateType]bool, typeToName map[CertificateType]string, teamID string, logAllAPICerts bool) (map[CertificateType][]APICertificate, error) {
 	typeToLocalCerts, err := GetValidLocalCertificates(localCertificates, typeToName, teamID)
 	if err != nil {
@@ -243,6 +244,7 @@ func GetValidLocalCertificates(certificates []certificateutil.CertificateInfoMod
 	return localCertificates, nil
 }
 
+// MatchLocalToAPICertificates ...
 func MatchLocalToAPICertificates(client certificateSource, certificateType CertificateType, localCertificates []certificateutil.CertificateInfoModel) ([]APICertificate, error) {
 	var matchingCertificates []APICertificate
 
@@ -262,6 +264,7 @@ func MatchLocalToAPICertificates(client certificateSource, certificateType Certi
 	return matchingCertificates, nil
 }
 
+// LogAllAPICertificates ...
 func LogAllAPICertificates(client certificateSource, localCertificates map[CertificateType][]certificateutil.CertificateInfoModel) error {
 	certificates, err := client.queryAllCertificates()
 	if err != nil {

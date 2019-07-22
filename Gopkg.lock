@@ -47,8 +47,8 @@
   revision = "07ccf582b6b1afa2c33e133447a3e22c811ffd90"
 
 [[projects]]
-  branch = "master"
-  digest = "1:d30f24e344dc73c47a2e18a658fe46cc22b18a756b0fed3e8056c2fd4669a125"
+  branch = "project-attribute"
+  digest = "1:3fec2bc24fac5f70406d4b78143d88015eacd76018621221889233e179bc16b5"
   name = "github.com/bitrise-io/xcode-project"
   packages = [
     "serialized",
@@ -58,7 +58,7 @@
     "xcworkspace",
   ]
   pruneopts = "UT"
-  revision = "5929ad85d89233b3296d2d795e068a656db7fb25"
+  revision = "5f2d63b1ee135afac1bdadc33893f673b4a0b5f2"
 
 [[projects]]
   branch = "master"
