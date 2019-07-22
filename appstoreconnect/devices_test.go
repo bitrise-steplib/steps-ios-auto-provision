@@ -5,7 +5,7 @@ import (
 )
 
 func TestProvisioningService_ListDevices(t *testing.T) {
-	client := initTestClient(t)
+	client := InitTestClient(t)
 	tests := []struct {
 		name    string
 		opt     *ListDevicesOptions

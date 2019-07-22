@@ -389,7 +389,7 @@ func Test_logUpdatedAPICertificates(t *testing.T) {
 func Test_queryCertificateBySerial(t *testing.T) {
 	log.SetEnableDebugLog(true)
 
-	c := initTestClient(t)
+	c := appstoreconnect.InitTestClient(t)
 	bitriseBotSerial, ok := big.NewInt(1).SetString("6807132550712878682", 10)
 	if !ok {
 		t.Errorf("init: failed to create serial")
@@ -429,7 +429,7 @@ func Test_queryCertificateBySerial(t *testing.T) {
 func Test_queryAllIOSCertificates(t *testing.T) {
 	log.SetEnableDebugLog(true)
 
-	c := initTestClient(t)
+	c := appstoreconnect.InitTestClient(t)
 
 	type args struct {
 		client *appstoreconnect.Client

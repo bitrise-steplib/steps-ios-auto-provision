@@ -5,7 +5,7 @@ import (
 )
 
 func TestProvisioningService_FetchCertificate(t *testing.T) {
-	client := initTestClient(t)
+	client := InitTestClient(t)
 
 	tests := []struct {
 		name         string
@@ -36,7 +36,7 @@ func TestProvisioningService_FetchCertificate(t *testing.T) {
 }
 
 func TestProvisioningService_ListCertificates(t *testing.T) {
-	client := initTestClient(t)
+	client := InitTestClient(t)
 
 	tests := []struct {
 		name    string
