@@ -117,7 +117,7 @@ func TestGetValidCertificates(t *testing.T) {
 			want: map[CertificateType][]APICertificate{
 				Development: []APICertificate{{
 					Certificate: devCert,
-					ID:          "dev1",
+					ID:          "devcert",
 				}},
 			},
 			wantErr: false,
@@ -307,10 +307,15 @@ func TestGetValidCertificates(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := GetValidCertificates(tt.args.localCertificates, tt.args.client, tt.args.requiredCertificateTypes, tt.args.typeToName, tt.args.teamID, tt.args.logAllCerts)
+			got, err := GetValidCertificates(tt.args.localCertificates, tt.args.client, tt.args.requiredCertificateTypes, tt.args.typeToName, tt.args.teamID, tt.args.logAllCerts)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetValidCertificates() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+			for certType, wantCerts := range tt.want {
+				if !reflect.DeepEqual(wantCerts, got[certType]) {
+					t.Errorf("GetValidCertificates()[%s] = %v, want %v", certType, got, tt.want)
+				}
 			}
 		})
 	}
