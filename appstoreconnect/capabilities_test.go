@@ -5,7 +5,7 @@ import (
 )
 
 func TestProvisioningService_CapabilitiesOf(t *testing.T) {
-	client := initTestClient(t)
+	client := InitTestClient(t)
 	s := ProvisioningService{
 		client: client,
 	}
@@ -24,7 +24,7 @@ func TestProvisioningService_CapabilitiesOf(t *testing.T) {
 		wantErr  bool
 	}{
 		{
-			name: "",
+			name: "Fetch bundleID capabilitios of com.bitrise.io.testing.firefox",
 			bundleID: BundleID{
 				Relationships: struct {
 					Profiles struct {
