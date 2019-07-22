@@ -68,8 +68,8 @@ func (c *Client) ensureSignedToken() (string, error) {
 	if c.token != nil {
 		claim := c.token.Claims.(claims)
 		expiration := time.Unix(int64(claim.Expiration), 0)
-		// token is marked valid if it will not expire in the upcoming 10 sec
-		if expiration.After(time.Now().Add(10 * time.Second)) {
+		// token is marked valid if it will not expire in the upcoming 60 sec
+		if expiration.After(time.Now().Add(60 * time.Second)) {
 			return c.signedToken, nil
 		}
 	}
@@ -150,7 +150,11 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil {
+			log.Warnf("failed to close response body, error: %s", err)
+		}
+	}()
 
 	if err := checkResponse(resp); err != nil {
 		return resp, err
