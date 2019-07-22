@@ -10,7 +10,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
-// signToken signs the JWT token with the give .p8 private key content
+// signToken signs the JWT token with the given .p8 private key content
 func signToken(token *jwt.Token, privateKeyContent []byte) (string, error) {
 	block, _ := pem.Decode(privateKeyContent)
 	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
