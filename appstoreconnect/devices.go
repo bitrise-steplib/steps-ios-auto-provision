@@ -122,3 +122,19 @@ func (s ProvisioningService) RegisterNewDevice(body DeviceCreateRequest) (*Devic
 
 	return r, nil
 }
+
+// DevicesOf returns the devices of the profile
+// Provide the device link (self) of the profile
+func (s ProvisioningService) DevicesOf(selfLink string) (*DevicesResponse, error) {
+	req, err := s.client.NewRequest(http.MethodGet, selfLink, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	r := &DevicesResponse{}
+	if _, err := s.client.Do(req, r); err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}

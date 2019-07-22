@@ -5,11 +5,23 @@
 
 [[constraint]]
   branch = "master"
+  name = "github.com/bitrise-io/go-steputils"
+
+[[constraint]]
+  branch = "master"
   name = "github.com/bitrise-io/go-utils"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/bitrise-io/go-xcode"
 
 [[constraint]]
   branch = "project-attribute"
   name = "github.com/bitrise-io/xcode-project"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/bitrise-tools/go-steputils"
 
 [[constraint]]
   name = "github.com/dgrijalva/jwt-go"
@@ -20,8 +32,8 @@
   version = "1.0.0"
 
 [[constraint]]
-  branch = "master"
-  name = "howett.net/plist"
+  name = "github.com/hashicorp/go-version"
+  version = "1.2.0"
 
 [prune]
   go-tests = true

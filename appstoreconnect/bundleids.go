@@ -1,6 +1,7 @@
 package appstoreconnect
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 )
@@ -89,6 +90,23 @@ func (s ProvisioningService) ListBundleIDs(opt *ListBundleIDsOptions) (*BundleId
 	}
 
 	return r, err
+}
+
+// FetchBundleID fetch the provided bundle ID from the App Store Connect
+func (s ProvisioningService) FetchBundleID(bundleID string) (BundleID, error) {
+	r, err := s.ListBundleIDs(&ListBundleIDsOptions{
+		FilterIdentifier: bundleID,
+	})
+	if err != nil {
+		return BundleID{}, fmt.Errorf("failed to fetch bundle ID %s from App Store Connect, error :%s", bundleID, err)
+	}
+
+	if len(r.Data) == 0 {
+		return BundleID{}, fmt.Errorf("no bundle ID entity found for %s", bundleID)
+	} else if len(r.Data) == 0 {
+		return BundleID{}, fmt.Errorf("multiple bundle ID entity found for %s . Entyties: %s", bundleID, r.Data)
+	}
+	return r.Data[0], nil
 }
 
 // BundleIDResponse ...

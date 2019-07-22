@@ -3,6 +3,7 @@ package appstoreconnect
 import (
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/bitrise-io/xcode-project/serialized"
 )
@@ -45,6 +46,7 @@ type ProfileType string
 
 // ProfileTypes ...
 const (
+	InvalidProfileType ProfileType = "Invalid"
 	IOSAppDevelopment  ProfileType = "IOS_APP_DEVELOPMENT"
 	IOSAppStore        ProfileType = "IOS_APP_STORE"
 	IOSAppAdHoc        ProfileType = "IOS_APP_ADHOC"
@@ -57,6 +59,40 @@ const (
 	TvOSAppAdHoc       ProfileType = "TVOS_APP_ADHOC"
 	TvOSAppInHouse     ProfileType = "TVOS_APP_INHOUSE"
 )
+
+// ProfileTypeDevelopmentPair returns the distribution profile type developmnet pair.
+// E.g IOSAppStore development pair is IOSAppDevelopment
+func (t ProfileType) ProfileTypeDevelopmentPair() ProfileType {
+	switch t {
+	case IOSAppStore, IOSAppAdHoc, IOSAppInHouse:
+		return IOSAppDevelopment
+	case MacAppStore, MacAppDirect:
+		return MacAppDevelopment
+	case TvOSAppStore, TvOSAppAdHoc, TvOSAppInHouse:
+		return TvOSAppDevelopment
+	case IOSAppDevelopment, MacAppDevelopment, TvOSAppDevelopment:
+		return ""
+	}
+	return ""
+}
+
+// ReadableString returns the readable version of the ProjectType
+// e.g: IOSAppDevelopment => development
+func (t ProfileType) ReadableString() string {
+	switch t {
+	case IOSAppStore, MacAppStore, TvOSAppStore:
+		return "app store"
+	case IOSAppInHouse, TvOSAppInHouse:
+		return "enterprise"
+	case IOSAppAdHoc, TvOSAppAdHoc:
+		return "ad-hoc"
+	case IOSAppDevelopment, MacAppDevelopment, TvOSAppDevelopment:
+		return "development"
+	case MacAppDirect:
+		return "development ID"
+	}
+	return ""
+}
 
 // ProfileAttributes ...
 type ProfileAttributes struct {
@@ -98,6 +134,33 @@ type Profile struct {
 	} `json:"relationships"`
 
 	ID string `json:"id"`
+}
+
+// Xcode Managed profile examples:
+// XC Ad Hoc: *
+// XC: *
+// XC Ad Hoc: { bundle id }
+// XC: { bundle id }
+// iOS Team Provisioning Profile: *
+// iOS Team Ad Hoc Provisioning Profile: *
+// iOS Team Ad Hoc Provisioning Profile: {bundle id}
+// iOS Team Provisioning Profile: {bundle id}
+// tvOS Team Provisioning Profile: *
+// tvOS Team Ad Hoc Provisioning Profile: *
+// tvOS Team Ad Hoc Provisioning Profile: {bundle id}
+// tvOS Team Provisioning Profile: {bundle id}
+// Mac Team Provisioning Profile: *
+// Mac Team Ad Hoc Provisioning Profile: *
+// Mac Team Ad Hoc Provisioning Profile: {bundle id}
+// Mac Team Provisioning Profile: {bundle id}
+func (p Profile) isXcodeManaged() bool {
+	if strings.HasPrefix(p.Attributes.Name, "XC") ||
+		strings.HasPrefix(p.Attributes.Name, "iOS Team") && strings.Contains(p.Attributes.Name, "Provisioning Profile") ||
+		strings.HasPrefix(p.Attributes.Name, "tvOS Team") && strings.Contains(p.Attributes.Name, "Provisioning Profile") ||
+		strings.HasPrefix(p.Attributes.Name, "Mac Team") && strings.Contains(p.Attributes.Name, "Provisioning Profile") {
+		return true
+	}
+	return false
 }
 
 // ProfilesResponse ...
@@ -186,6 +249,54 @@ type ProfileCreateRequest struct {
 	Data ProfileCreateRequestData `json:"data"`
 }
 
+// NewProfileCreateRequest returns a ProfileCreateRequest structure
+func NewProfileCreateRequest(profileType ProfileType, name, bundleID string, certificates []Certificate, devices []Device) ProfileCreateRequest {
+	certificateData := func() (data ProfileCreateRequestDataRelationshipsCertificates) {
+		var certDatas []ProfileCreateRequestDataRelationshipData
+		for _, cert := range certificates {
+			certDatas = append(certDatas, ProfileCreateRequestDataRelationshipData{
+				ID:   cert.ID,
+				Type: "certificates",
+			})
+		}
+		return ProfileCreateRequestDataRelationshipsCertificates{Data: certDatas}
+	}()
+	bundleIDData := ProfileCreateRequestDataRelationshipsBundleID{
+		Data: ProfileCreateRequestDataRelationshipData{
+			ID:   bundleID,
+			Type: "bundleIds",
+		},
+	}
+	deviceData := func() (data ProfileCreateRequestDataRelationshipsDevices) {
+		var deviceDatas []ProfileCreateRequestDataRelationshipData
+		for _, device := range devices {
+			deviceDatas = append(deviceDatas, ProfileCreateRequestDataRelationshipData{
+				ID:   device.ID,
+				Type: "devices",
+			})
+		}
+		return ProfileCreateRequestDataRelationshipsDevices{Data: deviceDatas}
+	}()
+
+	attributes := ProfileCreateRequestDataAttributes{
+		Name:        name,
+		ProfileType: profileType,
+	}
+	relationships := ProfileCreateRequestDataRelationships{
+		BundleID:     bundleIDData,
+		Certificates: certificateData,
+		Devices:      deviceData,
+	}
+
+	data := ProfileCreateRequestData{
+		Attributes:    attributes,
+		Relationships: relationships,
+		Type:          "profiles",
+	}
+
+	return ProfileCreateRequest{Data: data}
+}
+
 // ProfileResponse ...
 type ProfileResponse struct {
 	Data  Profile            `json:"data"`
@@ -195,6 +306,21 @@ type ProfileResponse struct {
 // CreateProfile ...
 func (s ProvisioningService) CreateProfile(body ProfileCreateRequest) (*ProfileResponse, error) {
 	req, err := s.client.NewRequest(http.MethodPost, ProfilesURL, body)
+	if err != nil {
+		return nil, err
+	}
+
+	r := &ProfileResponse{}
+	if _, err := s.client.Do(req, r); err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}
+
+// DeleteProfile ...
+func (s ProvisioningService) DeleteProfile(id string) (*ProfileResponse, error) {
+	req, err := s.client.NewRequest(http.MethodDelete, ProfilesURL+"/"+id, nil)
 	if err != nil {
 		return nil, err
 	}
