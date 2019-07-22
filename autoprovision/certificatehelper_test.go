@@ -402,7 +402,7 @@ func Test_queryCertificateBySerial(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []APICertificate
+		want    APICertificate
 		wantErr bool
 	}{
 		{
@@ -410,14 +410,22 @@ func Test_queryCertificateBySerial(t *testing.T) {
 				client: c,
 				serial: bitriseBotSerial,
 			},
+			want: APICertificate{
+				Certificate: certificateutil.CertificateInfoModel{
+					Serial: bitriseBotSerial.String(),
+				},
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := queryCertificateBySerial(tt.args.client, tt.args.serial)
+			got, err := queryCertificateBySerial(tt.args.client, tt.args.serial)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("queryCertificateBySerial() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+			if !reflect.DeepEqual(got.Certificate.Serial, tt.want.Certificate.Serial) {
+				t.Errorf("queryCertificateBySerial() = %v, want %v", got, tt.want)
 			}
 		})
 	}
