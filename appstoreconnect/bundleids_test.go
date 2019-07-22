@@ -5,7 +5,7 @@ import (
 )
 
 func TestProvisioningService_ListBundleIDs(t *testing.T) {
-	client := initTestClient(t)
+	client := InitTestClient(t)
 
 	tests := []struct {
 		name    string
