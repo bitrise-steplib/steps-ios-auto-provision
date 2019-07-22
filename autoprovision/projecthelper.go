@@ -406,6 +406,10 @@ func (p ProjectHelper) TargetBundleID(name, conf string) (string, error) {
 		return "", fmt.Errorf("failed to parse CFBundleIdentifier from the Info.plist")
 	}
 
+	if !strings.Contains(bundleID, "$") {
+		return bundleID, nil
+	}
+
 	log.Warnf("CFBundleIdentifier defined with variable: %s, trying to resolve it...", bundleID)
 	resolved, err := resolveBundleID(bundleID, settings)
 	if err != nil {
