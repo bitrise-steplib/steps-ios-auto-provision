@@ -3,6 +3,8 @@ package autoprovision
 import (
 	"testing"
 
+	"github.com/bitrise-io/xcode-project/xcodeproj"
+
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
 
@@ -17,55 +19,197 @@ func TestEnsureApp(t *testing.T) {
 		name          string
 		client        *appstoreconnect.Client
 		projectHelper ProjectHelper
+		target        xcodeproj.Target
 		config        string
 		wantErr       bool
 	}{
 		{
-			name:          "Ensure app for " + schemeCases[0] + "with config: " + configCases[0],
+			name:          "Ensure app for Xcode-10_default for config " + configCases[0],
 			client:        appstoreconnect.InitTestClient(t),
 			projectHelper: projHelpCases[0],
-			config:        configCases[0],
-			wantErr:       false,
+			target: func() xcodeproj.Target {
+				for _, t := range projHelpCases[0].Targets {
+					if t.Name == "Xcode-10_default" {
+						return t
+					}
+				}
+				return xcodeproj.Target{}
+			}(),
+			config:  configCases[0],
+			wantErr: false,
 		},
 		{
-			name:          "Ensure app for " + schemeCases[1] + "with config: " + configCases[1],
+			name:          "Ensure app for Xcode-10_defaultTests for config " + configCases[0],
 			client:        appstoreconnect.InitTestClient(t),
-			projectHelper: projHelpCases[1],
-			config:        configCases[1],
-			wantErr:       false,
+			projectHelper: projHelpCases[0],
+			target: func() xcodeproj.Target {
+				for _, t := range projHelpCases[0].Targets {
+					if t.Name == "Xcode-10_defaultTests" {
+						return t
+					}
+				}
+				return xcodeproj.Target{}
+			}(),
+			config:  configCases[0],
+			wantErr: false,
 		},
 		{
-			name:          "Ensure app for " + schemeCases[2] + "with config: " + configCases[2],
+			name:          "Ensure app for Xcode-10_defaultUITests for config " + configCases[0],
 			client:        appstoreconnect.InitTestClient(t),
-			projectHelper: projHelpCases[2],
-			config:        configCases[2],
-			wantErr:       false,
+			projectHelper: projHelpCases[0],
+			target: func() xcodeproj.Target {
+				for _, t := range projHelpCases[0].Targets {
+					if t.Name == "Xcode-10_defaultUITests" {
+						return t
+					}
+				}
+				return xcodeproj.Target{}
+			}(),
+			config:  configCases[0],
+			wantErr: false,
 		},
+
 		{
-			name:          "Ensure app for " + schemeCases[3] + "with config: " + configCases[3],
+			name:          "Ensure app for Xcode-10_default for config " + configCases[1],
 			client:        appstoreconnect.InitTestClient(t),
-			projectHelper: projHelpCases[3],
-			config:        configCases[3],
-			wantErr:       false,
+			projectHelper: projHelpCases[0],
+			target: func() xcodeproj.Target {
+				for _, t := range projHelpCases[0].Targets {
+					if t.Name == "Xcode-10_default" {
+						return t
+					}
+				}
+				return xcodeproj.Target{}
+			}(),
+			config:  configCases[1],
+			wantErr: false,
 		},
 		{
-			name:          "Ensure app for " + schemeCases[4] + "with config: " + configCases[4],
+			name:          "Ensure app for Xcode-10_defaultTests for config " + configCases[1],
+			client:        appstoreconnect.InitTestClient(t),
+			projectHelper: projHelpCases[0],
+			target: func() xcodeproj.Target {
+				for _, t := range projHelpCases[0].Targets {
+					if t.Name == "Xcode-10_defaultTests" {
+						return t
+					}
+				}
+				return xcodeproj.Target{}
+			}(),
+			config:  configCases[1],
+			wantErr: false,
+		},
+		{
+			name:          "Ensure app for Xcode-10_defaultUITests for config " + configCases[1],
+			client:        appstoreconnect.InitTestClient(t),
+			projectHelper: projHelpCases[0],
+			target: func() xcodeproj.Target {
+				for _, t := range projHelpCases[0].Targets {
+					if t.Name == "Xcode-10_defaultUITests" {
+						return t
+					}
+				}
+				return xcodeproj.Target{}
+			}(),
+			config:  configCases[1],
+			wantErr: false,
+		},
+
+		{
+			name:          "Ensure app for TV_OS for config " + configCases[0],
 			client:        appstoreconnect.InitTestClient(t),
 			projectHelper: projHelpCases[4],
-			config:        configCases[4],
-			wantErr:       false,
+			target: func() xcodeproj.Target {
+				for _, t := range projHelpCases[4].Targets {
+					if t.Name == "TV_OS" {
+						return t
+					}
+				}
+				return xcodeproj.Target{}
+			}(),
+			config:  configCases[0],
+			wantErr: false,
 		},
 		{
-			name:          "Ensure app for " + schemeCases[5] + "with config: " + configCases[5],
+			name:          "Ensure app for TV_OSTests for config " + configCases[0],
 			client:        appstoreconnect.InitTestClient(t),
-			projectHelper: projHelpCases[5],
-			config:        configCases[5],
-			wantErr:       false,
+			projectHelper: projHelpCases[4],
+			target: func() xcodeproj.Target {
+				for _, t := range projHelpCases[4].Targets {
+					if t.Name == "TV_OSTests" {
+						return t
+					}
+				}
+				return xcodeproj.Target{}
+			}(),
+			config:  configCases[0],
+			wantErr: false,
+		},
+		{
+			name:          "Ensure app for TV_OSUITests for config " + configCases[0],
+			client:        appstoreconnect.InitTestClient(t),
+			projectHelper: projHelpCases[4],
+			target: func() xcodeproj.Target {
+				for _, t := range projHelpCases[4].Targets {
+					if t.Name == "TV_OSUITests" {
+						return t
+					}
+				}
+				return xcodeproj.Target{}
+			}(),
+			config:  configCases[0],
+			wantErr: false,
+		},
+
+		{
+			name:          "Ensure app for TV_OS for config " + configCases[1],
+			client:        appstoreconnect.InitTestClient(t),
+			projectHelper: projHelpCases[4],
+			target: func() xcodeproj.Target {
+				for _, t := range projHelpCases[4].Targets {
+					if t.Name == "TV_OS" {
+						return t
+					}
+				}
+				return xcodeproj.Target{}
+			}(),
+			config:  configCases[1],
+			wantErr: false,
+		},
+		{
+			name:          "Ensure app for TV_OSTests for config " + configCases[1],
+			client:        appstoreconnect.InitTestClient(t),
+			projectHelper: projHelpCases[4],
+			target: func() xcodeproj.Target {
+				for _, t := range projHelpCases[4].Targets {
+					if t.Name == "TV_OSTests" {
+						return t
+					}
+				}
+				return xcodeproj.Target{}
+			}(),
+			config:  configCases[1],
+			wantErr: false,
+		},
+		{
+			name:          "Ensure app for TV_OSUITests for config " + configCases[1],
+			client:        appstoreconnect.InitTestClient(t),
+			projectHelper: projHelpCases[4],
+			target: func() xcodeproj.Target {
+				for _, t := range projHelpCases[4].Targets {
+					if t.Name == "TV_OSUITests" {
+						return t
+					}
+				}
+				return xcodeproj.Target{}
+			}(),
+			config:  configCases[1],
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if _, err := EnsureApp(tt.client, tt.projectHelper, tt.config); (err != nil) != tt.wantErr {
+			if _, err := EnsureApp(tt.client, tt.projectHelper, tt.target, tt.config); (err != nil) != tt.wantErr {
 				t.Errorf("EnsureApp() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

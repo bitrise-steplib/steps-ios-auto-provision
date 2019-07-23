@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/bitrise-io/xcode-project/xcodeproj"
+
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
@@ -15,9 +17,17 @@ type BundleID struct {
 	// Profiles     []appstoreconnect.Profile
 }
 
-// EnsureApp ...
-func EnsureApp(client *appstoreconnect.Client, projectHelper ProjectHelper, configurationName string) ([]*BundleID, error) {
-	var bundleIDs []*BundleID
+// EnsureApp search for AppID on the developer portal for the provided target's bundleID.
+// If the target is not executable (not app, extension or UITest), then it returns nil
+// If the AppID is available in the developer portal, it will return it
+// If it's not, it will generate a new one with a name of:
+// Bitrise {bundleID} {targetID}. `Example: auto_provision.ios-simple-objc + bc7cd9d1cc241639c4457975fefd920f => Bitrise auto provision ios simple objc bc7cd9d1cc241639c4457975fefd920f`
+func EnsureApp(client *appstoreconnect.Client, projectHelper ProjectHelper, target xcodeproj.Target, configurationName string) (*BundleID, error) {
+	// Check only executable targets which need to be registered on the Dev. Portal
+	if !target.IsExecutableProduct() {
+		return nil, nil
+	}
+
 	platform := func(projectPlatform Platform) appstoreconnect.BundleIDPlatform {
 		switch projectPlatform {
 		case IOS, TVOS:
@@ -29,68 +39,58 @@ func EnsureApp(client *appstoreconnect.Client, projectHelper ProjectHelper, conf
 		}
 	}(projectHelper.Platform)
 
-	for _, t := range projectHelper.Targets {
-		// Check only executable targets which need to be registered on the Dev. Portal
-		if !t.IsExecutableProduct() {
-			continue
-		}
-
-		targetBundleID, err := projectHelper.TargetBundleID(t.Name, configurationName)
-		if err != nil {
-			return nil, fmt.Errorf("failed to find target's (%s) bundleID, error: %s", t.Name, err)
-		}
-		log.Printf("Search for AppID for the %s bundleID", targetBundleID)
-		// Search AppID
-		b, err := fetchBundleID(client, targetBundleID)
-		if err != nil {
-			return nil, err
-		}
-		if b != nil {
-			bundleIDs = append(bundleIDs, b)
-			continue
-		}
-		log.Printf("No AppID was found with bundleID: %s", t.Name)
-
-		// Generate AppID name from the target bundleID and from targetID
-		// auto_provision.ios-simple-objc + bc7cd9d1cc241639c4457975fefd920f => Bitrise auto provision ios simple objc bc7cd9d1cc241639c4457975fefd920f
-		appIDName := appIDNameFrom(targetBundleID, t.ID)
-		log.Printf("Registering AppID: %s with bundle id: %s", appIDName, targetBundleID)
-
-		// No AppID found with the target's bundleID
-		// Register AppID
-		r, err := client.Provisioning.CreateBundleID(
-			appstoreconnect.BundleIDCreateRequest{
-				Data: appstoreconnect.BundleIDCreateRequestData{
-					Attributes: appstoreconnect.BundleIDCreateRequestDataAttributes{
-						Identifier: targetBundleID,
-						Name:       appIDName,
-						Platform:   platform,
-					},
-					Type: "bundleIds",
-				},
-			},
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to register AppID for bundleID %s, error: %s", targetBundleID, err)
-		}
-
-		capabilities, err := fetchBundleIDCapabilities(client, r.Data)
-		if err != nil {
-			return nil, err
-		}
-
-		b = &BundleID{
-			Attributes: appstoreconnect.BundleIDAttributes{
-				Identifier: r.Data.Attributes.Identifier,
-				Name:       r.Data.Attributes.Name,
-				Platform:   r.Data.Attributes.Platform,
-			},
-			Capabilities: capabilities,
-		}
-		bundleIDs = append(bundleIDs, b)
+	targetBundleID, err := projectHelper.TargetBundleID(target.Name, configurationName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find target's (%s) bundleID, error: %s", target.Name, err)
 	}
-	return bundleIDs, nil
+	log.Printf("Search for AppID for the %s bundleID", targetBundleID)
+	// Search AppID
+	b, err := fetchBundleID(client, targetBundleID)
+	if err != nil {
+		return nil, err
+	}
+	if b != nil {
+		return b, nil
+	}
+	log.Warnf("No AppID was found with bundleID: %s", target.Name)
 
+	// Generate AppID name from the target bundleID and from targetID
+	// auto_provision.ios-simple-objc + bc7cd9d1cc241639c4457975fefd920f => Bitrise auto provision ios simple objc bc7cd9d1cc241639c4457975fefd920f
+	appIDName := appIDNameFrom(targetBundleID, target.ID)
+	log.Printf("Registering AppID: %s with bundle id: %s", appIDName, targetBundleID)
+
+	// No AppID found with the target's bundleID
+	// Register AppID
+	r, err := client.Provisioning.CreateBundleID(
+		appstoreconnect.BundleIDCreateRequest{
+			Data: appstoreconnect.BundleIDCreateRequestData{
+				Attributes: appstoreconnect.BundleIDCreateRequestDataAttributes{
+					Identifier: targetBundleID,
+					Name:       appIDName,
+					Platform:   platform,
+				},
+				Type: "bundleIds",
+			},
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to register AppID for bundleID %s, error: %s", targetBundleID, err)
+	}
+
+	capabilities, err := fetchBundleIDCapabilities(client, r.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	b = &BundleID{
+		Attributes: appstoreconnect.BundleIDAttributes{
+			Identifier: r.Data.Attributes.Identifier,
+			Name:       r.Data.Attributes.Name,
+			Platform:   r.Data.Attributes.Platform,
+		},
+		Capabilities: capabilities,
+	}
+	return b, nil
 }
 
 func appIDNameFrom(bundleID, targetID string) string {
