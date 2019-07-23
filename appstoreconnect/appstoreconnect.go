@@ -3,6 +3,7 @@ package appstoreconnect
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -66,7 +67,10 @@ func NewClient(keyID, issuerID string, privateKey []byte) (*Client, error) {
 // and return a signed key
 func (c *Client) ensureSignedToken() (string, error) {
 	if c.token != nil {
-		claim := c.token.Claims.(claims)
+		claim, ok := c.token.Claims.(claims)
+		if !ok {
+			return "", fmt.Errorf("failed to cast claim for token")
+		}
 		expiration := time.Unix(int64(claim.Expiration), 0)
 		// token is marked valid if it will not expire in the upcoming 60 sec
 		if expiration.After(time.Now().Add(60 * time.Second)) {
@@ -152,7 +156,7 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	}
 	defer func() {
 		if cerr := resp.Body.Close(); cerr != nil {
-			log.Warnf("failed to close response body, error: %s", err)
+			log.Warnf("failed to close response body, error: %s", cerr)
 		}
 	}()
 

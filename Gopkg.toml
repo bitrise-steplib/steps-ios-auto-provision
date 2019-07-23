@@ -35,6 +35,10 @@
   name = "github.com/hashicorp/go-version"
   version = "1.2.0"
 
+[[constraint]]
+  branch = "master"
+  name = "howett.net/plist"
+
 [prune]
   go-tests = true
   unused-packages = true

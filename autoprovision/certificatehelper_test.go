@@ -117,7 +117,7 @@ func TestGetValidCertificates(t *testing.T) {
 			want: map[CertificateType][]APICertificate{
 				Development: []APICertificate{{
 					Certificate: devCert,
-					ID:          "dev1",
+					ID:          "devcert",
 				}},
 			},
 			wantErr: false,
@@ -402,13 +402,18 @@ func Test_queryCertificateBySerial(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []APICertificate
+		want    APICertificate
 		wantErr bool
 	}{
 		{
 			args: args{
 				client: c,
 				serial: bitriseBotSerial,
+			},
+			want: APICertificate{
+				Certificate: certificateutil.CertificateInfoModel{
+					Serial: bitriseBotSerial.String(),
+				},
 			},
 		},
 	}
@@ -419,7 +424,7 @@ func Test_queryCertificateBySerial(t *testing.T) {
 				t.Errorf("queryCertificateBySerial() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
+			if !reflect.DeepEqual(got.Certificate.Serial, tt.want.Certificate.Serial) {
 				t.Errorf("queryCertificateBySerial() = %v, want %v", got, tt.want)
 			}
 		})
@@ -437,7 +442,6 @@ func Test_queryAllIOSCertificates(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    map[CertificateType][]APICertificate
 		wantErr bool
 	}{
 		{
@@ -448,13 +452,10 @@ func Test_queryAllIOSCertificates(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := queryAllIOSCertificates(tt.args.client)
+			_, err := queryAllIOSCertificates(tt.args.client)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("queryAllIOSCertificates() error = %v, wantErr %v", err, tt.wantErr)
 				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("queryAllIOSCertificates() = %v, want %v", got, tt.want)
 			}
 		})
 	}

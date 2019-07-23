@@ -34,6 +34,7 @@ workflows:
   test:
     before_run:
     - audit-this-step
+    - gotests
     steps:
     - script:
         title: bundle install
