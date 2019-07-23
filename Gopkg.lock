@@ -2,12 +2,12 @@
 
 
 [[projects]]
-  branch = "master"
   digest = "1:c0b39ecb4571b7c447a7de369bdba8e8233874015854ae9418814735102f0804"
   name = "github.com/bitrise-io/bitrise-add-new-project"
   packages = ["httputil"]
   pruneopts = "UT"
-  revision = "46b5958a8e474ca85897b7f19c2b637ef216dccd"
+  revision = "443debb90a5ff488fcdc9e32d9b6b24dfbec7f49"
+  version = "0.2.1"
 
 [[projects]]
   branch = "master"
@@ -15,11 +15,11 @@
   name = "github.com/bitrise-io/go-steputils"
   packages = ["stepconf"]
   pruneopts = "UT"
-  revision = "cecc766da84859e37e780d9d1c416f0f3993e6b1"
+  revision = "7c9aaee1af9593773b253b04dbcefbb1f527f184"
 
 [[projects]]
   branch = "master"
-  digest = "1:87f89895f8f8547fab5af31ced5fc67bb09b6c3588d584113bd276941e4ece6f"
+  digest = "1:20ccbc96328b3c0a5b4dbeead4882e322fbee4b48b4ba709e1ecc11a5e848654"
   name = "github.com/bitrise-io/go-utils"
   packages = [
     "colorstring",
@@ -36,7 +36,7 @@
     "sliceutil",
   ]
   pruneopts = "UT"
-  revision = "5dfd5a5f1271cffb2bc0b1cf4c3815139da8175a"
+  revision = "cb35044c1bab53fdbfa1e6ea3b56478c25275c9c"
 
 [[projects]]
   branch = "master"
@@ -44,7 +44,7 @@
   name = "github.com/bitrise-io/go-xcode"
   packages = ["certificateutil"]
   pruneopts = "UT"
-  revision = "58833faa79ba5098a2056e6cf60f5b59cd22167d"
+  revision = "07ccf582b6b1afa2c33e133447a3e22c811ffd90"
 
 [[projects]]
   branch = "project-attribute"
@@ -66,7 +66,7 @@
   name = "github.com/bitrise-tools/go-steputils"
   packages = ["stepconf"]
   pruneopts = "UT"
-  revision = "cecc766da84859e37e780d9d1c416f0f3993e6b1"
+  revision = "7c9aaee1af9593773b253b04dbcefbb1f527f184"
 
 [[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
