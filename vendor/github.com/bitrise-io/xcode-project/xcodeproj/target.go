@@ -73,7 +73,15 @@ func (t Target) IsAppExtensionProduct() bool {
 
 // IsExecutableProduct ...
 func (t Target) IsExecutableProduct() bool {
-	return t.IsAppProduct() || t.IsAppExtensionProduct()
+	return t.IsAppProduct() || t.IsAppExtensionProduct() || t.isUITestProduct()
+}
+
+func (t Target) isTestProduct() bool {
+	return filepath.Ext(t.ProductType) == ".unit-test"
+}
+
+func (t Target) isUITestProduct() bool {
+	return filepath.Ext(t.ProductType) == ".ui-testing"
 }
 
 func parseTarget(id string, objects serialized.Object) (Target, error) {

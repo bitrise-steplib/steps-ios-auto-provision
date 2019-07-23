@@ -30,9 +30,11 @@ func EnsureApp(client *appstoreconnect.Client, projectHelper ProjectHelper, conf
 	}(projectHelper.Platform)
 
 	for _, t := range projectHelper.Targets {
+		// Check only executable targets which need to be registered on the Dev. Portal
 		if !t.IsExecutableProduct() {
 			continue
 		}
+
 		targetBundleID, err := projectHelper.TargetBundleID(t.Name, configurationName)
 		if err != nil {
 			return nil, fmt.Errorf("failed to find target's (%s) bundleID, error: %s", t.Name, err)
@@ -47,12 +49,12 @@ func EnsureApp(client *appstoreconnect.Client, projectHelper ProjectHelper, conf
 			bundleIDs = append(bundleIDs, b)
 			continue
 		}
-		log.Printf("No AppID was found for bundleID: %s", t.Name)
+		log.Printf("No AppID was found with bundleID: %s", t.Name)
 
-		replacer := strings.NewReplacer(".", " ", "_", " ", "-", " ")
-		appIDName := fmt.Sprintf("Bitrise %s %s", replacer.Replace(targetBundleID), t.ID)
-		log.Warnf("appIDName: %s", appIDName)
-		log.Printf("registering AppID: %s with bundle id: %s", appIDName, targetBundleID)
+		// Generate AppID name from the target bundleID and from targetID
+		// auto_provision.ios-simple-objc + bc7cd9d1cc241639c4457975fefd920f => Bitrise auto provision ios simple objc bc7cd9d1cc241639c4457975fefd920f
+		appIDName := appIDNameFrom(targetBundleID, t.ID)
+		log.Printf("Registering AppID: %s with bundle id: %s", appIDName, targetBundleID)
 
 		// No AppID found with the target's bundleID
 		// Register AppID
@@ -89,6 +91,11 @@ func EnsureApp(client *appstoreconnect.Client, projectHelper ProjectHelper, conf
 	}
 	return bundleIDs, nil
 
+}
+
+func appIDNameFrom(bundleID, targetID string) string {
+	replacer := strings.NewReplacer(".", " ", "_", " ", "-", " ")
+	return fmt.Sprintf("Bitrise %s %s", replacer.Replace(bundleID), targetID)
 }
 
 func fetchBundleID(client *appstoreconnect.Client, bundleIDIdentifier string) (*BundleID, error) {

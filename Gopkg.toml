@@ -16,7 +16,7 @@
   name = "github.com/bitrise-io/go-xcode"
 
 [[constraint]]
-  branch = "project-attribute"
+  branch = "uitest"
   name = "github.com/bitrise-io/xcode-project"
 
 [[constraint]]
