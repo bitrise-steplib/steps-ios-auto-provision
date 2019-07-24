@@ -38,6 +38,46 @@ const (
 	AccessWIFIInformation          CapabilityType = "ACCESS_WIFI_INFORMATION"
 )
 
+// ServiceNameByKey ...
+var ServiceNameByKey = map[string]string{
+	"com.apple.security.application-groups":               "App Groups",
+	"com.apple.developer.in-app-payments":                 "Apple Pay",
+	"com.apple.developer.associated-domains":              "Associated Domains",
+	"com.apple.developer.healthkit":                       "HealthKit",
+	"com.apple.developer.homekit":                         "HomeKit",
+	"com.apple.developer.networking.HotspotConfiguration": "Hotspot",
+	"com.apple.InAppPurchase":                             "In-App Purchase",
+	"inter-app-audio":                                     "Inter-App Audio",
+	"com.apple.developer.networking.multipath":            "Multipath",
+	"com.apple.developer.networking.networkextension":     "Network Extensions",
+	"com.apple.developer.nfc.readersession.formats":       "NFC Tag Reading",
+	"com.apple.developer.networking.vpn.api":              "Personal VPN",
+	"aps-environment":                                     "Push Notifications",
+	"com.apple.developer.siri":                            "SiriKit",
+	"com.apple.developer.pass-type-identifiers":           "Wallet",
+	"com.apple.external-accessory.wireless-configuration": "Wireless Accessory Configuration",
+}
+
+// ServiceTypeByKey ...
+var ServiceTypeByKey = map[string]CapabilityType{
+	"com.apple.security.application-groups":               AppGroups,
+	"com.apple.developer.in-app-payments":                 ApplePay,
+	"com.apple.developer.associated-domains":              AssociatedDomains,
+	"com.apple.developer.healthkit":                       Healthkit,
+	"com.apple.developer.homekit":                         Homekit,
+	"com.apple.developer.networking.HotspotConfiguration": HotSpot,
+	"com.apple.InAppPurchase":                             InAppPurchase,
+	"inter-app-audio":                                     InterAppAudio,
+	"com.apple.developer.networking.multipath":            Multipath,
+	"com.apple.developer.networking.networkextension":     NetworkExtensions,
+	"com.apple.developer.nfc.readersession.formats":       NFCTagReading,
+	"com.apple.developer.networking.vpn.api":              PersonalVPN,
+	"aps-environment":                                     PushNotifications,
+	"com.apple.developer.siri":                            Sirikit,
+	"com.apple.developer.pass-type-identifiers":           Wallet,
+	"com.apple.external-accessory.wireless-configuration": WirelessAccessoryConfiguration,
+}
+
 // CapabilitySettingAllowedInstances ...
 type CapabilitySettingAllowedInstances string
 
@@ -71,25 +111,28 @@ const (
 
 // CapabilityOption ...
 type CapabilityOption struct {
-	Description      string              `json:"description"`
-	Enabled          bool                `json:"enabled"`
-	EnabledByDefault bool                `json:"enabledByDefault"`
-	Key              CapabilityOptionKey `json:"key"`
-	Name             string              `json:"name"`
-	SupportsWildcard bool                `json:"supportsWildcard"`
+	Description      string              `json:"description,omitempty"`
+	Enabled          bool                `json:"enabled,omitempty"`
+	EnabledByDefault bool                `json:"enabledByDefault,omitempty"`
+	Key              CapabilityOptionKey `json:"key,omitempty"`
+	Name             string              `json:"name,omitempty"`
+	SupportsWildcard bool                `json:"supportsWildcard,omitempty"`
 }
 
 // CapabilitySetting ...
 type CapabilitySetting struct {
-	AllowedInstances CapabilitySettingAllowedInstances `json:"allowedInstances"`
-	Description      string                            `json:"description"`
-	EnabledByDefault bool                              `json:"enabledByDefault"`
-	Key              CapabilitySettingKey              `json:"key"`
-	Name             string                            `json:"name"`
-	Options          []CapabilityOption                `json:"options"`
-	Visible          bool                              `json:"visible"`
-	MinInstances     int                               `json:"minInstances"`
+	AllowedInstances CapabilitySettingAllowedInstances `json:"allowedInstances,omitempty"`
+	Description      string                            `json:"description,omitempty"`
+	EnabledByDefault bool                              `json:"enabledByDefault,omitempty"`
+	Key              CapabilitySettingKey              `json:"key,omitempty"`
+	Name             string                            `json:"name,omitempty"`
+	Options          []CapabilityOption                `json:"options,omitempty"`
+	Visible          bool                              `json:"visible,omitempty"`
+	MinInstances     int                               `json:"minInstances,omitempty"`
 }
+
+//
+// BundleIDCapabilityCreateRequest
 
 // BundleIDCapabilityCreateRequestDataAttributes ...
 type BundleIDCapabilityCreateRequestDataAttributes struct {
@@ -99,6 +142,18 @@ type BundleIDCapabilityCreateRequestDataAttributes struct {
 
 // BundleIDCapabilityCreateRequestDataRelationships ...
 type BundleIDCapabilityCreateRequestDataRelationships struct {
+	BundleID BundleIDCapabilityCreateRequestDataRelationshipsBundleID `json:"bundleId"`
+}
+
+// BundleIDCapabilityCreateRequestDataRelationshipsBundleID ...
+type BundleIDCapabilityCreateRequestDataRelationshipsBundleID struct {
+	Data BundleIDCapabilityCreateRequestDataRelationshipsBundleIDData `json:"data"`
+}
+
+// BundleIDCapabilityCreateRequestDataRelationshipsBundleIDData ...
+type BundleIDCapabilityCreateRequestDataRelationshipsBundleIDData struct {
+	ID   string `json:"id"`
+	Type string `json:"type"`
 }
 
 // BundleIDCapabilityCreateRequestData ...
@@ -113,6 +168,27 @@ type BundleIDCapabilityCreateRequest struct {
 	Data BundleIDCapabilityCreateRequestData `json:"data"`
 }
 
+//
+// BundleIDCapabilityUpdateRequest
+
+// BundleIDCapabilityUpdateRequestDataAttributes ...
+type BundleIDCapabilityUpdateRequestDataAttributes struct {
+	CapabilityType CapabilityType      `json:"capabilityType"`
+	Settings       []CapabilitySetting `json:"settings"`
+}
+
+// BundleIDCapabilityUpdateRequestData ...
+type BundleIDCapabilityUpdateRequestData struct {
+	Attributes BundleIDCapabilityUpdateRequestDataAttributes `json:"attributes"`
+	ID         string                                        `json:"id"`
+	Type       string                                        `json:"type"`
+}
+
+// BundleIDCapabilityUpdateRequest ...
+type BundleIDCapabilityUpdateRequest struct {
+	Data BundleIDCapabilityUpdateRequestData `json:"data"`
+}
+
 // BundleIDCapability ...
 type BundleIDCapability struct {
 	Attributes struct {
@@ -125,6 +201,11 @@ type BundleIDCapability struct {
 
 // BundleIDCapabilityResponse ...
 type BundleIDCapabilityResponse struct {
+	Data BundleIDCapability `json:"data"`
+}
+
+// BundleIDCapabilitesResponse ...
+type BundleIDCapabilitesResponse struct {
 	Data []BundleIDCapability `json:"data"`
 }
 
@@ -143,15 +224,30 @@ func (s ProvisioningService) EnableCapability(body BundleIDCapabilityCreateReque
 	return r, nil
 }
 
+// UpdateCapability ...
+func (s ProvisioningService) UpdateCapability(id string, body BundleIDCapabilityUpdateRequest) (*BundleIDCapabilityResponse, error) {
+	req, err := s.client.NewRequest(http.MethodPatch, BundleIDCapabilitiesURL+"/"+id, body)
+	if err != nil {
+		return nil, err
+	}
+
+	r := &BundleIDCapabilityResponse{}
+	if _, err := s.client.Do(req, r); err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}
+
 // CapabilitiesOf ...
-func (s ProvisioningService) CapabilitiesOf(bundleID BundleID) (*BundleIDCapabilityResponse, error) {
+func (s ProvisioningService) CapabilitiesOf(bundleID BundleID) (*BundleIDCapabilitesResponse, error) {
 	capabilityURL := strings.TrimLeft(bundleID.Relationships.Capabilities.Links.Related, baseURL+"v1")
 	req, err := s.client.NewRequest(http.MethodGet, capabilityURL, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	r := &BundleIDCapabilityResponse{}
+	r := &BundleIDCapabilitesResponse{}
 	if _, err := s.client.Do(req, r); err != nil {
 		return nil, err
 	}

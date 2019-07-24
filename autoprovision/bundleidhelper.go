@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/bitrise-io/xcode-project/serialized"
+
 	"github.com/bitrise-io/xcode-project/xcodeproj"
 
 	"github.com/bitrise-io/go-utils/log"
@@ -15,6 +17,7 @@ type BundleID struct {
 	Attributes   appstoreconnect.BundleIDAttributes
 	Capabilities []appstoreconnect.BundleIDCapability
 	// Profiles     []appstoreconnect.Profile
+	ID string
 }
 
 // EnsureApp search for AppID on the developer portal for the provided target's bundleID.
@@ -89,6 +92,7 @@ func EnsureApp(client *appstoreconnect.Client, projectHelper ProjectHelper, targ
 			Platform:   r.Data.Attributes.Platform,
 		},
 		Capabilities: capabilities,
+		ID:           b.ID,
 	}
 	return b, nil
 }
@@ -127,6 +131,7 @@ func fetchBundleID(client *appstoreconnect.Client, bundleIDIdentifier string) (*
 					Platform:   r.Data[i].Attributes.Platform,
 				},
 				Capabilities: capabilities,
+				ID:           r.Data[i].ID,
 			}
 			break
 		}
@@ -148,14 +153,66 @@ func fetchBundleIDCapabilities(client *appstoreconnect.Client, bundleID appstore
 	return bundleIDCapabilities, nil
 }
 
-func syncAppServices() {
-	// targetEntitlements, err := projectHelper.targetEntitlements(t.Name, configurationName)
-	// if err != nil && !serialized.IsKeyNotFoundError(err) {
-	// 	return fmt.Errorf("failed to get target's  (%s), entitlement list, error: %s", t.Name, err)
-	// }
+// syncAppServices compares the target's capabilities one-by-one with the AppID's capability list on the developer portal,
+// If the capability is not ethen enables it.
+func syncAppServices(client *appstoreconnect.Client, projectHelper ProjectHelper, target xcodeproj.Target, configurationName string, bundleID BundleID) error {
+	targetEntitlements, err := projectHelper.targetEntitlements(target.Name, configurationName)
+	if err != nil && !serialized.IsKeyNotFoundError(err) {
+		return fmt.Errorf("failed to get target's  (%s), entitlement list, error: %s", target.Name, err)
+	}
 
-	// // fmt.Printf("Target: %s entitlements: %v", t.Name, targetEntitlements)
-	// for _, targetEnt := range targetEntitlements {
+OUTER:
+	for targetEntKey := range targetEntitlements {
+		for _, bundleIDCap := range bundleID.Capabilities {
+			log.Printf("bundleIDCap: %+v", bundleIDCap)
+			if string(bundleIDCap.Attributes.CapabilityType) == string(appstoreconnect.ServiceTypeByKey[targetEntKey]) {
+				log.Printf("Capability %s, is already enabled", string(appstoreconnect.ServiceTypeByKey[targetEntKey]))
+				continue OUTER // Capability enabled, go to the end of the "parent" for loop
+			}
+		}
 
-	// }
+		// Enable capability
+		log.Warnf("Capability %s is not enabled", string(appstoreconnect.ServiceTypeByKey[targetEntKey]))
+		log.Printf("Enabling capability")
+		if err := enableAppService(client, appstoreconnect.ServiceTypeByKey[targetEntKey], bundleID); err != nil {
+			return fmt.Errorf("failed to enable capability %v for target: %s, error: %s", appstoreconnect.ServiceTypeByKey[targetEntKey], target.Name, err)
+		}
+		log.Donef("Capability enabled")
+	}
+	return nil
+}
+
+func enableAppService(client *appstoreconnect.Client, capabilityType appstoreconnect.CapabilityType, bundleID BundleID) error {
+	_, err := client.Provisioning.EnableCapability(appstoreconnect.BundleIDCapabilityCreateRequest{
+		Data: appstoreconnect.BundleIDCapabilityCreateRequestData{
+			Attributes: appstoreconnect.BundleIDCapabilityCreateRequestDataAttributes{
+				CapabilityType: capabilityType,
+				Settings:       nil,
+			},
+			Relationships: appstoreconnect.BundleIDCapabilityCreateRequestDataRelationships{
+				BundleID: appstoreconnect.BundleIDCapabilityCreateRequestDataRelationshipsBundleID{
+					Data: appstoreconnect.BundleIDCapabilityCreateRequestDataRelationshipsBundleIDData{
+						ID:   bundleID.ID,
+						Type: "bundleIds",
+					},
+				},
+			},
+			Type: "bundleIdCapabilities",
+		},
+	})
+	return err
+}
+
+func updateAppService(client *appstoreconnect.Client, capabilityID string, capabilityType appstoreconnect.CapabilityType, capabilitySettings []appstoreconnect.CapabilitySetting) error {
+	_, err := client.Provisioning.UpdateCapability(capabilityID, appstoreconnect.BundleIDCapabilityUpdateRequest{
+		Data: appstoreconnect.BundleIDCapabilityUpdateRequestData{
+			Attributes: appstoreconnect.BundleIDCapabilityUpdateRequestDataAttributes{
+				CapabilityType: capabilityType,
+				Settings:       capabilitySettings,
+			},
+			Type: "bundleIdCapabilities",
+			ID:   capabilityID,
+		},
+	})
+	return err
 }
