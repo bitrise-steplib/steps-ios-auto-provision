@@ -3,6 +3,7 @@ package autoprovision
 import (
 	"testing"
 
+	"github.com/bitrise-io/xcode-project/xcodeproj"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
 
@@ -273,48 +274,48 @@ import (
 // 	}
 // }
 
-// func Test_syncAppServices(t *testing.T) {
-// 	var err error
-// 	schemeCases, targetCases, xcProjCases, projHelpCases, configCases, err = initTestCases()
-// 	if err != nil {
-// 		t.Fatalf("failed to generate test cases, error: %s", err)
-// 	}
-// 	client := appstoreconnect.InitTestClient(t)
+func Test_syncAppServices(t *testing.T) {
+	var err error
+	schemeCases, targetCases, xcProjCases, projHelpCases, configCases, err = initTestCases()
+	if err != nil {
+		t.Fatalf("failed to generate test cases, error: %s", err)
+	}
+	client := appstoreconnect.InitTestClient(t)
 
-// 	tests := []struct {
-// 		name              string
-// 		projectHelper     ProjectHelper
-// 		target            xcodeproj.Target
-// 		configurationName string
-// 		bundleID          BundleID
-// 		wantErr           bool
-// 	}{
-// 		{
-// 			projectHelper:     projHelpCases[0],
-// 			target:            projHelpCases[0].MainTarget,
-// 			configurationName: "Debug",
-// 			bundleID: func() BundleID {
-// 				targetBundleID, err := projHelpCases[0].TargetBundleID(projHelpCases[0].MainTarget.Name, "Debug")
-// 				if err != nil {
-// 					t.Fatalf("failed to get target bundle ID for test")
-// 				}
-// 				bundleID, err := fetchBundleID(client, targetBundleID)
-// 				if err != nil {
-// 					t.Fatalf("failed to fetch bundleID from Dev Portal for %s", targetBundleID)
-// 				}
-// 				return *bundleID
-// 			}(),
-// 			wantErr: false,
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			if err := syncAppServices(client, tt.projectHelper, tt.target, tt.configurationName, tt.bundleID); (err != nil) != tt.wantErr {
-// 				t.Errorf("syncAppServices() error = %v, wantErr %v", err, tt.wantErr)
-// 			}
-// 		})
-// 	}
-// }
+	tests := []struct {
+		name              string
+		projectHelper     ProjectHelper
+		target            xcodeproj.Target
+		configurationName string
+		bundleID          BundleID
+		wantErr           bool
+	}{
+		{
+			projectHelper:     projHelpCases[0],
+			target:            projHelpCases[0].MainTarget,
+			configurationName: "Debug",
+			bundleID: func() BundleID {
+				targetBundleID, err := projHelpCases[0].TargetBundleID(projHelpCases[0].MainTarget.Name, "Debug")
+				if err != nil {
+					t.Fatalf("failed to get target bundle ID for test")
+				}
+				bundleID, err := fetchBundleID(client, targetBundleID)
+				if err != nil {
+					t.Fatalf("failed to fetch bundleID from Dev Portal for %s", targetBundleID)
+				}
+				return *bundleID
+			}(),
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := syncAppServices(client, tt.projectHelper, tt.target, tt.configurationName, tt.bundleID); (err != nil) != tt.wantErr {
+				t.Errorf("syncAppServices() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
 
 func Test_updateAppService(t *testing.T) {
 	tests := []struct {
@@ -335,6 +336,42 @@ func Test_updateAppService(t *testing.T) {
 					Options: []appstoreconnect.CapabilityOption{
 						appstoreconnect.CapabilityOption{
 							Key: appstoreconnect.CompleteProtection,
+						},
+					},
+					Key: appstoreconnect.DataProtectionPermissionLevel,
+				},
+			},
+			wantErr: false,
+		},
+
+		{
+			name:           "Data protection - Unless_open for 25Z8895ZJC (com.bitrise.Xcode-10-default)",
+			client:         appstoreconnect.InitTestClient(t),
+			capabilityID:   "25Z8895ZJC_DATA_PROTECTION",
+			capabilityType: appstoreconnect.DataProtection,
+			capabilitySettings: []appstoreconnect.CapabilitySetting{
+				appstoreconnect.CapabilitySetting{
+					Options: []appstoreconnect.CapabilityOption{
+						appstoreconnect.CapabilityOption{
+							Key: appstoreconnect.ProtectedUnlessOpen,
+						},
+					},
+					Key: appstoreconnect.DataProtectionPermissionLevel,
+				},
+			},
+			wantErr: false,
+		},
+
+		{
+			name:           "Data protection - until_first_auth for 25Z8895ZJC (com.bitrise.Xcode-10-default)",
+			client:         appstoreconnect.InitTestClient(t),
+			capabilityID:   "25Z8895ZJC_DATA_PROTECTION",
+			capabilityType: appstoreconnect.DataProtection,
+			capabilitySettings: []appstoreconnect.CapabilitySetting{
+				appstoreconnect.CapabilitySetting{
+					Options: []appstoreconnect.CapabilityOption{
+						appstoreconnect.CapabilityOption{
+							Key: appstoreconnect.ProtectedUntilFirstUserAuth,
 						},
 					},
 					Key: appstoreconnect.DataProtectionPermissionLevel,

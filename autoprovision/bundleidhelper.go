@@ -161,23 +161,35 @@ func syncAppServices(client *appstoreconnect.Client, projectHelper ProjectHelper
 		return fmt.Errorf("failed to get target's  (%s), entitlement list, error: %s", target.Name, err)
 	}
 
-OUTER:
 	for targetEntKey := range targetEntitlements {
+		var capabilityEnabled bool
 		for _, bundleIDCap := range bundleID.Capabilities {
-			log.Printf("bundleIDCap: %+v", bundleIDCap)
 			if string(bundleIDCap.Attributes.CapabilityType) == string(appstoreconnect.ServiceTypeByKey[targetEntKey]) {
 				log.Printf("Capability %s, is already enabled", string(appstoreconnect.ServiceTypeByKey[targetEntKey]))
-				continue OUTER // Capability enabled, go to the end of the "parent" for loop
+				capabilityEnabled = true
 			}
 		}
 
 		// Enable capability
-		log.Warnf("Capability %s is not enabled", string(appstoreconnect.ServiceTypeByKey[targetEntKey]))
-		log.Printf("Enabling capability")
-		if err := enableAppService(client, appstoreconnect.ServiceTypeByKey[targetEntKey], bundleID); err != nil {
-			return fmt.Errorf("failed to enable capability %v for target: %s, error: %s", appstoreconnect.ServiceTypeByKey[targetEntKey], target.Name, err)
+		if !capabilityEnabled {
+			log.Warnf("Capability %s is not enabled", string(appstoreconnect.ServiceTypeByKey[targetEntKey]))
+			log.Printf("Enabling capability")
+			if err := enableAppService(client, appstoreconnect.ServiceTypeByKey[targetEntKey], bundleID); err != nil {
+				return fmt.Errorf("failed to enable capability %v for target: %s, error: %s", appstoreconnect.ServiceTypeByKey[targetEntKey], target.Name, err)
+			}
+			log.Donef("Capability enabled")
 		}
-		log.Donef("Capability enabled")
+	}
+
+	//
+	// Check Data Protection & iCloud
+	for targetEntKey, targetEntValue := range targetEntitlements {
+		switch appstoreconnect.ServiceTypeByKey[targetEntKey] {
+		case appstoreconnect.DataProtection:
+			if err := updateDataProtection(client, bundleID, targetEntValue.(string)); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
@@ -215,4 +227,66 @@ func updateAppService(client *appstoreconnect.Client, capabilityID string, capab
 		},
 	})
 	return err
+}
+
+func updateDataProtection(client *appstoreconnect.Client, bundleID BundleID, targetProtectionValue string) error {
+	protectionCapabilityValue, protectionCapabilityID := func() (appstoreconnect.CapabilityOptionKey, string) {
+		for _, bundleIDCap := range bundleID.Capabilities {
+			if bundleIDCap.Attributes.CapabilityType == appstoreconnect.DataProtection {
+				for _, settings := range bundleIDCap.Attributes.Settings {
+					if settings.Key == appstoreconnect.DataProtectionPermissionLevel {
+						return settings.Options[0].Key, bundleIDCap.ID
+					}
+				}
+			}
+		}
+		return "", ""
+	}()
+
+	switch targetProtectionValue {
+	case "NSFileProtectionComplete":
+		if protectionCapabilityValue == appstoreconnect.CompleteProtection {
+			log.Printf("Data Protection: complete already set")
+		} else {
+			log.Successf("set Data Protection: complete")
+			if err := updateDataProtectionLVL(client, protectionCapabilityID, appstoreconnect.CompleteProtection); err != nil {
+				return fmt.Errorf("failed to update Data Protection Cabability, error: %s", err)
+			}
+		}
+	case "NSFileProtectionCompleteUnlessOpen":
+		if protectionCapabilityValue == appstoreconnect.ProtectedUnlessOpen {
+			log.Printf("Data Protection: unless_open already set")
+		} else {
+			log.Successf("set Data Protection: unless_open")
+			if err := updateDataProtectionLVL(client, protectionCapabilityID, appstoreconnect.ProtectedUnlessOpen); err != nil {
+				return fmt.Errorf("failed to update Data Protection Cabability, error: %s", err)
+			}
+		}
+	case "NSFileProtectionCompleteUntilFirstUserAuthentication":
+		if protectionCapabilityValue == appstoreconnect.ProtectedUntilFirstUserAuth {
+			log.Printf("Data Protection: until_first_auth already set")
+		} else {
+			log.Successf("set Data Protection: until_first_auth")
+			if err := updateDataProtectionLVL(client, protectionCapabilityID, appstoreconnect.ProtectedUntilFirstUserAuth); err != nil {
+				return fmt.Errorf("failed to update Data Protection Cabability, error: %s", err)
+			}
+			// 		}
+			// 	}
+		}
+	}
+
+	return nil
+}
+
+func updateDataProtectionLVL(client *appstoreconnect.Client, capabilityID string, protectionLVL appstoreconnect.CapabilityOptionKey) error {
+	if protectionLVL != appstoreconnect.CompleteProtection && protectionLVL != appstoreconnect.ProtectedUnlessOpen && protectionLVL != appstoreconnect.ProtectedUntilFirstUserAuth {
+		return fmt.Errorf("the provided app protection level is invalid: %s. Valid app protection levels: %s", protectionLVL, strings.Join([]string{string(appstoreconnect.CompleteProtection), string(appstoreconnect.ProtectedUnlessOpen), string(appstoreconnect.ProtectedUntilFirstUserAuth)}, ", "))
+	}
+
+	capabilitySettingOption := appstoreconnect.CapabilityOption{Key: protectionLVL}
+	capabilitySetting := appstoreconnect.CapabilitySetting{
+		Options: []appstoreconnect.CapabilityOption{capabilitySettingOption},
+		Key:     appstoreconnect.DataProtectionPermissionLevel,
+	}
+	return updateAppService(client, capabilityID, appstoreconnect.DataProtection, []appstoreconnect.CapabilitySetting{capabilitySetting})
 }

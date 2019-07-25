@@ -613,6 +613,7 @@ func TestProjectHelper_targetEntitlements(t *testing.T) {
 			want: func() serialized.Object {
 				m := make(map[string]interface{})
 				m["com.apple.developer.siri"] = true
+				m["com.apple.developer.default-data-protection"] = "NSFileProtectionComplete"
 				return m
 			}(),
 			wantErr: false,
@@ -624,6 +625,7 @@ func TestProjectHelper_targetEntitlements(t *testing.T) {
 			want: func() serialized.Object {
 				m := make(map[string]interface{})
 				m["com.apple.developer.siri"] = true
+				m["com.apple.developer.default-data-protection"] = "NSFileProtectionComplete"
 				return m
 			}(),
 			wantErr: false,
