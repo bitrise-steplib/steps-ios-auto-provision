@@ -600,40 +600,18 @@ func TestProjectHelper_targetEntitlements(t *testing.T) {
 	}
 
 	tests := []struct {
-		name       string
-		targetName string
-		conf       string
-		want       serialized.Object
-		wantErr    bool
+		name          string
+		targetName    string
+		conf          string
+		want          serialized.Object
+		projectHelper ProjectHelper
+		wantErr       bool
 	}{
 		{
-			name:       targetCases[0] + " Debug",
-			targetName: targetCases[0],
-			conf:       configCases[0],
-			want: func() serialized.Object {
-				m := make(map[string]interface{})
-				m["com.apple.developer.siri"] = true
-				m["com.apple.developer.default-data-protection"] = "NSFileProtectionComplete"
-				return m
-			}(),
-			wantErr: false,
-		},
-		{
-			name:       targetCases[1] + " Release",
-			targetName: targetCases[1],
-			conf:       configCases[1],
-			want: func() serialized.Object {
-				m := make(map[string]interface{})
-				m["com.apple.developer.siri"] = true
-				m["com.apple.developer.default-data-protection"] = "NSFileProtectionComplete"
-				return m
-			}(),
-			wantErr: false,
-		},
-		{
-			name:       targetCases[2] + " Release",
-			targetName: targetCases[2],
-			conf:       configCases[2],
+			name:          targetCases[2] + " Release",
+			targetName:    targetCases[2],
+			conf:          configCases[2],
+			projectHelper: projHelpCases[2],
 			want: func() serialized.Object {
 				m := make(map[string]interface{})
 				m["com.apple.security.app-sandbox"] = true
@@ -643,9 +621,10 @@ func TestProjectHelper_targetEntitlements(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:       targetCases[3] + " Release",
-			targetName: targetCases[3],
-			conf:       configCases[3],
+			name:          targetCases[3] + " Release",
+			targetName:    targetCases[3],
+			conf:          configCases[3],
+			projectHelper: projHelpCases[3],
 			want: func() serialized.Object {
 				m := make(map[string]interface{})
 				m["com.apple.security.app-sandbox"] = true
@@ -655,25 +634,25 @@ func TestProjectHelper_targetEntitlements(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:       targetCases[4] + " Release",
-			targetName: targetCases[4],
-			conf:       configCases[4],
-			want:       nil,
-			wantErr:    false,
+			name:          targetCases[4] + " Release",
+			targetName:    targetCases[4],
+			conf:          configCases[4],
+			projectHelper: projHelpCases[4],
+			want:          nil,
+			wantErr:       false,
 		},
 		{
-			name:       targetCases[5] + " Release",
-			targetName: targetCases[5],
-			conf:       configCases[5],
-			want:       nil,
-			wantErr:    false,
+			name:          targetCases[5] + " Release",
+			targetName:    targetCases[5],
+			conf:          configCases[5],
+			projectHelper: projHelpCases[5],
+			want:          nil,
+			wantErr:       false,
 		},
 	}
-	for i, tt := range tests {
+	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := projHelpCases[i]
-
-			got, err := p.targetEntitlements(tt.targetName, tt.conf)
+			got, err := tt.projectHelper.targetEntitlements(tt.targetName, tt.conf)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ProjectHelper.targetEntitlements() error = %v, wantErr %v", err, tt.wantErr)
 				return

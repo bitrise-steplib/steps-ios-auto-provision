@@ -13,7 +13,7 @@ type CapabilityType string
 
 // CapabilityTypes ...
 const (
-	Icloud                         CapabilityType = "ICLOUD"
+	ICloud                         CapabilityType = "ICLOUD"
 	InAppPurchase                  CapabilityType = "IN_APP_PURCHASE"
 	GameCenter                     CapabilityType = "GAME_CENTER"
 	PushNotifications              CapabilityType = "PUSH_NOTIFICATIONS"
@@ -76,7 +76,6 @@ var ServiceTypeByKey = map[string]CapabilityType{
 	"com.apple.developer.siri":                            Sirikit,
 	"com.apple.developer.pass-type-identifiers":           Wallet,
 	"com.apple.external-accessory.wireless-configuration": WirelessAccessoryConfiguration,
-	"com.apple.developer.default-data-protection":         DataProtection,
 }
 
 // CapabilitySettingAllowedInstances ...
@@ -236,7 +235,6 @@ func (s ProvisioningService) UpdateCapability(id string, body BundleIDCapability
 	if _, err := s.client.Do(req, r); err != nil {
 		return nil, err
 	}
-
 	return r, nil
 }
 

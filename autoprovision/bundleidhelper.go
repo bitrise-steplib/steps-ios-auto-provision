@@ -9,6 +9,7 @@ import (
 	"github.com/bitrise-io/xcode-project/xcodeproj"
 
 	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-io/go-utils/sliceutil"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
 
@@ -171,10 +172,11 @@ func syncAppServices(client *appstoreconnect.Client, projectHelper ProjectHelper
 		}
 
 		// Enable capability
-		if !capabilityEnabled {
+		if !capabilityEnabled && string(appstoreconnect.ServiceTypeByKey[targetEntKey]) != "" {
 			log.Warnf("Capability %s is not enabled", string(appstoreconnect.ServiceTypeByKey[targetEntKey]))
 			log.Printf("Enabling capability")
-			if err := enableAppService(client, appstoreconnect.ServiceTypeByKey[targetEntKey], bundleID); err != nil {
+
+			if err := enableAppService(client, appstoreconnect.ServiceTypeByKey[targetEntKey], bundleID, nil); err != nil {
 				return fmt.Errorf("failed to enable capability %v for target: %s, error: %s", appstoreconnect.ServiceTypeByKey[targetEntKey], target.Name, err)
 			}
 			log.Donef("Capability enabled")
@@ -182,24 +184,63 @@ func syncAppServices(client *appstoreconnect.Client, projectHelper ProjectHelper
 	}
 
 	//
-	// Check Data Protection & iCloud
-	for targetEntKey, targetEntValue := range targetEntitlements {
-		switch appstoreconnect.ServiceTypeByKey[targetEntKey] {
-		case appstoreconnect.DataProtection:
-			if err := updateDataProtection(client, bundleID, targetEntValue.(string)); err != nil {
-				return err
-			}
+	// Data Protection
+	if targetDataProtectionValue, err := targetEntitlements.String("com.apple.developer.default-data-protection"); err != nil && !serialized.IsKeyNotFoundError(err) {
+		return fmt.Errorf("failed to get target's data procetion entitlement, error: %s", err)
+	} else if targetDataProtectionValue != "" {
+		if err := updateDataProtection(client, bundleID, targetDataProtectionValue); err != nil {
+			return err
+		}
+	}
+
+	//
+	// iCloud
+	usesICloudDocuments, usesICloudKit, usesICloudKeyValueStorage, err := usesICloudServices(targetEntitlements)
+	if err != nil {
+		return fmt.Errorf("failed to check if iCloud capability is enabled for bundleID: %s, error: %s", bundleID.Attributes.Identifier, err)
+	}
+
+	if usesICloudKeyValueStorage || usesICloudDocuments || usesICloudKit {
+		if err := updateICloud(client, bundleID, string(appstoreconnect.Xcode6)); err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
-func enableAppService(client *appstoreconnect.Client, capabilityType appstoreconnect.CapabilityType, bundleID BundleID) error {
+func usesICloudServices(targetEntitlements serialized.Object) (usesICloudDocuments, usesICloudKit, usesICloudKeyValueStorage bool, ferr error) {
+	var err error
+	usesICloudKeyValueStorage, err = func() (bool, error) {
+		iCloudKeyValueStorage, err := targetEntitlements.String("com.apple.developer.ubiquity-kvstore-identifier")
+		if err != nil {
+			return false, err
+		}
+		return iCloudKeyValueStorage != "", nil
+	}()
+	if err != nil && !serialized.IsKeyNotFoundError(err) {
+		ferr = fmt.Errorf("failed to get target's iCLoud key value storage entitlement, error: %s", err)
+		return
+	}
+
+	iCloudServices, err := targetEntitlements.StringSlice("com.apple.developer.icloud-services")
+	if err != nil && !serialized.IsKeyNotFoundError(err) {
+		ferr = fmt.Errorf("failed to get target's iCLoud services entitlement, error: %s", err)
+		return
+	}
+
+	if len(iCloudServices) > 0 {
+		usesICloudDocuments = sliceutil.IsStringInSlice("CloudDocuments", iCloudServices)
+		usesICloudKit = sliceutil.IsStringInSlice("CloudKit", iCloudServices)
+	}
+	return
+}
+
+func enableAppService(client *appstoreconnect.Client, capabilityType appstoreconnect.CapabilityType, bundleID BundleID, settings []appstoreconnect.CapabilitySetting) error {
 	_, err := client.Provisioning.EnableCapability(appstoreconnect.BundleIDCapabilityCreateRequest{
 		Data: appstoreconnect.BundleIDCapabilityCreateRequestData{
 			Attributes: appstoreconnect.BundleIDCapabilityCreateRequestDataAttributes{
 				CapabilityType: capabilityType,
-				Settings:       nil,
+				Settings:       settings,
 			},
 			Relationships: appstoreconnect.BundleIDCapabilityCreateRequestDataRelationships{
 				BundleID: appstoreconnect.BundleIDCapabilityCreateRequestDataRelationshipsBundleID{
@@ -229,6 +270,53 @@ func updateAppService(client *appstoreconnect.Client, capabilityID string, capab
 	return err
 }
 
+func updateICloud(client *appstoreconnect.Client, bundleID BundleID, targetICloudVersion string) error {
+	iCLoudVersion, iCloudCapabilityID := func() (appstoreconnect.CapabilityOptionKey, string) {
+		for _, bundleIDCap := range bundleID.Capabilities {
+			if bundleIDCap.Attributes.CapabilityType == appstoreconnect.ICloud {
+				for _, settings := range bundleIDCap.Attributes.Settings {
+					if settings.Key == appstoreconnect.IcloudVersion {
+						return settings.Options[0].Key, bundleIDCap.ID
+					}
+				}
+			}
+		}
+		return "", ""
+	}()
+
+	if iCloudCapabilityID == "" {
+		log.Successf("Set iCloud: on")
+
+		capabilitySettingOption := appstoreconnect.CapabilityOption{Key: appstoreconnect.Xcode6}
+		capabilitySetting := appstoreconnect.CapabilitySetting{
+			Options: []appstoreconnect.CapabilityOption{capabilitySettingOption},
+			Key:     appstoreconnect.IcloudVersion,
+		}
+		return enableAppService(client, appstoreconnect.ICloud, bundleID, []appstoreconnect.CapabilitySetting{capabilitySetting})
+	}
+
+	log.Printf("iCloud: already set")
+	if iCLoudVersion == appstoreconnect.Xcode6 {
+		log.Printf("CloudKit: already set")
+	} else {
+		log.Successf("Set CloudKit: on")
+		if err := updateICloudVersion(client, iCloudCapabilityID, appstoreconnect.Xcode6); err != nil {
+			return fmt.Errorf("failed to update iCloud version, error: %s", err)
+		}
+	}
+
+	return nil
+}
+
+func updateICloudVersion(client *appstoreconnect.Client, capabilityID string, xcodeVersion appstoreconnect.CapabilityOptionKey) error {
+	capabilitySettingOption := appstoreconnect.CapabilityOption{Key: xcodeVersion}
+	capabilitySetting := appstoreconnect.CapabilitySetting{
+		Options: []appstoreconnect.CapabilityOption{capabilitySettingOption},
+		Key:     appstoreconnect.IcloudVersion,
+	}
+	return updateAppService(client, capabilityID, appstoreconnect.ICloud, []appstoreconnect.CapabilitySetting{capabilitySetting})
+}
+
 func updateDataProtection(client *appstoreconnect.Client, bundleID BundleID, targetProtectionValue string) error {
 	protectionCapabilityValue, protectionCapabilityID := func() (appstoreconnect.CapabilityOptionKey, string) {
 		for _, bundleIDCap := range bundleID.Capabilities {
@@ -248,7 +336,7 @@ func updateDataProtection(client *appstoreconnect.Client, bundleID BundleID, tar
 		if protectionCapabilityValue == appstoreconnect.CompleteProtection {
 			log.Printf("Data Protection: complete already set")
 		} else {
-			log.Successf("set Data Protection: complete")
+			log.Successf("Set Data Protection: complete")
 			if err := updateDataProtectionLVL(client, protectionCapabilityID, appstoreconnect.CompleteProtection); err != nil {
 				return fmt.Errorf("failed to update Data Protection Cabability, error: %s", err)
 			}
@@ -257,7 +345,7 @@ func updateDataProtection(client *appstoreconnect.Client, bundleID BundleID, tar
 		if protectionCapabilityValue == appstoreconnect.ProtectedUnlessOpen {
 			log.Printf("Data Protection: unless_open already set")
 		} else {
-			log.Successf("set Data Protection: unless_open")
+			log.Successf("Set Data Protection: unless_open")
 			if err := updateDataProtectionLVL(client, protectionCapabilityID, appstoreconnect.ProtectedUnlessOpen); err != nil {
 				return fmt.Errorf("failed to update Data Protection Cabability, error: %s", err)
 			}
@@ -266,15 +354,12 @@ func updateDataProtection(client *appstoreconnect.Client, bundleID BundleID, tar
 		if protectionCapabilityValue == appstoreconnect.ProtectedUntilFirstUserAuth {
 			log.Printf("Data Protection: until_first_auth already set")
 		} else {
-			log.Successf("set Data Protection: until_first_auth")
+			log.Successf("Set Data Protection: until_first_auth")
 			if err := updateDataProtectionLVL(client, protectionCapabilityID, appstoreconnect.ProtectedUntilFirstUserAuth); err != nil {
 				return fmt.Errorf("failed to update Data Protection Cabability, error: %s", err)
 			}
-			// 		}
-			// 	}
 		}
 	}
-
 	return nil
 }
 
