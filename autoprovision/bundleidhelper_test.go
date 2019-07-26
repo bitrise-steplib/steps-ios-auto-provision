@@ -379,6 +379,40 @@ func Test_updateAppService(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name:           "iCloud - xcode_5 for 25Z8895ZJC (com.bitrise.Xcode-10-default)",
+			client:         appstoreconnect.InitTestClient(t),
+			capabilityID:   "25Z8895ZJC_ICLOUD",
+			capabilityType: appstoreconnect.ICloud,
+			capabilitySettings: []appstoreconnect.CapabilitySetting{
+				appstoreconnect.CapabilitySetting{
+					Options: []appstoreconnect.CapabilityOption{
+						appstoreconnect.CapabilityOption{
+							Key: appstoreconnect.Xcode5,
+						},
+					},
+					Key: appstoreconnect.IcloudVersion,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:           "iCloud - xcode_6 for 25Z8895ZJC (com.bitrise.Xcode-10-default)",
+			client:         appstoreconnect.InitTestClient(t),
+			capabilityID:   "25Z8895ZJC_ICLOUD",
+			capabilityType: appstoreconnect.ICloud,
+			capabilitySettings: []appstoreconnect.CapabilitySetting{
+				appstoreconnect.CapabilitySetting{
+					Options: []appstoreconnect.CapabilityOption{
+						appstoreconnect.CapabilityOption{
+							Key: appstoreconnect.Xcode6,
+						},
+					},
+					Key: appstoreconnect.IcloudVersion,
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
