@@ -1,5 +1,9 @@
 
 [[constraint]]
+  name = "github.com/bitrise-io/bitrise-add-new-project"
+  version = "0.2.1"
+
+[[constraint]]
   branch = "master"
   name = "github.com/bitrise-io/go-steputils"
 
@@ -12,7 +16,7 @@
   name = "github.com/bitrise-io/go-xcode"
 
 [[constraint]]
-  branch = "project-attribute"
+  branch = "master"
   name = "github.com/bitrise-io/xcode-project"
 
 [[constraint]]
