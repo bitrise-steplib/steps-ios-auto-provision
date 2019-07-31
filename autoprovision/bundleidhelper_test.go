@@ -3,7 +3,7 @@ package autoprovision
 import (
 	"testing"
 
-	"github.com/bitrise-io/xcode-project/xcodeproj"
+	"github.com/bitrise-io/xcode-project/serialized"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
 
@@ -15,200 +15,62 @@ func TestEnsureApp(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
-		client        *appstoreconnect.Client
-		projectHelper ProjectHelper
-		target        xcodeproj.Target
-		config        string
-		wantErr       bool
+		name     string
+		client   *appstoreconnect.Client
+		platform Platform
+		bundleID string
+		wantErr  bool
 	}{
 		{
-			name:          "Ensure app for Xcode-10_default for config " + configCases[0],
-			client:        appstoreconnect.InitTestClient(t),
-			projectHelper: projHelpCases[0],
-			target: func() xcodeproj.Target {
-				for _, t := range projHelpCases[0].Targets {
-					if t.Name == "Xcode-10_default" {
-						return t
-					}
-				}
-				return xcodeproj.Target{}
-			}(),
-			config:  configCases[0],
-			wantErr: false,
+			name:     "Ensure app for Xcode-10_default for config " + configCases[0],
+			client:   appstoreconnect.InitTestClient(t),
+			platform: Platform("iOS"),
+			bundleID: "com.bitrise.Xcode-10-default",
+			wantErr:  false,
 		},
 		{
-			name:          "Ensure app for Xcode-10_defaultTests for config " + configCases[0],
-			client:        appstoreconnect.InitTestClient(t),
-			projectHelper: projHelpCases[0],
-			target: func() xcodeproj.Target {
-				for _, t := range projHelpCases[0].Targets {
-					if t.Name == "Xcode-10_defaultTests" {
-						return t
-					}
-				}
-				return xcodeproj.Target{}
-			}(),
-			config:  configCases[0],
-			wantErr: false,
+
+			name:     "Ensure app for Xcode-10_defaultTests for config " + configCases[0],
+			client:   appstoreconnect.InitTestClient(t),
+			platform: Platform("iOS"),
+			bundleID: "com.bitrise.Xcode-10-defaultTests",
+			wantErr:  false,
 		},
 		{
-			name:          "Ensure app for Xcode-10_defaultUITests for config " + configCases[0],
-			client:        appstoreconnect.InitTestClient(t),
-			projectHelper: projHelpCases[0],
-			target: func() xcodeproj.Target {
-				for _, t := range projHelpCases[0].Targets {
-					if t.Name == "Xcode-10_defaultUITests" {
-						return t
-					}
-				}
-				return xcodeproj.Target{}
-			}(),
-			config:  configCases[0],
-			wantErr: false,
+			name:     "Ensure app for Xcode-10_defaultUITests for config " + configCases[0],
+			client:   appstoreconnect.InitTestClient(t),
+			platform: Platform("iOS"),
+			bundleID: "com.bitrise.Xcode-10-defaultUITests",
+			wantErr:  false,
 		},
 
 		{
-			name:          "Ensure app for Xcode-10_default for config " + configCases[1],
-			client:        appstoreconnect.InitTestClient(t),
-			projectHelper: projHelpCases[0],
-			target: func() xcodeproj.Target {
-				for _, t := range projHelpCases[0].Targets {
-					if t.Name == "Xcode-10_default" {
-						return t
-					}
-				}
-				return xcodeproj.Target{}
-			}(),
-			config:  configCases[1],
-			wantErr: false,
-		},
-		{
-			name:          "Ensure app for Xcode-10_defaultTests for config " + configCases[1],
-			client:        appstoreconnect.InitTestClient(t),
-			projectHelper: projHelpCases[0],
-			target: func() xcodeproj.Target {
-				for _, t := range projHelpCases[0].Targets {
-					if t.Name == "Xcode-10_defaultTests" {
-						return t
-					}
-				}
-				return xcodeproj.Target{}
-			}(),
-			config:  configCases[1],
-			wantErr: false,
-		},
-		{
-			name:          "Ensure app for Xcode-10_defaultUITests for config " + configCases[1],
-			client:        appstoreconnect.InitTestClient(t),
-			projectHelper: projHelpCases[0],
-			target: func() xcodeproj.Target {
-				for _, t := range projHelpCases[0].Targets {
-					if t.Name == "Xcode-10_defaultUITests" {
-						return t
-					}
-				}
-				return xcodeproj.Target{}
-			}(),
-			config:  configCases[1],
-			wantErr: false,
-		},
 
-		{
-			name:          "Ensure app for TV_OS for config " + configCases[0],
-			client:        appstoreconnect.InitTestClient(t),
-			projectHelper: projHelpCases[4],
-			target: func() xcodeproj.Target {
-				for _, t := range projHelpCases[4].Targets {
-					if t.Name == "TV_OS" {
-						return t
-					}
-				}
-				return xcodeproj.Target{}
-			}(),
-			config:  configCases[0],
-			wantErr: false,
+			name:     "Ensure app for TV_OS for config " + configCases[0],
+			client:   appstoreconnect.InitTestClient(t),
+			platform: Platform("tvOS"),
+			bundleID: "com.bitrise.TV-OS",
+			wantErr:  false,
 		},
 		{
-			name:          "Ensure app for TV_OSTests for config " + configCases[0],
-			client:        appstoreconnect.InitTestClient(t),
-			projectHelper: projHelpCases[4],
-			target: func() xcodeproj.Target {
-				for _, t := range projHelpCases[4].Targets {
-					if t.Name == "TV_OSTests" {
-						return t
-					}
-				}
-				return xcodeproj.Target{}
-			}(),
-			config:  configCases[0],
-			wantErr: false,
-		},
-		{
-			name:          "Ensure app for TV_OSUITests for config " + configCases[0],
-			client:        appstoreconnect.InitTestClient(t),
-			projectHelper: projHelpCases[4],
-			target: func() xcodeproj.Target {
-				for _, t := range projHelpCases[4].Targets {
-					if t.Name == "TV_OSUITests" {
-						return t
-					}
-				}
-				return xcodeproj.Target{}
-			}(),
-			config:  configCases[0],
-			wantErr: false,
-		},
 
-		{
-			name:          "Ensure app for TV_OS for config " + configCases[1],
-			client:        appstoreconnect.InitTestClient(t),
-			projectHelper: projHelpCases[4],
-			target: func() xcodeproj.Target {
-				for _, t := range projHelpCases[4].Targets {
-					if t.Name == "TV_OS" {
-						return t
-					}
-				}
-				return xcodeproj.Target{}
-			}(),
-			config:  configCases[1],
-			wantErr: false,
+			name:     "Ensure app for TV_OSTests for config " + configCases[0],
+			client:   appstoreconnect.InitTestClient(t),
+			platform: Platform("tvOS"),
+			bundleID: "com.bitrise.TV-OSTests",
+			wantErr:  false,
 		},
 		{
-			name:          "Ensure app for TV_OSTests for config " + configCases[1],
-			client:        appstoreconnect.InitTestClient(t),
-			projectHelper: projHelpCases[4],
-			target: func() xcodeproj.Target {
-				for _, t := range projHelpCases[4].Targets {
-					if t.Name == "TV_OSTests" {
-						return t
-					}
-				}
-				return xcodeproj.Target{}
-			}(),
-			config:  configCases[1],
-			wantErr: false,
-		},
-		{
-			name:          "Ensure app for TV_OSUITests for config " + configCases[1],
-			client:        appstoreconnect.InitTestClient(t),
-			projectHelper: projHelpCases[4],
-			target: func() xcodeproj.Target {
-				for _, t := range projHelpCases[4].Targets {
-					if t.Name == "TV_OSUITests" {
-						return t
-					}
-				}
-				return xcodeproj.Target{}
-			}(),
-			config:  configCases[1],
-			wantErr: false,
+			name:     "Ensure app for TV_OSUITests for config " + configCases[0],
+			client:   appstoreconnect.InitTestClient(t),
+			platform: Platform("tvOS"),
+			bundleID: "com.bitrise.TV-OSUITests",
+			wantErr:  false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if _, err := EnsureApp(tt.client, tt.projectHelper, tt.target, tt.config); (err != nil) != tt.wantErr {
+			if _, err := EnsureApp(tt.client, tt.platform, tt.bundleID); (err != nil) != tt.wantErr {
 				t.Errorf("EnsureApp() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -245,29 +107,26 @@ func Test_fetchBundleID(t *testing.T) {
 	}
 }
 
-func Test_appIDNameFrom(t *testing.T) {
+func Test_appIDName(t *testing.T) {
 	tests := []struct {
 		name     string
 		bundleID string
-		targetID string
 		want     string
 	}{
 		{
 			name:     "Generate AppID name for bundleID without (-,_)",
 			bundleID: "com.bitrise.TV.OSUITests",
-			targetID: "1B11981D2164AF70001D927B",
-			want:     "Bitrise com bitrise TV OSUITests 1B11981D2164AF70001D927B",
+			want:     "Bitrise com bitrise TV OSUITests",
 		},
 		{
 			name:     "Generate AppID name for bundleID with (-,_)",
 			bundleID: "auto_provision.ios-simple-objc",
-			targetID: "bc7cd9d1cc241639c4457975fefd920f",
-			want:     "Bitrise auto provision ios simple objc bc7cd9d1cc241639c4457975fefd920f",
+			want:     "Bitrise auto provision ios simple objc",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := appIDNameFrom(tt.bundleID, tt.targetID); got != tt.want {
+			if got := appIDName(tt.bundleID); got != tt.want {
 				t.Errorf("appIDNameFrom() = %v, want %v", got, tt.want)
 			}
 		})
@@ -283,34 +142,40 @@ func Test_syncAppServices(t *testing.T) {
 	client := appstoreconnect.InitTestClient(t)
 
 	tests := []struct {
-		name              string
-		projectHelper     ProjectHelper
-		target            xcodeproj.Target
-		configurationName string
-		bundleID          BundleID
-		wantErr           bool
+		name         string
+		entitlement  serialized.Object
+		bundleID     string
+		capabilities []appstoreconnect.BundleIDCapability
+		wantErr      bool
 	}{
 		{
-			projectHelper:     projHelpCases[0],
-			target:            projHelpCases[0].MainTarget,
-			configurationName: "Debug",
-			bundleID: func() BundleID {
-				targetBundleID, err := projHelpCases[0].TargetBundleID(projHelpCases[0].MainTarget.Name, "Debug")
+			entitlement: serialized.Object(map[string]interface{}{
+				"aps-environment": "development",
+				"com.apple.developer.default-data-protection": "NSFileProtectionComplete",
+				"com.apple.developer.icloud-container-identifiers": []interface{}{
+					"iCloud.com.bitrise.Xcode-10-default",
+				},
+				"com.apple.developer.icloud-services": []interface{}{
+					"CloudKit", "CloudDocuments",
+				},
+				"com.apple.developer.siri":                           true,
+				"com.apple.developer.ubiquity-container-identifiers": []interface{}{"iCloud.com.bitrise.Xcode-10-default"},
+				"com.apple.developer.ubiquity-kvstore-identifier":    "com.bitrise.Xcode-10-default",
+			}),
+			bundleID: "com.bitrise.Xcode-10-default",
+			capabilities: func() []appstoreconnect.BundleIDCapability {
+				bundleID, err := fetchBundleID(client, "com.bitrise.Xcode-10-default")
 				if err != nil {
-					t.Fatalf("failed to get target bundle ID for test")
+					t.Fatalf("failed to fetch bundleID from Dev Portal for %s", "com.bitrise.Xcode-10-default")
 				}
-				bundleID, err := fetchBundleID(client, targetBundleID)
-				if err != nil {
-					t.Fatalf("failed to fetch bundleID from Dev Portal for %s", targetBundleID)
-				}
-				return *bundleID
+				return bundleID.Capabilities
 			}(),
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := syncAppServices(client, tt.projectHelper, tt.target, tt.configurationName, tt.bundleID); (err != nil) != tt.wantErr {
+			if err := syncAppServices(client, tt.entitlement, tt.bundleID, tt.capabilities); (err != nil) != tt.wantErr {
 				t.Errorf("syncAppServices() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

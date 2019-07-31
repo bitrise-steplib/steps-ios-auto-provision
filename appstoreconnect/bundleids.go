@@ -33,25 +33,27 @@ type BundleIDAttributes struct {
 	Platform   string `json:"platform"`
 }
 
+// BundleIDRelationships ...
+type BundleIDRelationships struct {
+	Profiles struct {
+		Links struct {
+			Related string `json:"related"`
+			Self    string `json:"next"`
+		} `json:"links"`
+	} `json:"profiles"`
+
+	Capabilities struct {
+		Links struct {
+			Related string `json:"related"`
+			Self    string `json:"next"`
+		} `json:"links"`
+	} `json:"bundleIdCapabilities"`
+}
+
 // BundleID ...
 type BundleID struct {
-	Attributes BundleIDAttributes `json:"attributes"`
-
-	Relationships struct {
-		Profiles struct {
-			Links struct {
-				Related string `json:"related"`
-				Self    string `json:"next"`
-			} `json:"links"`
-		} `json:"profiles"`
-
-		Capabilities struct {
-			Links struct {
-				Related string `json:"related"`
-				Self    string `json:"next"`
-			} `json:"links"`
-		} `json:"bundleIdCapabilities"`
-	} `json:"relationships"`
+	Attributes    BundleIDAttributes    `json:"attributes"`
+	Relationships BundleIDRelationships `json:"relationships"`
 
 	ID   string `json:"id"`
 	Type string `json:"type"`

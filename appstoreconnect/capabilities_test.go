@@ -24,21 +24,7 @@ func TestProvisioningService_CapabilitiesOf(t *testing.T) {
 		{
 			name: "Fetch bundleID capabilitios of com.bitrise.io.testing.firefox",
 			bundleID: BundleID{
-				Relationships: struct {
-					Profiles struct {
-						Links struct {
-							Related string `json:"related"`
-							Self    string `json:"next"`
-						} `json:"links"`
-					} `json:"profiles"`
-
-					Capabilities struct {
-						Links struct {
-							Related string `json:"related"`
-							Self    string `json:"next"`
-						} `json:"links"`
-					} `json:"bundleIdCapabilities"`
-				}{
+				Relationships: BundleIDRelationships{
 					Capabilities: struct {
 						Links struct {
 							Related string `json:"related"`

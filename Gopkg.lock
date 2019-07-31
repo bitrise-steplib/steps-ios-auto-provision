@@ -36,7 +36,7 @@
     "sliceutil",
   ]
   pruneopts = "UT"
-  revision = "cb35044c1bab53fdbfa1e6ea3b56478c25275c9c"
+  revision = "fcff02f7bce9d2e56a989e6a78f4f4d12f9b516c"
 
 [[projects]]
   branch = "master"
@@ -47,8 +47,8 @@
   revision = "07ccf582b6b1afa2c33e133447a3e22c811ffd90"
 
 [[projects]]
-  branch = "uitest"
-  digest = "1:3467cbdd15d0bca387d2300f81fde6186d1900d58912c7ca3ace33a318f7e2f4"
+  branch = "master"
+  digest = "1:c84e9cd188af2be939290d6860acb099d582729a0ff60e6e4b0f1f97b0d290bd"
   name = "github.com/bitrise-io/xcode-project"
   packages = [
     "serialized",
@@ -58,7 +58,7 @@
     "xcworkspace",
   ]
   pruneopts = "UT"
-  revision = "99fb5c3bc71eb01c6deb15ef0e5e2b6fb8f69b3e"
+  revision = "22f5faeb65f6ab795230d678bec8160686ab848b"
 
 [[projects]]
   branch = "master"

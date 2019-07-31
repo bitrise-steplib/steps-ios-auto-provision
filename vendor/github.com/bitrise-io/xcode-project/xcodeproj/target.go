@@ -44,17 +44,17 @@ func (t Target) DependentTargets() []Target {
 }
 
 // DependentExecutableProductTargets ...
-func (t Target) DependentExecutableProductTargets() []Target {
+func (t Target) DependentExecutableProductTargets(includeUITest bool) []Target {
 	var targets []Target
 	for _, targetDependency := range t.Dependencies {
 		childTarget := targetDependency.Target
-		if !childTarget.IsExecutableProduct() {
+		if !childTarget.IsExecutableProduct() && (!includeUITest || !childTarget.IsUITestProduct()) {
 			continue
 		}
 
 		targets = append(targets, childTarget)
 
-		childDependentTargets := childTarget.DependentExecutableProductTargets()
+		childDependentTargets := childTarget.DependentExecutableProductTargets(includeUITest)
 		targets = append(targets, childDependentTargets...)
 	}
 
@@ -73,14 +73,16 @@ func (t Target) IsAppExtensionProduct() bool {
 
 // IsExecutableProduct ...
 func (t Target) IsExecutableProduct() bool {
-	return t.IsAppProduct() || t.IsAppExtensionProduct() || t.isUITestProduct()
+	return t.IsAppProduct() || t.IsAppExtensionProduct()
 }
 
-func (t Target) isTestProduct() bool {
+// IsTestProduct ...
+func (t Target) IsTestProduct() bool {
 	return filepath.Ext(t.ProductType) == ".unit-test"
 }
 
-func (t Target) isUITestProduct() bool {
+// IsUITestProduct ...
+func (t Target) IsUITestProduct() bool {
 	return filepath.Ext(t.ProductType) == ".ui-testing"
 }
 

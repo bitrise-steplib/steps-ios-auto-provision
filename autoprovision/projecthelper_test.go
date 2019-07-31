@@ -336,13 +336,13 @@ func TestProjectHelper_ProjectCodeSignIdentity(t *testing.T) {
 		{
 			name:    schemeCases[4] + " Debug",
 			config:  configCases[4],
-			want:    "iPhone Developer",
+			want:    "Apple Development",
 			wantErr: false,
 		},
 		{
 			name:    schemeCases[5] + " Release",
 			config:  configCases[5],
-			want:    "iPhone Developer",
+			want:    "Apple Development",
 			wantErr: false,
 		},
 	}
