@@ -40,7 +40,7 @@ func profileName(profileType appstoreconnect.ProfileType, bundleID string) (stri
 // For profile generation provide the devices to register to the developer / ad-hoc profile (devices registered on bitrise)
 // and the certificates (development and distribution) which need to be included in the profiles
 func EnsureProfiles(client *appstoreconnect.Client, profileType appstoreconnect.ProfileType, bundleID string,
-	capabilityIDs []string, devices []appstoreconnect.Device, certificates []appstoreconnect.Certificate, isXcodeManaged, generateProfiles bool) ([]Profile, error) {
+	capabilityIDs []string, devices []appstoreconnect.Device, certificates []appstoreconnect.Certificate) ([]Profile, error) {
 	var profiles []Profile
 
 	profileTypes := []appstoreconnect.ProfileType{profileType}
@@ -57,52 +57,14 @@ func EnsureProfiles(client *appstoreconnect.Client, profileType appstoreconnect.
 			return s
 		}(), ","))
 
-	if isXcodeManaged && generateProfiles {
-		log.Warnf("Project uses Xcode managed signing, but generate_profiles set to true, trying to generate Provisioning Profiles")
-
-		var err error
-		for _, profType := range profileTypes {
-			var p []Profile
-			p, err = ensureManualProfiles(client, profType, bundleID, certificates, devices)
-			if err != nil {
-				break
-			}
-			profiles = append(profiles, p...)
-		}
-
-		// The manual profile generation failed
-		// Rollback to Xcode Managed ones
+	for _, profType := range profileTypes {
+		p, err := ensureManualProfiles(client, profType, bundleID, certificates, devices)
 		if err != nil {
-			log.Errorf("generate_profiles set to true, but failed to generate Provisioning Profiles with error: %s", err)
-			log.Infof("\nTrying to use Xcode managed Provisioning Profiles")
-
-			for _, profType := range profileTypes {
-				profiles := []Profile{} // Empty the manual profiles
-				var p []Profile
-				p, err = ensureManagedProfiles(client, profType, bundleID)
-				if err != nil {
-					return nil, fmt.Errorf("failed to get %s Xcode Managed profile for %s, error: %s", profType.ReadableString(), bundleID, err)
-				}
-				profiles = append(profiles, p...)
-			}
+			return nil, fmt.Errorf("failed to get %s Manual profile for %s, error: %s", profType.ReadableString(), bundleID, err)
 		}
-	} else if isXcodeManaged {
-		for _, profType := range profileTypes {
-			p, err := ensureManagedProfiles(client, profType, bundleID)
-			if err != nil {
-				return nil, fmt.Errorf("failed to get %s Xcode Managed profile for %s, error: %s", profType.ReadableString(), bundleID, err)
-			}
-			profiles = append(profiles, p...)
-		}
-	} else {
-		for _, profType := range profileTypes {
-			p, err := ensureManualProfiles(client, profType, bundleID, certificates, devices)
-			if err != nil {
-				return nil, fmt.Errorf("failed to get %s Manual profile for %s, error: %s", profType.ReadableString(), bundleID, err)
-			}
-			profiles = append(profiles, p...)
-		}
+		profiles = append(profiles, p...)
 	}
+
 	return profiles, nil
 
 }
@@ -171,16 +133,6 @@ func ensureManualProfile(client *appstoreconnect.Client, profileType appstorecon
 		}
 	}
 	return *profile, nil
-}
-
-func ensureManagedProfiles(client *appstoreconnect.Client, profileType appstoreconnect.ProfileType, bundleID string) ([]Profile, error) {
-	// TODO
-	return nil, nil
-}
-
-func ensureManagedProfile(client *appstoreconnect.Client, profileType appstoreconnect.ProfileType, bundleID string) (Profile, error) {
-	// TODO
-	return Profile{}, nil
 }
 
 func validateProfile(profile Profile, devices []appstoreconnect.Device, certificate appstoreconnect.Certificate) bool {
@@ -287,15 +239,6 @@ func bundleIDAttributes(attributes serialized.Object) (*appstoreconnect.BundleID
 }
 
 func deviceAttributes(attributes serialized.Object) (*appstoreconnect.DeviceAttributes, error) {
-	/*
-			      "addedDate" : "2018-08-15T10:45:01.000+0000",
-		      "name" : "iPhone 6",
-		      "deviceClass" : "IPHONE",
-		      "model" : "iPhone 6",
-		      "udid" : "b13813075ad9b298cb9a9f28555c49573d8bc322",
-		      "platform" : "IOS",
-		      "status" : "ENABLED"
-	*/
 	addedDate, err := attributes.String("addedDate")
 	if err != nil {
 		return nil, errors.New("missing attribute: addedDate")
