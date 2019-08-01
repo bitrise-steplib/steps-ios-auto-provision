@@ -24,7 +24,7 @@ func appIDName(bundleID string) string {
 }
 
 // EnsureApp search for AppID on the developer portal for the provided bundleID.
-// If the AppID is available on the developer portal, it will ne returned.
+// If the AppID is available on the developer portal, it will be returned.
 // If it's not, it will be generated.
 func EnsureApp(client *appstoreconnect.Client, platform Platform, bundleID string) (*BundleID, error) {
 	var bundleIDPlatform appstoreconnect.BundleIDPlatform
