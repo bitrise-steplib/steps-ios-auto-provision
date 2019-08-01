@@ -72,8 +72,12 @@ func (c *Client) ensureSignedToken() (string, error) {
 			return "", fmt.Errorf("failed to cast claim for token")
 		}
 		expiration := time.Unix(int64(claim.Expiration), 0)
-		// token is marked valid if it will not expire in the upcoming 10 sec
-		if expiration.After(time.Now().Add(10 * time.Second)) {
+
+		// You do not need to generate a new token for every API request.
+		// To get better performance from the App Store Connect API,
+		// reuse the same signed token for up to 20 minutes.
+		//  https://developer.apple.com/documentation/appstoreconnectapi/generating_tokens_for_api_requests
+		if expiration.After(time.Now().Add(20 * time.Minute)) {
 			return c.signedToken, nil
 		}
 	}

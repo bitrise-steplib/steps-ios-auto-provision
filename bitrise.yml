@@ -23,6 +23,7 @@ app:
   - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
 
 workflows:
+
   gotests:
     steps: 
     - go-list:
@@ -30,6 +31,21 @@ workflows:
     - errcheck:
     - go-test:
 
+  dep-update:
+    title: Dep update
+    description: |
+      Used for updating bitrise dependencies with dep
+    steps:
+    - script:
+        title: Dependency update
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            go get -u -v github.com/golang/dep/cmd/dep
+            dep ensure -v
+            dep ensure -v -update
+    
   test:
     before_run:
     - audit-this-step

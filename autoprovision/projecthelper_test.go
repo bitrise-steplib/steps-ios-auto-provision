@@ -9,6 +9,7 @@ import (
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-io/go-utils/sliceutil"
 
 	"github.com/bitrise-io/xcode-project/serialized"
 	"github.com/bitrise-io/xcode-project/xcodeproj"
@@ -306,43 +307,43 @@ func TestProjectHelper_ProjectCodeSignIdentity(t *testing.T) {
 	tests := []struct {
 		name    string
 		config  string
-		want    string
+		want    []string
 		wantErr bool
 	}{
 		{
 			name:    schemeCases[0] + " Debug",
 			config:  configCases[0],
-			want:    "iPhone Developer",
+			want:    []string{"iPhone Developer"},
 			wantErr: false,
 		},
 		{
 			name:    schemeCases[1] + " Release",
 			config:  configCases[1],
-			want:    "iPhone Developer",
+			want:    []string{"iPhone Developer"},
 			wantErr: false,
 		},
 		{
 			name:    schemeCases[2] + " Debug",
 			config:  configCases[2],
-			want:    "-",
+			want:    []string{"-"},
 			wantErr: false,
 		},
 		{
 			name:    schemeCases[3] + " Release",
 			config:  configCases[3],
-			want:    "-",
+			want:    []string{"-"},
 			wantErr: false,
 		},
 		{
 			name:    schemeCases[4] + " Debug",
 			config:  configCases[4],
-			want:    "iPhone Developer",
+			want:    []string{"iPhone Developer", "Apple Development"},
 			wantErr: false,
 		},
 		{
 			name:    schemeCases[5] + " Release",
 			config:  configCases[5],
-			want:    "iPhone Developer",
+			want:    []string{"iPhone Developer", "Apple Development"},
 			wantErr: false,
 		},
 	}
@@ -354,7 +355,7 @@ func TestProjectHelper_ProjectCodeSignIdentity(t *testing.T) {
 				t.Errorf("ProjectHelper.ProjectCodeSignIdentity() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
+			if !sliceutil.IsStringInSlice(got, tt.want) {
 				t.Errorf("ProjectHelper.ProjectCodeSignIdentity() = %v, want %v", got, tt.want)
 			}
 		})
@@ -600,38 +601,18 @@ func TestProjectHelper_targetEntitlements(t *testing.T) {
 	}
 
 	tests := []struct {
-		name       string
-		targetName string
-		conf       string
-		want       serialized.Object
-		wantErr    bool
+		name          string
+		targetName    string
+		conf          string
+		want          serialized.Object
+		projectHelper ProjectHelper
+		wantErr       bool
 	}{
 		{
-			name:       targetCases[0] + " Debug",
-			targetName: targetCases[0],
-			conf:       configCases[0],
-			want: func() serialized.Object {
-				m := make(map[string]interface{})
-				m["com.apple.developer.siri"] = true
-				return m
-			}(),
-			wantErr: false,
-		},
-		{
-			name:       targetCases[1] + " Release",
-			targetName: targetCases[1],
-			conf:       configCases[1],
-			want: func() serialized.Object {
-				m := make(map[string]interface{})
-				m["com.apple.developer.siri"] = true
-				return m
-			}(),
-			wantErr: false,
-		},
-		{
-			name:       targetCases[2] + " Release",
-			targetName: targetCases[2],
-			conf:       configCases[2],
+			name:          targetCases[2] + " Release",
+			targetName:    targetCases[2],
+			conf:          configCases[2],
+			projectHelper: projHelpCases[2],
 			want: func() serialized.Object {
 				m := make(map[string]interface{})
 				m["com.apple.security.app-sandbox"] = true
@@ -641,9 +622,10 @@ func TestProjectHelper_targetEntitlements(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:       targetCases[3] + " Release",
-			targetName: targetCases[3],
-			conf:       configCases[3],
+			name:          targetCases[3] + " Release",
+			targetName:    targetCases[3],
+			conf:          configCases[3],
+			projectHelper: projHelpCases[3],
 			want: func() serialized.Object {
 				m := make(map[string]interface{})
 				m["com.apple.security.app-sandbox"] = true
@@ -653,25 +635,25 @@ func TestProjectHelper_targetEntitlements(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:       targetCases[4] + " Release",
-			targetName: targetCases[4],
-			conf:       configCases[4],
-			want:       nil,
-			wantErr:    false,
+			name:          targetCases[4] + " Release",
+			targetName:    targetCases[4],
+			conf:          configCases[4],
+			projectHelper: projHelpCases[4],
+			want:          nil,
+			wantErr:       false,
 		},
 		{
-			name:       targetCases[5] + " Release",
-			targetName: targetCases[5],
-			conf:       configCases[5],
-			want:       nil,
-			wantErr:    false,
+			name:          targetCases[5] + " Release",
+			targetName:    targetCases[5],
+			conf:          configCases[5],
+			projectHelper: projHelpCases[5],
+			want:          nil,
+			wantErr:       false,
 		},
 	}
-	for i, tt := range tests {
+	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := projHelpCases[i]
-
-			got, err := p.targetEntitlements(tt.targetName, tt.conf)
+			got, err := tt.projectHelper.targetEntitlements(tt.targetName, tt.conf)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ProjectHelper.targetEntitlements() error = %v, wantErr %v", err, tt.wantErr)
 				return
