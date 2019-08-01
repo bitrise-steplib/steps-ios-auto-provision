@@ -9,6 +9,7 @@ import (
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-io/go-utils/sliceutil"
 
 	"github.com/bitrise-io/xcode-project/serialized"
 	"github.com/bitrise-io/xcode-project/xcodeproj"
@@ -306,43 +307,43 @@ func TestProjectHelper_ProjectCodeSignIdentity(t *testing.T) {
 	tests := []struct {
 		name    string
 		config  string
-		want    string
+		want    []string
 		wantErr bool
 	}{
 		{
 			name:    schemeCases[0] + " Debug",
 			config:  configCases[0],
-			want:    "iPhone Developer",
+			want:    []string{"iPhone Developer"},
 			wantErr: false,
 		},
 		{
 			name:    schemeCases[1] + " Release",
 			config:  configCases[1],
-			want:    "iPhone Developer",
+			want:    []string{"iPhone Developer"},
 			wantErr: false,
 		},
 		{
 			name:    schemeCases[2] + " Debug",
 			config:  configCases[2],
-			want:    "-",
+			want:    []string{"-"},
 			wantErr: false,
 		},
 		{
 			name:    schemeCases[3] + " Release",
 			config:  configCases[3],
-			want:    "-",
+			want:    []string{"-"},
 			wantErr: false,
 		},
 		{
 			name:    schemeCases[4] + " Debug",
 			config:  configCases[4],
-			want:    "iPhone Developer",
+			want:    []string{"iPhone Developer", "Apple Development"},
 			wantErr: false,
 		},
 		{
 			name:    schemeCases[5] + " Release",
 			config:  configCases[5],
-			want:    "iPhone Developer",
+			want:    []string{"iPhone Developer", "Apple Development"},
 			wantErr: false,
 		},
 	}
@@ -354,7 +355,7 @@ func TestProjectHelper_ProjectCodeSignIdentity(t *testing.T) {
 				t.Errorf("ProjectHelper.ProjectCodeSignIdentity() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
+			if !sliceutil.IsStringInSlice(got, tt.want) {
 				t.Errorf("ProjectHelper.ProjectCodeSignIdentity() = %v, want %v", got, tt.want)
 			}
 		})

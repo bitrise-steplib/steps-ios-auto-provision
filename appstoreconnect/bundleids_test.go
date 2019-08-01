@@ -1,8 +1,6 @@
 package appstoreconnect
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestProvisioningService_ListBundleIDs(t *testing.T) {
 	client := InitTestClient(t)
@@ -16,6 +14,15 @@ func TestProvisioningService_ListBundleIDs(t *testing.T) {
 			name: "Get bundle ID if for com.bitrise.Test-Xcode-Managed",
 			opt: &ListBundleIDsOptions{
 				FilterIdentifier: "com.bitrise.Test-Xcode-Managed",
+				Include:          "bundleIdCapabilities",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Get bundle ID if for com.bitrise.io.testing.firefox",
+			opt: &ListBundleIDsOptions{
+				FilterIdentifier: "com.bitrise.io.testing.firefox",
+				Include:          "bundleIdCapabilities",
 			},
 			wantErr: false,
 		},

@@ -1,6 +1,7 @@
 package autoprovision
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -36,7 +37,7 @@ func profileName(profileType appstoreconnect.ProfileType, bundleID string) (stri
 
 // EnsureProfiles returns the profiles for the selected profile type.
 // If the selected profile type is not a development one, it will return it's development pair too.
-// For profile generation provide the devices to regeister to the developer / ad-hoc profile (devices registered on bitrise)
+// For profile generation provide the devices to register to the developer / ad-hoc profile (devices registered on bitrise)
 // and the certificates (development and distribution) which need to be included in the profiles
 func EnsureProfiles(client *appstoreconnect.Client, profileType appstoreconnect.ProfileType, bundleID string,
 	capabilityIDs []string, devices []appstoreconnect.Device, certificates []appstoreconnect.Certificate, isXcodeManaged, generateProfiles bool) ([]Profile, error) {
@@ -183,7 +184,7 @@ func ensureManagedProfile(client *appstoreconnect.Client, profileType appstoreco
 }
 
 func validateProfile(profile Profile, devices []appstoreconnect.Device, certificate appstoreconnect.Certificate) bool {
-	// TODO check device list & certificate list. The capabilities are checked by apple areadi (valid / invalid state of the profile)
+	// TODO check device list & certificate list. The capabilities are checked by apple already (valid / invalid state of the profile)
 	return false
 }
 
@@ -265,9 +266,18 @@ func fetchProfile(client *appstoreconnect.Client, profileType appstoreconnect.Pr
 }
 
 func bundleIDAttributes(attributes serialized.Object) (*appstoreconnect.BundleIDAttributes, error) {
-	name, _ := attributes.String("name")
-	identifier, _ := attributes.String("identifier")
-	platform, _ := attributes.String("platform")
+	name, err := attributes.String("name")
+	if err != nil {
+		return nil, errors.New("missing attribute: name")
+	}
+	identifier, err := attributes.String("identifier")
+	if err != nil {
+		return nil, errors.New("missing attribute: identifier")
+	}
+	platform, err := attributes.String("platform")
+	if err != nil {
+		return nil, errors.New("missing attribute: platform")
+	}
 
 	return &appstoreconnect.BundleIDAttributes{
 		Name:       name,
@@ -277,13 +287,44 @@ func bundleIDAttributes(attributes serialized.Object) (*appstoreconnect.BundleID
 }
 
 func deviceAttributes(attributes serialized.Object) (*appstoreconnect.DeviceAttributes, error) {
-	addedDate, _ := attributes.String("addedDate")
-	name, _ := attributes.String("name")
-	deviceClass, _ := attributes.String("deviceClass")
-	model, _ := attributes.String("model")
-	udid, _ := attributes.String("udid")
-	platform, _ := attributes.String("platform")
-	status, _ := attributes.String("status")
+	/*
+			      "addedDate" : "2018-08-15T10:45:01.000+0000",
+		      "name" : "iPhone 6",
+		      "deviceClass" : "IPHONE",
+		      "model" : "iPhone 6",
+		      "udid" : "b13813075ad9b298cb9a9f28555c49573d8bc322",
+		      "platform" : "IOS",
+		      "status" : "ENABLED"
+	*/
+	addedDate, err := attributes.String("addedDate")
+	if err != nil {
+		return nil, errors.New("missing attribute: addedDate")
+	}
+	name, err := attributes.String("name")
+	if err != nil {
+		return nil, errors.New("missing attribute: name")
+	}
+	deviceClass, err := attributes.String("deviceClass")
+	if err != nil {
+		return nil, errors.New("missing attribute: deviceClass")
+	}
+	model, err := attributes.String("model")
+	if err != nil {
+		// model can be null
+		// return nil, errors.New("missing attribute: model")
+	}
+	udid, err := attributes.String("udid")
+	if err != nil {
+		return nil, errors.New("missing attribute: udid")
+	}
+	platform, err := attributes.String("platform")
+	if err != nil {
+		return nil, errors.New("missing attribute: platform")
+	}
+	status, err := attributes.String("status")
+	if err != nil {
+		return nil, errors.New("missing attribute: status")
+	}
 
 	return &appstoreconnect.DeviceAttributes{
 		AddedDate:   addedDate,
@@ -297,13 +338,34 @@ func deviceAttributes(attributes serialized.Object) (*appstoreconnect.DeviceAttr
 }
 
 func certificateAttributes(attributes serialized.Object) (*appstoreconnect.CertificateAttributes, error) {
-	serialNumber, _ := attributes.String("serialNumber")
-	certificateContent, _ := attributes.String("certificateContent")
-	displayName, _ := attributes.String("displayName")
-	name, _ := attributes.String("name")
-	platform, _ := attributes.String("platform")
-	expirationDate, _ := attributes.String("expirationDate")
-	certificateType, _ := attributes.String("certificateType")
+	serialNumber, err := attributes.String("serialNumber")
+	if err != nil {
+		return nil, errors.New("missing attribute: serialNumber")
+	}
+	certificateContent, err := attributes.String("certificateContent")
+	if err != nil {
+		return nil, errors.New("missing attribute: certificateContent")
+	}
+	displayName, err := attributes.String("displayName")
+	if err != nil {
+		return nil, errors.New("missing attribute: displayName")
+	}
+	name, err := attributes.String("name")
+	if err != nil {
+		return nil, errors.New("missing attribute: name")
+	}
+	platform, err := attributes.String("platform")
+	if err != nil {
+		return nil, errors.New("missing attribute: platform")
+	}
+	expirationDate, err := attributes.String("expirationDate")
+	if err != nil {
+		return nil, errors.New("missing attribute: expirationDate")
+	}
+	certificateType, err := attributes.String("certificateType")
+	if err != nil {
+		return nil, errors.New("missing attribute: certificateType")
+	}
 
 	return &appstoreconnect.CertificateAttributes{
 		SerialNumber:       serialNumber,
