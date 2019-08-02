@@ -14,6 +14,7 @@ import (
 	"github.com/bitrise-io/xcode-project/xcodeproj"
 	"github.com/bitrise-io/xcode-project/xcscheme"
 	"github.com/bitrise-io/xcode-project/xcworkspace"
+	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 	"howett.net/plist"
 )
 
@@ -28,6 +29,20 @@ type ProjectHelper struct {
 // Platform of the target
 // iOS, tvOS, macOS
 type Platform string
+
+// BundleIDPlatform ...
+func (p Platform) BundleIDPlatform() (*appstoreconnect.BundleIDPlatform, error) {
+	var apiPlatform appstoreconnect.BundleIDPlatform
+	switch p {
+	case IOS, TVOS:
+		apiPlatform = appstoreconnect.IOS
+	case MacOS:
+		apiPlatform = appstoreconnect.MacOS
+	default:
+		return nil, fmt.Errorf("unkown platform: %s", platform)
+	}
+	return &apiPlatform, nil
+}
 
 // Const
 const (

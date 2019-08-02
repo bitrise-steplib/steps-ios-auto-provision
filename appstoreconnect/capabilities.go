@@ -191,12 +191,9 @@ type BundleIDCapabilityUpdateRequest struct {
 
 // BundleIDCapability ...
 type BundleIDCapability struct {
-	Attributes struct {
-		CapabilityType CapabilityType      `json:"capabilityType"`
-		Settings       []CapabilitySetting `json:"settings"`
-	}
-	ID   string `json:"id"`
-	Type string `json:"type"`
+	Attributes BundleIDCapabilityAttributes
+	ID         string         `json:"id"`
+	Type       CapabilityType `json:"type"`
 }
 
 // BundleIDCapabilityResponse ...
