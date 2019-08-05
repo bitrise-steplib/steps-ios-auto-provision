@@ -421,26 +421,40 @@ func (p ProjectHelper) TargetBundleID(name, conf string) (string, error) {
 }
 
 func resolveBundleID(bundleID string, buildSettings serialized.Object) (string, error) {
-	r, err := regexp.Compile(".+[.][$][(].+[:].+[)]*")
+	// Get the raw env key
+	r, err := regexp.Compile("[$][{(].+[)}]")
 	if err != nil {
 		return "", err
 	}
-
 	if !r.MatchString(bundleID) {
-		return "", fmt.Errorf("failed to match regex .+[.][$][(].+[:].+[)]* to %s bundleID", bundleID)
+		return "", fmt.Errorf("failed to match regex [$][{(].+[)}] to %s bundleID", bundleID)
+	}
+	rawEnvKey := r.FindString(bundleID)
+
+	// Get the encoder for the env key
+	var encoder string
+	r, err = regexp.Compile("[:].+[)}]")
+	if err != nil {
+		return "", err
+	}
+	if r.MatchString(bundleID) {
+		replacer := strings.NewReplacer(":", "", ")", "", "}", "")
+		encoder = r.FindString(rawEnvKey)
+		encoder = replacer.Replace(encoder)
 	}
 
-	captures := r.FindString(bundleID)
+	// Get the env key from the rawEnvalue
+	replacer := strings.NewReplacer("$", "", "(", "", ")", "", "{", "", "}", "", ":", "", encoder, "")
+	envKey := replacer.Replace(rawEnvKey)
 
-	prefix := strings.Split(captures, "$")[0]
-	envKey := strings.Split(strings.SplitAfter(captures, "(")[1], ":")[0]
-	suffix := strings.Join(strings.SplitAfter(captures, ")")[1:], "")
-
+	// Fetch the env value for the env key
 	envValue, err := buildSettings.String(envKey)
 	if err != nil {
 		return "", fmt.Errorf("failed to find enviroment variable value for key %s, error: %s", envKey, err)
 	}
-	return prefix + envValue + suffix, nil
+
+	replacer = strings.NewReplacer("$", "", "(", "", ")", "", "{", "", "}", "", ":", "", encoder, "")
+	return replacer.Replace(strings.ReplaceAll(bundleID, envKey, envValue)), nil
 
 }
 
