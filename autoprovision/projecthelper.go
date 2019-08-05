@@ -421,7 +421,7 @@ func (p ProjectHelper) TargetBundleID(name, conf string) (string, error) {
 }
 
 func resolveBundleID(bundleID string, buildSettings serialized.Object) (string, error) {
-	// Get the raw env key
+	// Get the raw env key: $(PRODUCT_NAME:rfc1034identifier) || $(PRODUCT_NAME) || ${PRODUCT_NAME:rfc1034identifier} || ${PRODUCT_NAME}
 	r, err := regexp.Compile("[$][{(].+[)}]")
 	if err != nil {
 		return "", err
@@ -429,23 +429,11 @@ func resolveBundleID(bundleID string, buildSettings serialized.Object) (string, 
 	if !r.MatchString(bundleID) {
 		return "", fmt.Errorf("failed to match regex [$][{(].+[)}] to %s bundleID", bundleID)
 	}
+	replacer := strings.NewReplacer("$", "", "(", "", ")", "", "{", "", "}", "")
 	rawEnvKey := r.FindString(bundleID)
+	rawEnvKey = replacer.Replace(rawEnvKey)
 
-	// Get the encoder for the env key
-	var encoder string
-	r, err = regexp.Compile("[:].+[)}]")
-	if err != nil {
-		return "", err
-	}
-	if r.MatchString(bundleID) {
-		replacer := strings.NewReplacer(":", "", ")", "", "}", "")
-		encoder = r.FindString(rawEnvKey)
-		encoder = replacer.Replace(encoder)
-	}
-
-	// Get the env key from the rawEnvalue
-	replacer := strings.NewReplacer("$", "", "(", "", ")", "", "{", "", "}", "", ":", "", encoder, "")
-	envKey := replacer.Replace(rawEnvKey)
+	envKey := strings.Split(rawEnvKey, ":")[0]
 
 	// Fetch the env value for the env key
 	envValue, err := buildSettings.String(envKey)
@@ -453,8 +441,17 @@ func resolveBundleID(bundleID string, buildSettings serialized.Object) (string, 
 		return "", fmt.Errorf("failed to find enviroment variable value for key %s, error: %s", envKey, err)
 	}
 
-	replacer = strings.NewReplacer("$", "", "(", "", ")", "", "{", "", "}", "", ":", "", encoder, "")
-	return replacer.Replace(strings.ReplaceAll(bundleID, envKey, envValue)), nil
+	// Replace the envKey with the envValue and remove the special characters from the bundleID
+	replacer = strings.NewReplacer(
+		"$", "",
+		"(", "",
+		")", "",
+		"{", "",
+		"}", "",
+		":", "",
+		rawEnvKey, envValue,
+	)
+	return replacer.Replace(bundleID), nil
 
 }
 
