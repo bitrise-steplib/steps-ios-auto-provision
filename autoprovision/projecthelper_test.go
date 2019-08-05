@@ -405,6 +405,30 @@ func Test_resolveBundleID(t *testing.T) {
 			want:    "Bitrise.Test.Sample.Suffix",
 			wantErr: false,
 		},
+		{
+			name:     "com.brainbow.${PRODUCT_NAME}",
+			bundleID: "com.brainbow.${PRODUCT_NAME}",
+			buildSettings: func() map[string]interface{} {
+				m := make(map[string]interface{})
+				m["PRODUCT_NAME"] = "Sample"
+				m["a"] = "Sample"
+				return m
+			}(),
+			want:    "com.brainbow.Sample",
+			wantErr: false,
+		},
+		{
+			name:     "com.brainbow.${PRODUCT_NAME}.Suffix",
+			bundleID: "com.brainbow.${PRODUCT_NAME}.Suffix",
+			buildSettings: func() map[string]interface{} {
+				m := make(map[string]interface{})
+				m["PRODUCT_NAME"] = "Sample"
+				m["a"] = "Sample"
+				return m
+			}(),
+			want:    "com.brainbow.Sample.Suffix",
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
