@@ -406,27 +406,27 @@ func Test_resolveBundleID(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:     "com.brainbow.${PRODUCT_NAME}",
-			bundleID: "com.brainbow.${PRODUCT_NAME}",
+			name:     "com.braw.${PRODUCT_NAME}",
+			bundleID: "com.braw.${PRODUCT_NAME}",
 			buildSettings: func() map[string]interface{} {
 				m := make(map[string]interface{})
 				m["PRODUCT_NAME"] = "Sample"
 				m["a"] = "Sample"
 				return m
 			}(),
-			want:    "com.brainbow.Sample",
+			want:    "com.braw.Sample",
 			wantErr: false,
 		},
 		{
-			name:     "com.brainbow.${PRODUCT_NAME}.Suffix",
-			bundleID: "com.brainbow.${PRODUCT_NAME}.Suffix",
+			name:     "com.braw.${PRODUCT_NAME}.Suffix",
+			bundleID: "com.braw.${PRODUCT_NAME}.Suffix",
 			buildSettings: func() map[string]interface{} {
 				m := make(map[string]interface{})
 				m["PRODUCT_NAME"] = "Sample"
 				m["a"] = "Sample"
 				return m
 			}(),
-			want:    "com.brainbow.Sample.Suffix",
+			want:    "com.braw.Sample.Suffix",
 			wantErr: false,
 		},
 	}
