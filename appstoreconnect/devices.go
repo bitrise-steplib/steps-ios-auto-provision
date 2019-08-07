@@ -10,6 +10,8 @@ const DevicesURL = "devices"
 
 // ListDevicesOptions ...
 type ListDevicesOptions struct {
+	FilterUDID string `url:"filter[udid],omitempty"`
+
 	Limit  int    `url:"limit,omitempty"`
 	Cursor string `url:"cursor,omitempty"`
 	Next   string `url:"-"`

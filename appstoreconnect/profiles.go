@@ -46,14 +46,15 @@ type ProfileType string
 
 // ProfileTypes ...
 const (
-	InvalidProfileType ProfileType = "Invalid"
-	IOSAppDevelopment  ProfileType = "IOS_APP_DEVELOPMENT"
-	IOSAppStore        ProfileType = "IOS_APP_STORE"
-	IOSAppAdHoc        ProfileType = "IOS_APP_ADHOC"
-	IOSAppInHouse      ProfileType = "IOS_APP_INHOUSE"
-	MacAppDevelopment  ProfileType = "MAC_APP_DEVELOPMENT"
-	MacAppStore        ProfileType = "MAC_APP_STORE"
-	MacAppDirect       ProfileType = "MAC_APP_DIRECT"
+	IOSAppDevelopment ProfileType = "IOS_APP_DEVELOPMENT"
+	IOSAppStore       ProfileType = "IOS_APP_STORE"
+	IOSAppAdHoc       ProfileType = "IOS_APP_ADHOC"
+	IOSAppInHouse     ProfileType = "IOS_APP_INHOUSE"
+
+	MacAppDevelopment ProfileType = "MAC_APP_DEVELOPMENT"
+	MacAppStore       ProfileType = "MAC_APP_STORE"
+	MacAppDirect      ProfileType = "MAC_APP_DIRECT"
+
 	TvOSAppDevelopment ProfileType = "TVOS_APP_DEVELOPMENT"
 	TvOSAppStore       ProfileType = "TVOS_APP_STORE"
 	TvOSAppAdHoc       ProfileType = "TVOS_APP_ADHOC"
@@ -250,46 +251,43 @@ type ProfileCreateRequest struct {
 }
 
 // NewProfileCreateRequest returns a ProfileCreateRequest structure
-func NewProfileCreateRequest(profileType ProfileType, name, bundleID string, certificates []Certificate, devices []Device) ProfileCreateRequest {
-	certificateData := func() (data ProfileCreateRequestDataRelationshipsCertificates) {
-		var certDatas []ProfileCreateRequestDataRelationshipData
-		for _, cert := range certificates {
-			certDatas = append(certDatas, ProfileCreateRequestDataRelationshipData{
-				ID:   cert.ID,
-				Type: "certificates",
-			})
-		}
-		return ProfileCreateRequestDataRelationshipsCertificates{Data: certDatas}
-	}()
-	bundleIDData := ProfileCreateRequestDataRelationshipsBundleID{
-		Data: ProfileCreateRequestDataRelationshipData{
-			ID:   bundleID,
-			Type: "bundleIds",
-		},
+func NewProfileCreateRequest(profileType ProfileType, name, bundleIDID string, certificateIDs []string, deviceIDs []string) ProfileCreateRequest {
+	bundleIDData := ProfileCreateRequestDataRelationshipData{
+		ID:   bundleIDID,
+		Type: "bundleIds",
 	}
-	deviceData := func() (data ProfileCreateRequestDataRelationshipsDevices) {
-		var deviceDatas []ProfileCreateRequestDataRelationshipData
-		for _, device := range devices {
-			deviceDatas = append(deviceDatas, ProfileCreateRequestDataRelationshipData{
-				ID:   device.ID,
-				Type: "devices",
-			})
-		}
-		return ProfileCreateRequestDataRelationshipsDevices{Data: deviceDatas}
-	}()
 
-	attributes := ProfileCreateRequestDataAttributes{
-		Name:        name,
-		ProfileType: profileType,
-	}
 	relationships := ProfileCreateRequestDataRelationships{
-		BundleID:     bundleIDData,
-		Certificates: certificateData,
-		Devices:      deviceData,
+		BundleID: ProfileCreateRequestDataRelationshipsBundleID{Data: bundleIDData},
+	}
+
+	var certData []ProfileCreateRequestDataRelationshipData
+	for _, id := range certificateIDs {
+		certData = append(certData, ProfileCreateRequestDataRelationshipData{
+			ID:   id,
+			Type: "certificates",
+		})
+	}
+	if len(certData) > 0 {
+		relationships.Certificates = ProfileCreateRequestDataRelationshipsCertificates{Data: certData}
+	}
+
+	var deviceData []ProfileCreateRequestDataRelationshipData
+	for _, id := range deviceIDs {
+		deviceData = append(deviceData, ProfileCreateRequestDataRelationshipData{
+			ID:   id,
+			Type: "devices",
+		})
+	}
+	if len(deviceData) > 0 {
+		relationships.Devices = ProfileCreateRequestDataRelationshipsDevices{Data: deviceData}
 	}
 
 	data := ProfileCreateRequestData{
-		Attributes:    attributes,
+		Attributes: ProfileCreateRequestDataAttributes{
+			Name:        name,
+			ProfileType: profileType,
+		},
 		Relationships: relationships,
 		Type:          "profiles",
 	}
@@ -319,16 +317,15 @@ func (s ProvisioningService) CreateProfile(body ProfileCreateRequest) (*ProfileR
 }
 
 // DeleteProfile ...
-func (s ProvisioningService) DeleteProfile(id string) (*ProfileResponse, error) {
+func (s ProvisioningService) DeleteProfile(id string) (error) {
 	req, err := s.client.NewRequest(http.MethodDelete, ProfilesURL+"/"+id, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	r := &ProfileResponse{}
-	if _, err := s.client.Do(req, r); err != nil {
-		return nil, err
+	if _, err := s.client.Do(req, nil); err != nil {
+		return err
 	}
 
-	return r, nil
+	return nil
 }

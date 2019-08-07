@@ -1,6 +1,7 @@
 package autoprovision
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"regexp"
@@ -20,10 +21,11 @@ import (
 
 // ProjectHelper ...
 type ProjectHelper struct {
-	MainTarget xcodeproj.Target
-	Targets    []xcodeproj.Target
-	Platform   Platform
-	XcProj     xcodeproj.XcodeProj
+	MainTarget    xcodeproj.Target
+	Targets       []xcodeproj.Target
+	Platform      Platform
+	XcProj        xcodeproj.XcodeProj
+	Configuration string
 }
 
 // Platform of the target
@@ -39,7 +41,7 @@ func (p Platform) BundleIDPlatform() (*appstoreconnect.BundleIDPlatform, error) 
 	case MacOS:
 		apiPlatform = appstoreconnect.MacOS
 	default:
-		return nil, fmt.Errorf("unkown platform: %s", platform)
+		return nil, errors.New("unknown platform: " + string(p))
 	}
 	return &apiPlatform, nil
 }
@@ -51,10 +53,10 @@ const (
 	MacOS Platform = "macOS"
 )
 
-// New checks the provided project or workspace and generate a ProjectHelper with the provided scheme and configuration
+// NewProjectHelper checks the provided project or workspace and generate a ProjectHelper with the provided scheme and configuration
 // Previously in the ruby version the initialize method did the same
 // It returns a new ProjectHelper pointer and a configuration to use.
-func New(projOrWSPath, schemeName, configurationName string) (*ProjectHelper, string, error) {
+func NewProjectHelper(projOrWSPath, schemeName, configurationName string) (*ProjectHelper, string, error) {
 	// Maybe we should do this checks during the input parsing
 	if exits, err := pathutil.IsPathExists(projOrWSPath); err != nil {
 		return nil, "", err
@@ -95,12 +97,35 @@ func New(projOrWSPath, schemeName, configurationName string) (*ProjectHelper, st
 		return nil, "", err
 	}
 	return &ProjectHelper{
-			MainTarget: mainTarget,
-			Targets:    xcproj.Proj.Targets,
-			Platform:   platf,
-			XcProj:     xcproj,
-		}, conf,
+		MainTarget:    mainTarget,
+		Targets:       xcproj.Proj.Targets,
+		Platform:      platf,
+		XcProj:        xcproj,
+		Configuration: conf,
+	}, conf,
 		nil
+}
+
+func (p ProjectHelper) ArchivableTargetBundleIDToEntitlements() (map[string]serialized.Object, error) {
+	targets := append([]xcodeproj.Target{p.MainTarget}, p.MainTarget.DependentExecutableProductTargets(false)...)
+
+	entitlementsByBundleID := map[string]serialized.Object{}
+
+	for _, target := range targets {
+		bundleID, err := p.TargetBundleID(target.Name, p.Configuration)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to get target (%s) bundle id: %s", target.Name, err)
+		}
+
+		entitlements, err := p.targetEntitlements(target.Name, p.Configuration)
+		if err != nil && !serialized.IsKeyNotFoundError(err) {
+			return nil, fmt.Errorf("Failed to get target (%s) bundle id: %s", target.Name, err)
+		}
+
+		entitlementsByBundleID[bundleID] = entitlements
+	}
+
+	return entitlementsByBundleID, nil
 }
 
 // UsesXcodeAutoCodeSigning checks the project uses automatically managed code signing

@@ -14,6 +14,47 @@ type BundleID struct {
 	ID           string
 }
 
+// FindBundleID ...
+func FindBundleID(client *appstoreconnect.Client, bundleIDIdentifier string) (*BundleID, error) {
+	return fetchBundleID(client, bundleIDIdentifier)
+}
+
+// CheckBundleID ...
+func CheckBundleID(bundleID BundleID, entitlements Entitlement) (bool, error) {
+	for k, v := range entitlements {
+		ent := Entitlement{k: v}
+
+		found := false
+		for _, cap := range bundleID.Capabilities {
+			equal, err := ent.Equal(cap)
+			if err != nil {
+				return false, err
+			}
+
+			if equal {
+				found = true
+			}
+		}
+
+		if !found {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
+// SyncBundleID ...
+func SyncBundleID(client *appstoreconnect.Client, bundleIDID string, entitlements Entitlement) error {
+	_, err := setCapabilities(client, bundleIDID, entitlements)
+	return err
+}
+
+// CreateBundleID ...
+func CreateBundleID(client *appstoreconnect.Client, bundleIDIdentifier string, entitlements Entitlement) (*BundleID, error) {
+	return createBundleID(client, IOS, bundleIDIdentifier)
+}
+
 func fetchBundleID(client *appstoreconnect.Client, bundleIDIdentifier string) (*BundleID, error) {
 	r, err := client.Provisioning.ListBundleIDs(&appstoreconnect.ListBundleIDsOptions{
 		FilterIdentifier: bundleIDIdentifier,
@@ -72,7 +113,7 @@ func fetchBundleIDCapabilities(client *appstoreconnect.Client, bundleID appstore
 	return caps, nil
 }
 
-func setCapabilities(client *appstoreconnect.Client, bundleID string, entitlements Entitlement) ([]appstoreconnect.BundleIDCapability, error) {
+func setCapabilities(client *appstoreconnect.Client, bundleIDID string, entitlements Entitlement) ([]appstoreconnect.BundleIDCapability, error) {
 	var caps []appstoreconnect.BundleIDCapability
 
 	for key, value := range entitlements {
@@ -91,7 +132,7 @@ func setCapabilities(client *appstoreconnect.Client, bundleID string, entitlemen
 				Relationships: appstoreconnect.BundleIDCapabilityCreateRequestDataRelationships{
 					BundleID: appstoreconnect.BundleIDCapabilityCreateRequestDataRelationshipsBundleID{
 						Data: appstoreconnect.BundleIDCapabilityCreateRequestDataRelationshipsBundleIDData{
-							ID:   bundleID,
+							ID:   bundleIDID,
 							Type: "",
 						},
 					},
@@ -153,6 +194,27 @@ func createBundleID(client *appstoreconnect.Client, platform Platform,
 		},
 		ID: r.Data.ID,
 	}, nil
+}
+
+func checkEntitlements(ents Entitlement, caps []appstoreconnect.BundleIDCapability) (bool, error) {
+	for key, value := range ents {
+		ent := Entitlement{key: value}
+
+		found := false
+		for _, cap := range caps {
+			if equal, err := ent.Equal(cap); err != nil {
+				return false, err
+			} else if equal {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			return false, nil
+		}
+	}
+	return true, nil
 }
 
 // EnsureBundleID ...
