@@ -88,16 +88,14 @@ func main() {
 
 	distrTypes := []autoprovision.DistributionType{stepConf.DistributionType}
 	requiredCertTypes := map[appstoreconnect.CertificateType]bool{certType: true}
-	certTypesByName := map[appstoreconnect.CertificateType]string{certType: ""}
 	if stepConf.DistributionType != autoprovision.Development {
 		distrTypes = append(distrTypes, autoprovision.Development)
 		requiredCertTypes[appstoreconnect.IOSDevelopment] = false
-		certTypesByName[appstoreconnect.IOSDevelopment] = ""
 	}
 	log.Printf("distribution types: %s", distrTypes)
 
 	certClient := autoprovision.APIClient(client)
-	certsByType, err := autoprovision.GetValidCertificates(certs, certClient, requiredCertTypes, certTypesByName, teamID, false)
+	certsByType, err := autoprovision.GetValidCertificates(certs, certClient, requiredCertTypes, teamID, false)
 	if err != nil {
 		failf(err.Error())
 	}
