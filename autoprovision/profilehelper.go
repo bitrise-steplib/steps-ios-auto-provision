@@ -2,8 +2,6 @@ package autoprovision
 
 import (
 	"fmt"
-	"github.com/bitrise-io/xcode-project/pretty"
-
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
 
@@ -54,34 +52,7 @@ func checkProfileEntitlements(client *appstoreconnect.Client, prof appstoreconne
 	if err != nil {
 		return false, err
 	}
-	bundleID := bundleIDresp.Data
-
-	capabilitiesResp, err := client.Provisioning.Capabilities(bundleID.Relationships.Capabilities.Links.Related)
-	if err != nil {
-		return false, err
-	}
-
-	for k, v := range entitlements {
-		ent := Entitlement{k: v}
-
-		found := false
-		for _, cap := range capabilitiesResp.Data {
-			equal, err := ent.Equal(cap)
-			if err != nil {
-				return false, err
-			}
-
-			if equal {
-				found = true
-			}
-		}
-
-		if !found {
-			return false, nil
-		}
-	}
-
-	return true, nil
+	return CheckBundleIDEntitlements(client, bundleIDresp.Data, entitlements)
 }
 
 func checkProfileCertificates(client *appstoreconnect.Client, prof appstoreconnect.Profile, certificateIDs []string) (bool, error) {
@@ -122,8 +93,6 @@ func checkProfileDevices(client *appstoreconnect.Client, prof appstoreconnect.Pr
 
 // CheckProfile ...
 func CheckProfile(client *appstoreconnect.Client, prof appstoreconnect.Profile, entitlements Entitlement, deviceIDs, certificateIDs []string) (bool, error) {
-	fmt.Println(pretty.Object(prof))
-
 	if ok, err := checkProfileEntitlements(client, prof, entitlements); err != nil {
 		return false, err
 	} else if !ok {
@@ -145,7 +114,7 @@ func DeleteProfile(client *appstoreconnect.Client, id string) error {
 }
 
 // CreateProfile ...
-func CreateProfile(client *appstoreconnect.Client, profileType appstoreconnect.ProfileType, bundleID BundleID, certificateIDs []string, deviceIDs []string) (*appstoreconnect.Profile, error) {
+func CreateProfile(client *appstoreconnect.Client, profileType appstoreconnect.ProfileType, bundleID appstoreconnect.BundleID, certificateIDs []string, deviceIDs []string) (*appstoreconnect.Profile, error) {
 	name, err := profileName(profileType, bundleID.Attributes.Identifier)
 	if err != nil {
 		return nil, err

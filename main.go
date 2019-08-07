@@ -210,7 +210,7 @@ func main() {
 			if bundleID != nil {
 				log.Printf("  bundle ID found: %s", bundleID.Attributes.Name)
 				// Check if BundleID is sync with the project
-				if ok, err := autoprovision.CheckBundleID(*bundleID, autoprovision.Entitlement(entitlements)); err != nil {
+				if ok, err := autoprovision.CheckBundleIDEntitlements(client, *bundleID, autoprovision.Entitlement(entitlements)); err != nil {
 					failf(err.Error())
 				} else if !ok {
 					log.Warnf("  bundle ID capabilities are not in sync with the project capabilities, synchronising...")

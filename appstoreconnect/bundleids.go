@@ -153,8 +153,6 @@ func (s ProvisioningService) CreateBundleID(body BundleIDCreateRequest) (*Bundle
 // Devices ...
 func (s ProvisioningService) BundleID(relationshipLink string) (*BundleIDResponse, error) {
 	url := strings.TrimPrefix(relationshipLink, baseURL+"v1")
-	fmt.Println(relationshipLink)
-	fmt.Println(url)
 	req, err := s.client.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
