@@ -154,7 +154,7 @@ func main() {
 
 	fmt.Println()
 	log.Infof("Checking provisioning profiles for %d bundle id(s)", len(entitlementsByBundleID))
-	profilesByBundleID := map[string][]autoprovision.Profile{}
+	profilesByBundleID := map[string][]appstoreconnect.Profile{}
 	for bundleIDIdentifier, entitlements := range entitlementsByBundleID {
 		fmt.Println()
 		log.Infof("  Checking bundle id: %s", bundleIDIdentifier)
@@ -180,7 +180,7 @@ func main() {
 				log.Printf("  Bitrise managed profile found: %s", profile.Attributes.Name)
 
 				// Check if Bitrise managed Profile is sync with the project
-				if ok, err := autoprovision.CheckProfile(*profile, autoprovision.Entitlement(entitlements), nil, nil); err != nil {
+				if ok, err := autoprovision.CheckProfile(client, *profile, autoprovision.Entitlement(entitlements), nil, nil); err != nil {
 					failf(err.Error())
 				} else if ok {
 					log.Donef("  profile capabilities are in sync with the project capabilities")
@@ -192,7 +192,7 @@ func main() {
 
 				// If not in sync, delete and re generate
 				log.Warnf("  profile capabilities are not in sync with the project capabilities, re generating ...")
-				if err := autoprovision.DeleteProfile(client, *profile); err != nil {
+				if err := autoprovision.DeleteProfile(client, profile.ID); err != nil {
 					failf(err.Error())
 				}
 			} else {

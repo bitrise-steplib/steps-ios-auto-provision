@@ -95,7 +95,7 @@ func fetchBundleID(client *appstoreconnect.Client, bundleIDIdentifier string) (*
 }
 
 func fetchBundleIDCapabilities(client *appstoreconnect.Client, bundleID appstoreconnect.BundleID) ([]appstoreconnect.BundleIDCapability, error) {
-	r, err := client.Provisioning.CapabilitiesOf(bundleID)
+	r, err := client.Provisioning.Capabilities(bundleID.Relationships.Capabilities.Links.Related)
 	if err != nil {
 		return nil, err
 	}

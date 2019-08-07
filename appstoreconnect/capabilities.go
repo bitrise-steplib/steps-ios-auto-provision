@@ -241,10 +241,10 @@ func (s ProvisioningService) UpdateCapability(id string, body BundleIDCapability
 	return r, nil
 }
 
-// CapabilitiesOf ...
-func (s ProvisioningService) CapabilitiesOf(bundleID BundleID) (*BundleIDCapabilitesResponse, error) {
-	capabilityURL := strings.TrimLeft(bundleID.Relationships.Capabilities.Links.Related, baseURL+"v1")
-	req, err := s.client.NewRequest(http.MethodGet, capabilityURL, nil)
+// Capabilities ...
+func (s ProvisioningService) Capabilities(relationshipLink string) (*BundleIDCapabilitesResponse, error) {
+	url := strings.TrimPrefix(relationshipLink, baseURL+"v1")
+	req, err := s.client.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
