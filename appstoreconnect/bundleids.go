@@ -150,7 +150,7 @@ func (s ProvisioningService) CreateBundleID(body BundleIDCreateRequest) (*Bundle
 	return r, nil
 }
 
-// Devices ...
+// BundleID ...
 func (s ProvisioningService) BundleID(relationshipLink string) (*BundleIDResponse, error) {
 	url := strings.TrimPrefix(relationshipLink, baseURL+"v1")
 	req, err := s.client.NewRequest(http.MethodGet, url, nil)

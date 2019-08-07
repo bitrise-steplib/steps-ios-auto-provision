@@ -207,8 +207,8 @@ type BundleIDCapabilityResponse struct {
 	Data BundleIDCapability `json:"data"`
 }
 
-// BundleIDCapabilitesResponse ...
-type BundleIDCapabilitesResponse struct {
+// BundleIDCapabilitiesResponse ...
+type BundleIDCapabilitiesResponse struct {
 	Data []BundleIDCapability `json:"data"`
 }
 
@@ -242,14 +242,14 @@ func (s ProvisioningService) UpdateCapability(id string, body BundleIDCapability
 }
 
 // Capabilities ...
-func (s ProvisioningService) Capabilities(relationshipLink string) (*BundleIDCapabilitesResponse, error) {
+func (s ProvisioningService) Capabilities(relationshipLink string) (*BundleIDCapabilitiesResponse, error) {
 	url := strings.TrimPrefix(relationshipLink, baseURL+"v1")
 	req, err := s.client.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	r := &BundleIDCapabilitesResponse{}
+	r := &BundleIDCapabilitiesResponse{}
 	if _, err := s.client.Do(req, r); err != nil {
 		return nil, err
 	}

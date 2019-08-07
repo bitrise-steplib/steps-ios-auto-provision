@@ -88,7 +88,7 @@ func TestNew(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			projHelp, conf, err := New(tt.projOrWSPath, tt.schemeName, tt.configurationName)
+			projHelp, conf, err := NewProjectHelper(tt.projOrWSPath, tt.schemeName, tt.configurationName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("New() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -438,7 +438,7 @@ func TestProjectHelper_TargetBundleID(t *testing.T) {
 		}
 		xcProjCases = append(xcProjCases, xcProj)
 
-		projHelp, _, err := New(
+		projHelp, _, err := NewProjectHelper(
 			projectCases[i],
 			schemeCase,
 			configCases[i],
@@ -579,7 +579,7 @@ func initTestCases() ([]string, []string, []xcodeproj.XcodeProj, []ProjectHelper
 		}
 		xcProjCases = append(xcProjCases, xcProj)
 
-		projHelp, _, err := New(
+		projHelp, _, err := NewProjectHelper(
 			projectCases[i],
 			schemeCase,
 			configCases[i],

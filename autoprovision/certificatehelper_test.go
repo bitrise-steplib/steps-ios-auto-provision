@@ -12,8 +12,8 @@ import (
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
 
-func mockAPIClient(certs map[CertificateType][]APICertificate) certificateSource {
-	return certificateSource{
+func mockAPIClient(certs map[appstoreconnect.CertificateType][]APICertificate) CertificateSource {
+	return CertificateSource{
 		queryCertificateBySerialFunc: func(client *appstoreconnect.Client, serial *big.Int) (APICertificate, error) {
 			for _, certList := range certs {
 				for _, cert := range certList {
@@ -24,7 +24,7 @@ func mockAPIClient(certs map[CertificateType][]APICertificate) certificateSource
 			}
 			return APICertificate{}, fmt.Errorf("certificate with serial %s not found", serial.String())
 		},
-		queryAllCertificatesFunc: func(client *appstoreconnect.Client) (map[CertificateType][]APICertificate, error) {
+		queryAllCertificatesFunc: func(client *appstoreconnect.Client) (map[appstoreconnect.CertificateType][]APICertificate, error) {
 			return certs, nil
 		},
 	}
@@ -64,16 +64,16 @@ func TestGetValidCertificates(t *testing.T) {
 
 	type args struct {
 		localCertificates        []certificateutil.CertificateInfoModel
-		client                   certificateSource
-		requiredCertificateTypes map[CertificateType]bool
-		typeToName               map[CertificateType]string
+		client                   CertificateSource
+		requiredCertificateTypes map[appstoreconnect.CertificateType]bool
+		typeToName               map[appstoreconnect.CertificateType]string
 		teamID                   string
 		logAllCerts              bool
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    map[CertificateType][]APICertificate
+		want    map[appstoreconnect.CertificateType][]APICertificate
 		wantErr bool
 	}{
 		{
@@ -82,15 +82,15 @@ func TestGetValidCertificates(t *testing.T) {
 				localCertificates: []certificateutil.CertificateInfoModel{
 					devCert,
 				},
-				client:                   mockAPIClient(map[CertificateType][]APICertificate{}),
-				requiredCertificateTypes: map[CertificateType]bool{Development: true, Distribution: false},
-				typeToName: map[CertificateType]string{
-					Development: "iPhone Developer",
+				client:                   mockAPIClient(map[appstoreconnect.CertificateType][]APICertificate{}),
+				requiredCertificateTypes: map[appstoreconnect.CertificateType]bool{appstoreconnect.IOSDevelopment: true, appstoreconnect.IOSDistribution: false},
+				typeToName: map[appstoreconnect.CertificateType]string{
+					appstoreconnect.IOSDevelopment: "iPhone Developer",
 				},
 				teamID:      "",
 				logAllCerts: true,
 			},
-			want:    map[CertificateType][]APICertificate{},
+			want:    map[appstoreconnect.CertificateType][]APICertificate{},
 			wantErr: true,
 		},
 		{
@@ -101,21 +101,21 @@ func TestGetValidCertificates(t *testing.T) {
 					devCert,
 					devCert2,
 				},
-				client: mockAPIClient(map[CertificateType][]APICertificate{
-					Development: []APICertificate{{
+				client: mockAPIClient(map[appstoreconnect.CertificateType][]APICertificate{
+					appstoreconnect.IOSDevelopment: []APICertificate{{
 						Certificate: devCert,
 						ID:          "devcert",
 					}},
 				}),
-				requiredCertificateTypes: map[CertificateType]bool{Development: true, Distribution: false},
-				typeToName: map[CertificateType]string{
-					Development: "iPhone Developer",
+				requiredCertificateTypes: map[appstoreconnect.CertificateType]bool{appstoreconnect.IOSDevelopment: true, appstoreconnect.IOSDistribution: false},
+				typeToName: map[appstoreconnect.CertificateType]string{
+					appstoreconnect.IOSDevelopment: "iPhone Developer",
 				},
 				teamID:      "",
 				logAllCerts: true,
 			},
-			want: map[CertificateType][]APICertificate{
-				Development: []APICertificate{{
+			want: map[appstoreconnect.CertificateType][]APICertificate{
+				appstoreconnect.IOSDevelopment: []APICertificate{{
 					Certificate: devCert,
 					ID:          "devcert",
 				}},
@@ -126,15 +126,15 @@ func TestGetValidCertificates(t *testing.T) {
 			name: "no local; no API; dev+dist requried",
 			args: args{
 				localCertificates:        []certificateutil.CertificateInfoModel{},
-				client:                   mockAPIClient(map[CertificateType][]APICertificate{}),
-				requiredCertificateTypes: map[CertificateType]bool{Development: true, Distribution: true},
-				typeToName: map[CertificateType]string{
-					Development: "iPhone Developer",
+				client:                   mockAPIClient(map[appstoreconnect.CertificateType][]APICertificate{}),
+				requiredCertificateTypes: map[appstoreconnect.CertificateType]bool{appstoreconnect.IOSDevelopment: true, appstoreconnect.IOSDistribution: true},
+				typeToName: map[appstoreconnect.CertificateType]string{
+					appstoreconnect.IOSDevelopment: "iPhone Developer",
 				},
 				teamID:      "",
 				logAllCerts: true,
 			},
-			want:    map[CertificateType][]APICertificate{},
+			want:    map[appstoreconnect.CertificateType][]APICertificate{},
 			wantErr: true,
 		},
 		{
@@ -143,15 +143,15 @@ func TestGetValidCertificates(t *testing.T) {
 				localCertificates: []certificateutil.CertificateInfoModel{
 					devCert,
 				},
-				client:                   mockAPIClient(map[CertificateType][]APICertificate{}),
-				requiredCertificateTypes: map[CertificateType]bool{Development: true, Distribution: true},
-				typeToName: map[CertificateType]string{
-					Development: "iPhone Developer",
+				client:                   mockAPIClient(map[appstoreconnect.CertificateType][]APICertificate{}),
+				requiredCertificateTypes: map[appstoreconnect.CertificateType]bool{appstoreconnect.IOSDevelopment: true, appstoreconnect.IOSDistribution: true},
+				typeToName: map[appstoreconnect.CertificateType]string{
+					appstoreconnect.IOSDevelopment: "iPhone Developer",
 				},
 				teamID:      "",
 				logAllCerts: true,
 			},
-			want:    map[CertificateType][]APICertificate{},
+			want:    map[appstoreconnect.CertificateType][]APICertificate{},
 			wantErr: true,
 		},
 		{
@@ -160,21 +160,21 @@ func TestGetValidCertificates(t *testing.T) {
 				localCertificates: []certificateutil.CertificateInfoModel{
 					devCert,
 				},
-				client: mockAPIClient(map[CertificateType][]APICertificate{
-					Development: []APICertificate{{
+				client: mockAPIClient(map[appstoreconnect.CertificateType][]APICertificate{
+					appstoreconnect.IOSDevelopment: []APICertificate{{
 						Certificate: devCert,
 						ID:          "apicertid",
 					}},
 				}),
-				requiredCertificateTypes: map[CertificateType]bool{Development: true, Distribution: false},
-				typeToName: map[CertificateType]string{
-					Development: "iPhone Developer",
+				requiredCertificateTypes: map[appstoreconnect.CertificateType]bool{appstoreconnect.IOSDevelopment: true, appstoreconnect.IOSDistribution: false},
+				typeToName: map[appstoreconnect.CertificateType]string{
+					appstoreconnect.IOSDevelopment: "iPhone Developer",
 				},
 				teamID:      "",
 				logAllCerts: true,
 			},
-			want: map[CertificateType][]APICertificate{
-				Development: []APICertificate{{
+			want: map[appstoreconnect.CertificateType][]APICertificate{
+				appstoreconnect.IOSDevelopment: []APICertificate{{
 					Certificate: devCert,
 					ID:          "apicertid",
 				}},
@@ -188,21 +188,21 @@ func TestGetValidCertificates(t *testing.T) {
 					devCert,
 					devCert2,
 				},
-				client: mockAPIClient(map[CertificateType][]APICertificate{
-					Development: []APICertificate{{
+				client: mockAPIClient(map[appstoreconnect.CertificateType][]APICertificate{
+					appstoreconnect.IOSDevelopment: []APICertificate{{
 						Certificate: devCert,
 						ID:          "dev1",
 					}},
 				}),
-				requiredCertificateTypes: map[CertificateType]bool{Development: true, Distribution: false},
-				typeToName: map[CertificateType]string{
-					Development: "iPhone Developer",
+				requiredCertificateTypes: map[appstoreconnect.CertificateType]bool{appstoreconnect.IOSDevelopment: true, appstoreconnect.IOSDistribution: false},
+				typeToName: map[appstoreconnect.CertificateType]string{
+					appstoreconnect.IOSDevelopment: "iPhone Developer",
 				},
 				teamID:      "",
 				logAllCerts: true,
 			},
-			want: map[CertificateType][]APICertificate{
-				Development: []APICertificate{{
+			want: map[appstoreconnect.CertificateType][]APICertificate{
+				appstoreconnect.IOSDevelopment: []APICertificate{{
 					Certificate: devCert,
 					ID:          "dev1",
 				}},
@@ -215,8 +215,8 @@ func TestGetValidCertificates(t *testing.T) {
 				localCertificates: []certificateutil.CertificateInfoModel{
 					devCert,
 				},
-				client: mockAPIClient(map[CertificateType][]APICertificate{
-					Development: []APICertificate{
+				client: mockAPIClient(map[appstoreconnect.CertificateType][]APICertificate{
+					appstoreconnect.IOSDevelopment: []APICertificate{
 						{
 							Certificate: devCert,
 							ID:          "apicertid_dev",
@@ -227,14 +227,14 @@ func TestGetValidCertificates(t *testing.T) {
 						},
 					},
 				}),
-				requiredCertificateTypes: map[CertificateType]bool{Development: true, Distribution: true},
-				typeToName: map[CertificateType]string{
-					Development: "iPhone Developer",
+				requiredCertificateTypes: map[appstoreconnect.CertificateType]bool{appstoreconnect.IOSDevelopment: true, appstoreconnect.IOSDistribution: true},
+				typeToName: map[appstoreconnect.CertificateType]string{
+					appstoreconnect.IOSDevelopment: "iPhone Developer",
 				},
 				teamID:      "",
 				logAllCerts: true,
 			},
-			want:    map[CertificateType][]APICertificate{},
+			want:    map[appstoreconnect.CertificateType][]APICertificate{},
 			wantErr: true,
 		},
 		{
@@ -244,23 +244,23 @@ func TestGetValidCertificates(t *testing.T) {
 					devCert,
 					distributionCert,
 				},
-				client: mockAPIClient(map[CertificateType][]APICertificate{
-					Development: []APICertificate{{
+				client: mockAPIClient(map[appstoreconnect.CertificateType][]APICertificate{
+					appstoreconnect.IOSDevelopment: []APICertificate{{
 						Certificate: devCert,
 						ID:          "dev",
 					}},
 				}),
-				requiredCertificateTypes: map[CertificateType]bool{
-					Development:  true,
-					Distribution: true,
+				requiredCertificateTypes: map[appstoreconnect.CertificateType]bool{
+					appstoreconnect.IOSDevelopment:  true,
+					appstoreconnect.IOSDistribution: true,
 				},
-				typeToName: map[CertificateType]string{
-					Development: "iPhone Developer",
+				typeToName: map[appstoreconnect.CertificateType]string{
+					appstoreconnect.IOSDevelopment: "iPhone Developer",
 				},
 				teamID:      "",
 				logAllCerts: true,
 			},
-			want:    map[CertificateType][]APICertificate{},
+			want:    map[appstoreconnect.CertificateType][]APICertificate{},
 			wantErr: true,
 		},
 		{
@@ -270,34 +270,34 @@ func TestGetValidCertificates(t *testing.T) {
 					devCert,
 					distributionCert,
 				},
-				client: mockAPIClient(map[CertificateType][]APICertificate{
-					Development: []APICertificate{
+				client: mockAPIClient(map[appstoreconnect.CertificateType][]APICertificate{
+					appstoreconnect.IOSDevelopment: []APICertificate{
 						{
 							Certificate: devCert,
 							ID:          "dev",
 						},
 					},
-					Distribution: []APICertificate{
+					appstoreconnect.IOSDistribution: []APICertificate{
 						{
 							Certificate: distributionCert,
 							ID:          "dist",
 						},
 					},
 				}),
-				requiredCertificateTypes: map[CertificateType]bool{Development: true, Distribution: true},
-				typeToName: map[CertificateType]string{
-					Development:  "iPhone Developer",
-					Distribution: "iPhone Distribution",
+				requiredCertificateTypes: map[appstoreconnect.CertificateType]bool{appstoreconnect.IOSDevelopment: true, appstoreconnect.IOSDistribution: true},
+				typeToName: map[appstoreconnect.CertificateType]string{
+					appstoreconnect.IOSDevelopment:  "iPhone Developer",
+					appstoreconnect.IOSDistribution: "iPhone Distribution",
 				},
 				teamID:      "",
 				logAllCerts: true,
 			},
-			want: map[CertificateType][]APICertificate{
-				Development: []APICertificate{{
+			want: map[appstoreconnect.CertificateType][]APICertificate{
+				appstoreconnect.IOSDevelopment: []APICertificate{{
 					Certificate: devCert,
 					ID:          "dev",
 				}},
-				Distribution: []APICertificate{{
+				appstoreconnect.IOSDistribution: []APICertificate{{
 					Certificate: distributionCert,
 					ID:          "dist",
 				}},
@@ -381,81 +381,6 @@ func Test_logUpdatedAPICertificates(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := logUpdatedAPICertificates(tt.localCertificates, tt.APICertificates); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("matchLocalCertificatesToConnectCertificates() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_queryCertificateBySerial(t *testing.T) {
-	log.SetEnableDebugLog(true)
-
-	c := appstoreconnect.InitTestClient(t)
-	bitriseBotSerial, ok := big.NewInt(1).SetString("6807132550712878682", 10)
-	if !ok {
-		t.Errorf("init: failed to create serial")
-	}
-
-	type args struct {
-		client *appstoreconnect.Client
-		serial *big.Int
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    APICertificate
-		wantErr bool
-	}{
-		{
-			args: args{
-				client: c,
-				serial: bitriseBotSerial,
-			},
-			want: APICertificate{
-				Certificate: certificateutil.CertificateInfoModel{
-					Serial: bitriseBotSerial.String(),
-				},
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := queryCertificateBySerial(tt.args.client, tt.args.serial)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("queryCertificateBySerial() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got.Certificate.Serial, tt.want.Certificate.Serial) {
-				t.Errorf("queryCertificateBySerial() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_queryAllIOSCertificates(t *testing.T) {
-	log.SetEnableDebugLog(true)
-
-	c := appstoreconnect.InitTestClient(t)
-
-	type args struct {
-		client *appstoreconnect.Client
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			args: args{
-				client: c,
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, err := queryAllIOSCertificates(tt.args.client)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("queryAllIOSCertificates() error = %v, wantErr %v", err, tt.wantErr)
-				return
 			}
 		})
 	}

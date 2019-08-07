@@ -2,8 +2,9 @@ package autoprovision
 
 import (
 	"fmt"
-	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 	"strings"
+
+	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
 
 // FindBundleID ...
@@ -28,6 +29,7 @@ func FindBundleID(client *appstoreconnect.Client, bundleIDIdentifier string) (*a
 	return nil, nil
 }
 
+// CheckBundleIDEntitlements ...
 func CheckBundleIDEntitlements(client *appstoreconnect.Client, bundleID appstoreconnect.BundleID, entitlements Entitlement) (bool, error) {
 	capabilitiesResp, err := client.Provisioning.Capabilities(bundleID.Relationships.Capabilities.Links.Related)
 	if err != nil {

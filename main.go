@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/xcode-project/pretty"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/autoprovision"
-	"os"
 )
 
 func failf(s string, args ...interface{}) {

@@ -97,15 +97,16 @@ func NewProjectHelper(projOrWSPath, schemeName, configurationName string) (*Proj
 		return nil, "", err
 	}
 	return &ProjectHelper{
-		MainTarget:    mainTarget,
-		Targets:       xcproj.Proj.Targets,
-		Platform:      platf,
-		XcProj:        xcproj,
-		Configuration: conf,
-	}, conf,
+			MainTarget:    mainTarget,
+			Targets:       xcproj.Proj.Targets,
+			Platform:      platf,
+			XcProj:        xcproj,
+			Configuration: conf,
+		}, conf,
 		nil
 }
 
+// ArchivableTargetBundleIDToEntitlements ...
 func (p ProjectHelper) ArchivableTargetBundleIDToEntitlements() (map[string]serialized.Object, error) {
 	targets := append([]xcodeproj.Target{p.MainTarget}, p.MainTarget.DependentExecutableProductTargets(false)...)
 
@@ -190,7 +191,7 @@ func configuration(configurationName string, scheme xcscheme.Scheme, xcproj xcod
 				return "", fmt.Errorf("build configuration (%s) not defined for target: (%s)", configurationName, target.Name)
 			}
 		}
-		log.Warnf("Using defined build configuration: %s instead of the scheme's default one: %s", configurationName, defaultConfiguration)
+		log.Debugf("Using defined build configuration: %s instead of the scheme's default one: %s", configurationName, defaultConfiguration)
 		configuration = configurationName
 	}
 

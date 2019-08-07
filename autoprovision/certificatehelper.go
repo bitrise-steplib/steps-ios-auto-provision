@@ -18,26 +18,27 @@ type APICertificate struct {
 	ID          string
 }
 
-type certificateSource struct {
+// CertificateSource ...
+type CertificateSource struct {
 	client                       *appstoreconnect.Client
 	queryCertificateBySerialFunc func(*appstoreconnect.Client, *big.Int) (APICertificate, error)
 	queryAllCertificatesFunc     func(*appstoreconnect.Client) (map[appstoreconnect.CertificateType][]APICertificate, error)
 }
 
 // APIClient ...
-func APIClient(client *appstoreconnect.Client) certificateSource {
-	return certificateSource{
+func APIClient(client *appstoreconnect.Client) CertificateSource {
+	return CertificateSource{
 		client:                       client,
 		queryCertificateBySerialFunc: queryCertificateBySerial,
 		queryAllCertificatesFunc:     queryAllIOSCertificates,
 	}
 }
 
-func (c *certificateSource) queryCertificateBySerial(serial *big.Int) (APICertificate, error) {
+func (c *CertificateSource) queryCertificateBySerial(serial *big.Int) (APICertificate, error) {
 	return c.queryCertificateBySerialFunc(c.client, serial)
 }
 
-func (c *certificateSource) queryAllCertificates() (map[appstoreconnect.CertificateType][]APICertificate, error) {
+func (c *CertificateSource) queryAllCertificates() (map[appstoreconnect.CertificateType][]APICertificate, error) {
 	return c.queryAllCertificatesFunc(c.client)
 }
 
@@ -128,7 +129,7 @@ func certsToString(certs []certificateutil.CertificateInfoModel) string {
 }
 
 // GetValidCertificates ...
-func GetValidCertificates(localCertificates []certificateutil.CertificateInfoModel, client certificateSource, requiredCertificateTypes map[appstoreconnect.CertificateType]bool, typeToName map[appstoreconnect.CertificateType]string, teamID string, logAllAPICerts bool) (map[appstoreconnect.CertificateType][]APICertificate, error) {
+func GetValidCertificates(localCertificates []certificateutil.CertificateInfoModel, client CertificateSource, requiredCertificateTypes map[appstoreconnect.CertificateType]bool, typeToName map[appstoreconnect.CertificateType]string, teamID string, logAllAPICerts bool) (map[appstoreconnect.CertificateType][]APICertificate, error) {
 	typeToLocalCerts, err := GetValidLocalCertificates(localCertificates, typeToName, teamID)
 	if err != nil {
 		return nil, err
@@ -214,7 +215,7 @@ func GetValidLocalCertificates(certificates []certificateutil.CertificateInfoMod
 }
 
 // MatchLocalToAPICertificates ...
-func MatchLocalToAPICertificates(client certificateSource, certificateType appstoreconnect.CertificateType, localCertificates []certificateutil.CertificateInfoModel) ([]APICertificate, error) {
+func MatchLocalToAPICertificates(client CertificateSource, certificateType appstoreconnect.CertificateType, localCertificates []certificateutil.CertificateInfoModel) ([]APICertificate, error) {
 	var matchingCertificates []APICertificate
 
 	for _, localCert := range localCertificates {
@@ -234,7 +235,7 @@ func MatchLocalToAPICertificates(client certificateSource, certificateType appst
 }
 
 // LogAllAPICertificates ...
-func LogAllAPICertificates(client certificateSource, localCertificates map[appstoreconnect.CertificateType][]certificateutil.CertificateInfoModel) error {
+func LogAllAPICertificates(client CertificateSource, localCertificates map[appstoreconnect.CertificateType][]certificateutil.CertificateInfoModel) error {
 	certificates, err := client.queryAllCertificates()
 	if err != nil {
 		return fmt.Errorf("failed to query certificates on Developer Portal: %s", err)
@@ -276,7 +277,7 @@ func logUpdatedAPICertificates(localCertificates []certificateutil.CertificateIn
 
 		if latestAPICert != nil {
 			existUpdated = true
-			log.Warnf("Provided an older version of certificate $s", localCert)
+			log.Warnf("Provided an older version of certificate %s", localCert)
 			log.Warnf("The most recent version of the certificate found on Developer Portal: expiry date: %s, serial: %s", latestAPICert.Certificate.EndDate, latestAPICert.Certificate.Serial)
 			log.Warnf("Please upload this version to Bitrise.")
 		}
