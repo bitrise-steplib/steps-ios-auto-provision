@@ -243,7 +243,7 @@ func (s ProvisioningService) UpdateCapability(id string, body BundleIDCapability
 
 // Capabilities ...
 func (s ProvisioningService) Capabilities(relationshipLink string) (*BundleIDCapabilitiesResponse, error) {
-	url := strings.TrimPrefix(relationshipLink, baseURL+"v1")
+	url := strings.TrimPrefix(relationshipLink, baseURL+apiVersion)
 	req, err := s.client.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err

@@ -18,7 +18,8 @@ import (
 )
 
 const (
-	baseURL = "https://api.appstoreconnect.apple.com/"
+	baseURL    = "https://api.appstoreconnect.apple.com/"
+	apiVersion = "v1"
 )
 
 type service struct {

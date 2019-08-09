@@ -128,7 +128,7 @@ func (s ProvisioningService) RegisterNewDevice(body DeviceCreateRequest) (*Devic
 
 // Devices ...
 func (s ProvisioningService) Devices(relationshipLink string) (*DevicesResponse, error) {
-	url := strings.TrimPrefix(relationshipLink, baseURL+"v1")
+	url := strings.TrimPrefix(relationshipLink, baseURL+apiVersion)
 	req, err := s.client.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err

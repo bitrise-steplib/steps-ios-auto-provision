@@ -61,22 +61,6 @@ const (
 	TvOSAppInHouse     ProfileType = "TVOS_APP_INHOUSE"
 )
 
-// ProfileTypeDevelopmentPair returns the distribution profile type developmnet pair.
-// E.g IOSAppStore development pair is IOSAppDevelopment
-func (t ProfileType) ProfileTypeDevelopmentPair() ProfileType {
-	switch t {
-	case IOSAppStore, IOSAppAdHoc, IOSAppInHouse:
-		return IOSAppDevelopment
-	case MacAppStore, MacAppDirect:
-		return MacAppDevelopment
-	case TvOSAppStore, TvOSAppAdHoc, TvOSAppInHouse:
-		return TvOSAppDevelopment
-	case IOSAppDevelopment, MacAppDevelopment, TvOSAppDevelopment:
-		return ""
-	}
-	return ""
-}
-
 // ReadableString returns the readable version of the ProjectType
 // e.g: IOSAppDevelopment => development
 func (t ProfileType) ReadableString() string {
@@ -268,9 +252,7 @@ func NewProfileCreateRequest(profileType ProfileType, name, bundleIDID string, c
 			Type: "certificates",
 		})
 	}
-	if len(certData) > 0 {
-		relationships.Certificates = ProfileCreateRequestDataRelationshipsCertificates{Data: certData}
-	}
+	relationships.Certificates = ProfileCreateRequestDataRelationshipsCertificates{Data: certData}
 
 	var deviceData []ProfileCreateRequestDataRelationshipData
 	for _, id := range deviceIDs {
@@ -317,15 +299,12 @@ func (s ProvisioningService) CreateProfile(body ProfileCreateRequest) (*ProfileR
 }
 
 // DeleteProfile ...
-func (s ProvisioningService) DeleteProfile(id string) (error) {
+func (s ProvisioningService) DeleteProfile(id string) error {
 	req, err := s.client.NewRequest(http.MethodDelete, ProfilesURL+"/"+id, nil)
 	if err != nil {
 		return err
 	}
 
-	if _, err := s.client.Do(req, nil); err != nil {
-		return err
-	}
-
-	return nil
+	_, err = s.client.Do(req, nil)
+	return err
 }

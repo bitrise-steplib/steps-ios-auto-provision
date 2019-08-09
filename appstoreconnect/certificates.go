@@ -106,7 +106,7 @@ func (s ProvisioningService) FetchCertificate(serialNumber string) (Certificate,
 
 // Certificates ...
 func (s ProvisioningService) Certificates(relationshipLink string) (*CertificatesResponse, error) {
-	url := strings.TrimPrefix(relationshipLink, baseURL+"v1")
+	url := strings.TrimPrefix(relationshipLink, baseURL+apiVersion)
 	req, err := s.client.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err

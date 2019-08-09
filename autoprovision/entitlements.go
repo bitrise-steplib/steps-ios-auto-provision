@@ -17,13 +17,58 @@ var DataProtections = map[string]appstoreconnect.CapabilityOptionKey{
 	"NSFileProtectionCompleteUntilFirstUserAuthentication": appstoreconnect.ProtectedUntilFirstUserAuth,
 }
 
+func iCloudEquals(cap appstoreconnect.BundleIDCapability) bool {
+	if len(cap.Attributes.Settings) != 1 {
+		return false
+	}
+
+	capSett := cap.Attributes.Settings[0]
+	if capSett.Key != appstoreconnect.IcloudVersion {
+		return false
+	}
+	if len(capSett.Options) != 1 {
+		return false
+	}
+
+	capSettOpt := capSett.Options[0]
+	if capSettOpt.Key != appstoreconnect.Xcode6 {
+		return false
+	}
+	return true
+}
+
+func dataProtectionEquals(entVal string, cap appstoreconnect.BundleIDCapability) (bool, error) {
+	key, ok := DataProtections[entVal]
+	if !ok {
+		return false, errors.New("no data protection level found for entitlement value: " + entVal)
+	}
+
+	if len(cap.Attributes.Settings) != 1 {
+		return false, nil
+	}
+
+	capSett := cap.Attributes.Settings[0]
+	if capSett.Key != appstoreconnect.DataProtectionPermissionLevel {
+		return false, nil
+	}
+	if len(capSett.Options) != 1 {
+		return false, nil
+	}
+
+	capSettOpt := capSett.Options[0]
+	if capSettOpt.Key != key {
+		return false, nil
+	}
+	return true, nil
+}
+
 // Equal ...
 func (e Entitlement) Equal(cap appstoreconnect.BundleIDCapability) (bool, error) {
-	var entKey string
-	for k := range e {
-		entKey = k
-		break
+	if len(e) == 0 {
+		return false, nil
 	}
+
+	entKey := serialized.Object(e).Keys()[0]
 
 	capType, ok := appstoreconnect.ServiceTypeByKey[entKey]
 	if !ok {
@@ -35,49 +80,13 @@ func (e Entitlement) Equal(cap appstoreconnect.BundleIDCapability) (bool, error)
 	}
 
 	if capType == appstoreconnect.ICloud {
-		if len(cap.Attributes.Settings) != 1 {
-			return false, nil
-		}
-
-		capSett := cap.Attributes.Settings[0]
-		if capSett.Key != appstoreconnect.IcloudVersion {
-			return false, nil
-		}
-		if len(capSett.Options) != 1 {
-			return false, nil
-		}
-
-		capSettOpt := capSett.Options[0]
-		if capSettOpt.Key != appstoreconnect.Xcode6 {
-			return false, nil
-		}
+		return iCloudEquals(cap), nil
 	} else if capType == appstoreconnect.DataProtection {
 		entVal, err := serialized.Object(e).String(entKey)
 		if err != nil {
-			return false, errors.New("no entitlements value for key: " + entKey)
+			return false, err
 		}
-
-		key, ok := DataProtections[entVal]
-		if !ok {
-			return false, errors.New("no data protection level found for entitlement value: " + entVal)
-		}
-
-		if len(cap.Attributes.Settings) != 1 {
-			return false, nil
-		}
-
-		capSett := cap.Attributes.Settings[0]
-		if capSett.Key != appstoreconnect.DataProtectionPermissionLevel {
-			return false, nil
-		}
-		if len(capSett.Options) != 1 {
-			return false, nil
-		}
-
-		capSettOpt := capSett.Options[0]
-		if capSettOpt.Key != key {
-			return false, nil
-		}
+		return dataProtectionEquals(entVal, cap)
 	}
 
 	return true, nil
@@ -85,11 +94,11 @@ func (e Entitlement) Equal(cap appstoreconnect.BundleIDCapability) (bool, error)
 
 // Capability ...
 func (e Entitlement) Capability() (*appstoreconnect.BundleIDCapability, error) {
-	var entKey string
-	for k := range e {
-		entKey = k
-		break
+	if len(e) == 0 {
+		return nil, nil
 	}
+
+	entKey := serialized.Object(e).Keys()[0]
 
 	capType, ok := appstoreconnect.ServiceTypeByKey[entKey]
 	if !ok {
