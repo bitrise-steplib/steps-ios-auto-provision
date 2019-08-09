@@ -248,41 +248,7 @@ func LogAllAPICertificates(client CertificateSource, localCertificates map[appst
 		}
 	}
 
-	for _, certType := range []appstoreconnect.CertificateType{appstoreconnect.IOSDevelopment, appstoreconnect.IOSDistribution} {
-		logUpdatedAPICertificates(localCertificates[certType], certificates[certType])
-	}
-
 	return nil
-}
-
-func logUpdatedAPICertificates(localCertificates []certificateutil.CertificateInfoModel, APIcertificates []APICertificate) bool {
-	nameToAPICertificates := map[string][]APICertificate{}
-	for _, cert := range APIcertificates {
-		nameToAPICertificates[cert.Certificate.CommonName] = append(nameToAPICertificates[cert.Certificate.CommonName], cert)
-	}
-
-	existUpdated := false
-	for _, localCert := range localCertificates {
-		if len(nameToAPICertificates[localCert.CommonName]) == 0 {
-			continue
-		}
-
-		var latestAPICert *APICertificate
-		for _, APICert := range nameToAPICertificates[localCert.CommonName] {
-			if APICert.Certificate.EndDate.After(localCert.EndDate) &&
-				(latestAPICert == nil || APICert.Certificate.EndDate.After(latestAPICert.Certificate.EndDate)) {
-				latestAPICert = &APICert
-			}
-		}
-
-		if latestAPICert != nil {
-			existUpdated = true
-			log.Warnf("Provided an older version of certificate %s", localCert)
-			log.Warnf("The most recent version of the certificate found on Developer Portal: expiry date: %s, serial: %s", latestAPICert.Certificate.EndDate, latestAPICert.Certificate.Serial)
-			log.Warnf("Please upload this version to Bitrise.")
-		}
-	}
-	return existUpdated
 }
 
 // filterCertificates returns the certificates matching to the given common name, developer team ID, and distribution type.
