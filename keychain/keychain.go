@@ -8,6 +8,7 @@ import (
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/errorutil"
+	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-xcode/certificateutil"
 	"github.com/hashicorp/go-version"
@@ -45,17 +46,21 @@ func New(pth string, pass stepconf.Secret) (*Keychain, error) {
 
 // InstallCertificate ...
 func (k Keychain) InstallCertificate(cert certificateutil.CertificateInfoModel, pass stepconf.Secret) error {
+	b, err := cert.EncodeToP12("bitrise")
+	if err != nil {
+		return err
+	}
+
 	tmpDir, err := pathutil.NormalizedOSTempDirPath("keychain")
 	if err != nil {
 		return err
 	}
 	pth := filepath.Join(tmpDir, "Certificate.p12")
-	_, err = cert.EncodeToP12(string(pass))
-	if err != nil {
+	if err := fileutil.WriteBytesToFile(pth, b); err != nil {
 		return err
 	}
 
-	if err := k.importCertificate(pth, pass); err != nil {
+	if err := k.importCertificate(pth, "bitrise"); err != nil {
 		return err
 	}
 
@@ -135,7 +140,7 @@ func listKeychains() ([]string, error) {
 // a Keychain object representing the created
 // keychain is returned.
 func createKeychain(path string, password stepconf.Secret) (*Keychain, error) {
-	err := runSecurityCmd([]interface{}{"-v", "create-keychain", "-p", password, path})
+	err := runSecurityCmd("-v", "create-keychain", "-p", password, path)
 	if err != nil {
 		return nil, err
 	}
@@ -149,18 +154,18 @@ func createKeychain(path string, password stepconf.Secret) (*Keychain, error) {
 // importCertificate adds the certificate at path, protected by
 // passphrase to the k keychain.
 func (k Keychain) importCertificate(path string, passphrase stepconf.Secret) error {
-	return runSecurityCmd([]interface{}{"import", path, "-k", k.Path, "-P", passphrase, "-A"})
+	return runSecurityCmd("import", path, "-k", k.Path, "-P", passphrase, "-A")
 }
 
 // setKeyPartitionList sets the partition list
 // for the keychain to allow access for tools.
 func (k Keychain) setKeyPartitionList() error {
-	return runSecurityCmd([]interface{}{"set-key-partition-list", "-S", "apple-tool:,apple:", "-k", k.Password, k.Path})
+	return runSecurityCmd("set-key-partition-list", "-S", "apple-tool:,apple:", "-k", k.Password, k.Path)
 }
 
 // setLockSettings sets keychain autolocking.
 func (k Keychain) setLockSettings() error {
-	return runSecurityCmd([]interface{}{"security", "-v", "set-keychain-settings", "-lut", "72000", k.Path})
+	return runSecurityCmd("-v", "set-keychain-settings", "-lut", "72000", k.Path)
 }
 
 // addToSearchPath registers the keychain
@@ -171,18 +176,18 @@ func (k Keychain) addToSearchPath() error {
 		return fmt.Errorf("get keychain list: %s", err)
 	}
 
-	return runSecurityCmd([]interface{}{"security", "-v", "list-keychains", "-s", strings.Join(keychains, " ")})
+	return runSecurityCmd("-v", "list-keychains", "-s", strings.Join(keychains, " "))
 }
 
 // setAsDefault sets the keychain as the
 // default keychain for the system.
 func (k Keychain) setAsDefault() error {
-	return runSecurityCmd([]interface{}{"security", "-v", "default-keychain", "-s", k.Path})
+	return runSecurityCmd("-v", "default-keychain", "-s", k.Path)
 }
 
 // unlock unlocks the keychain
 func (k Keychain) unlock() error {
-	return runSecurityCmd([]interface{}{"-v", "unlock-keychain", "-p", k.Password, k.Path})
+	return runSecurityCmd("-v", "unlock-keychain", "-p", k.Password, k.Path)
 }
 
 // isKeyPartitionListNeeded determines whether

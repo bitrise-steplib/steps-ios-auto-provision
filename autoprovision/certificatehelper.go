@@ -246,6 +246,7 @@ func MatchLocalToAPICertificates(client CertificateSource, certificateType appst
 			log.Warnf("Certificate not found on Developer Portal, %s", err)
 			continue
 		}
+		cert.Certificate = localCert
 
 		log.Debugf("Found. ID: %s, %s ", cert.ID, cert.Certificate)
 		matchingCertificates = append(matchingCertificates, cert)

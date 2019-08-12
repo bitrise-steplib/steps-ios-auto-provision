@@ -37,11 +37,3 @@
 [prune]
   go-tests = true
   unused-packages = true
-
-[[constraint]]
-  branch = "project-attribute"
-  name = "github.com/bitrise-io/xcode-project"
-
-[[constraint]]
-  branch = "master"
-  name = "howett.net/plist"
