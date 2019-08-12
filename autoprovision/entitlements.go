@@ -3,6 +3,7 @@ package autoprovision
 import (
 	"errors"
 
+	"github.com/bitrise-io/go-utils/sliceutil"
 	"github.com/bitrise-io/xcode-project/serialized"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
@@ -17,24 +18,29 @@ var DataProtections = map[string]appstoreconnect.CapabilityOptionKey{
 	"NSFileProtectionCompleteUntilFirstUserAuthentication": appstoreconnect.ProtectedUntilFirstUserAuth,
 }
 
-func iCloudEquals(cap appstoreconnect.BundleIDCapability) bool {
+func iCloudEquals(ent Entitlement, cap appstoreconnect.BundleIDCapability) (bool, error) {
+	documents, cloudKit, kvStorage, err := ent.iCloudServices()
+	if err != nil {
+		return false, err
+	}
+
 	if len(cap.Attributes.Settings) != 1 {
-		return false
+		return false, nil
 	}
 
 	capSett := cap.Attributes.Settings[0]
 	if capSett.Key != appstoreconnect.IcloudVersion {
-		return false
+		return false, nil
 	}
 	if len(capSett.Options) != 1 {
-		return false
+		return false, nil
 	}
 
 	capSettOpt := capSett.Options[0]
-	if capSettOpt.Key != appstoreconnect.Xcode6 {
-		return false
+	if (documents || cloudKit || kvStorage) && capSettOpt.Key != appstoreconnect.Xcode6 {
+		return false, nil
 	}
-	return true
+	return true, nil
 }
 
 func dataProtectionEquals(entVal string, cap appstoreconnect.BundleIDCapability) (bool, error) {
@@ -80,7 +86,7 @@ func (e Entitlement) Equal(cap appstoreconnect.BundleIDCapability) (bool, error)
 	}
 
 	if capType == appstoreconnect.ICloud {
-		return iCloudEquals(cap), nil
+		return iCloudEquals(e, cap)
 	} else if capType == appstoreconnect.DataProtection {
 		entVal, err := serialized.Object(e).String(entKey)
 		if err != nil {
@@ -90,6 +96,25 @@ func (e Entitlement) Equal(cap appstoreconnect.BundleIDCapability) (bool, error)
 	}
 
 	return true, nil
+}
+
+func (e Entitlement) iCloudServices() (iCloudDocuments, iCloudKit, keyValueStorage bool, err error) {
+	v, err := serialized.Object(e).String("com.apple.developer.ubiquity-kvstore-identifier")
+	if err != nil && !serialized.IsKeyNotFoundError(err) {
+		return false, false, false, err
+	}
+	keyValueStorage = v != ""
+
+	iCloudServices, err := serialized.Object(e).StringSlice("com.apple.developer.icloud-services")
+	if err != nil && !serialized.IsKeyNotFoundError(err) {
+		return false, false, false, err
+	}
+
+	if len(iCloudServices) > 0 {
+		iCloudDocuments = sliceutil.IsStringInSlice("CloudDocuments", iCloudServices)
+		iCloudKit = sliceutil.IsStringInSlice("CloudKit", iCloudServices)
+	}
+	return
 }
 
 // Capability ...
