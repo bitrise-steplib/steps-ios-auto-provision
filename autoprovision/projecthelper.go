@@ -1,6 +1,7 @@
 package autoprovision
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"regexp"
@@ -14,20 +15,36 @@ import (
 	"github.com/bitrise-io/xcode-project/xcodeproj"
 	"github.com/bitrise-io/xcode-project/xcscheme"
 	"github.com/bitrise-io/xcode-project/xcworkspace"
+	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 	"howett.net/plist"
 )
 
 // ProjectHelper ...
 type ProjectHelper struct {
-	MainTarget xcodeproj.Target
-	Targets    []xcodeproj.Target
-	Platform   Platform
-	XcProj     xcodeproj.XcodeProj
+	MainTarget    xcodeproj.Target
+	Targets       []xcodeproj.Target
+	Platform      Platform
+	XcProj        xcodeproj.XcodeProj
+	Configuration string
 }
 
 // Platform of the target
 // iOS, tvOS, macOS
 type Platform string
+
+// BundleIDPlatform ...
+func (p Platform) BundleIDPlatform() (*appstoreconnect.BundleIDPlatform, error) {
+	var apiPlatform appstoreconnect.BundleIDPlatform
+	switch p {
+	case IOS, TVOS:
+		apiPlatform = appstoreconnect.IOS
+	case MacOS:
+		apiPlatform = appstoreconnect.MacOS
+	default:
+		return nil, errors.New("unknown platform: " + string(p))
+	}
+	return &apiPlatform, nil
+}
 
 // Const
 const (
@@ -36,10 +53,10 @@ const (
 	MacOS Platform = "macOS"
 )
 
-// New checks the provided project or workspace and generate a ProjectHelper with the provided scheme and configuration
+// NewProjectHelper checks the provided project or workspace and generate a ProjectHelper with the provided scheme and configuration
 // Previously in the ruby version the initialize method did the same
 // It returns a new ProjectHelper pointer and a configuration to use.
-func New(projOrWSPath, schemeName, configurationName string) (*ProjectHelper, string, error) {
+func NewProjectHelper(projOrWSPath, schemeName, configurationName string) (*ProjectHelper, string, error) {
 	// Maybe we should do this checks during the input parsing
 	if exits, err := pathutil.IsPathExists(projOrWSPath); err != nil {
 		return nil, "", err
@@ -80,12 +97,36 @@ func New(projOrWSPath, schemeName, configurationName string) (*ProjectHelper, st
 		return nil, "", err
 	}
 	return &ProjectHelper{
-			MainTarget: mainTarget,
-			Targets:    xcproj.Proj.Targets,
-			Platform:   platf,
-			XcProj:     xcproj,
+			MainTarget:    mainTarget,
+			Targets:       xcproj.Proj.Targets,
+			Platform:      platf,
+			XcProj:        xcproj,
+			Configuration: conf,
 		}, conf,
 		nil
+}
+
+// ArchivableTargetBundleIDToEntitlements ...
+func (p ProjectHelper) ArchivableTargetBundleIDToEntitlements() (map[string]serialized.Object, error) {
+	targets := append([]xcodeproj.Target{p.MainTarget}, p.MainTarget.DependentExecutableProductTargets(false)...)
+
+	entitlementsByBundleID := map[string]serialized.Object{}
+
+	for _, target := range targets {
+		bundleID, err := p.TargetBundleID(target.Name, p.Configuration)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to get target (%s) bundle id: %s", target.Name, err)
+		}
+
+		entitlements, err := p.targetEntitlements(target.Name, p.Configuration)
+		if err != nil && !serialized.IsKeyNotFoundError(err) {
+			return nil, fmt.Errorf("Failed to get target (%s) bundle id: %s", target.Name, err)
+		}
+
+		entitlementsByBundleID[bundleID] = entitlements
+	}
+
+	return entitlementsByBundleID, nil
 }
 
 // UsesXcodeAutoCodeSigning checks the project uses automatically managed code signing
@@ -150,7 +191,7 @@ func configuration(configurationName string, scheme xcscheme.Scheme, xcproj xcod
 				return "", fmt.Errorf("build configuration (%s) not defined for target: (%s)", configurationName, target.Name)
 			}
 		}
-		log.Warnf("Using defined build configuration: %s instead of the scheme's default one: %s", configurationName, defaultConfiguration)
+		log.Debugf("Using defined build configuration: %s instead of the scheme's default one: %s", configurationName, defaultConfiguration)
 		configuration = configurationName
 	}
 

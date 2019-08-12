@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // BundleIDsURL ...
@@ -137,6 +138,22 @@ type BundleIDCreateRequest struct {
 // CreateBundleID ...
 func (s ProvisioningService) CreateBundleID(body BundleIDCreateRequest) (*BundleIDResponse, error) {
 	req, err := s.client.NewRequest(http.MethodPost, BundleIDsURL, body)
+	if err != nil {
+		return nil, err
+	}
+
+	r := &BundleIDResponse{}
+	if _, err := s.client.Do(req, r); err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}
+
+// BundleID ...
+func (s ProvisioningService) BundleID(relationshipLink string) (*BundleIDResponse, error) {
+	url := strings.TrimPrefix(relationshipLink, baseURL+apiVersion)
+	req, err := s.client.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}

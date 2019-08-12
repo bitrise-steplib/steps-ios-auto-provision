@@ -21,21 +21,38 @@ type CertificateFileURL struct {
 	URL, Passphrase string
 }
 
+// DistributionType ...
+type DistributionType string
+
+// DistributionTypes ...
+var (
+	Development DistributionType = "development"
+	AppStore    DistributionType = "app-store"
+	AdHoc       DistributionType = "ad-hoc"
+	Enterprise  DistributionType = "enterprise"
+)
+
 // Config holds the step inputs
 type Config struct {
+	KeyID         string `env:"keyID"`
+	IssuerID      string `env:"issuerID"`
+	PrivateKeyPth string `env:"privateKey"`
+
+	Devices string `env:"devices"`
+
 	ProjectPath   string `env:"project_path,dir"`
 	Scheme        string `env:"scheme,required"`
 	Configuration string `env:"configuration"`
 
-	distributionType string `env:"distribution_type,required"`
-	TeamID           string `env:"team_id"`
+	DistributionType DistributionType `env:"distribution_type,required"`
+	TeamID           string           `env:"team_id"`
 
 	GenerateProfiles    string `env:"generate_profiles,opt[no,yes]"`
 	MinProfileDaysValid string `env:"min_profile_days_valid"`
 	VerboseLog          string `env:"verbose_log,opt[no,yes]"`
 
-	certificateURLList        string `env:"certificate_urls,required"`
-	certificatePassphraseList string `env:"passphrases,required"`
+	CertificateURLList        string `env:"certificate_urls,required"`
+	CertificatePassphraseList string `env:"passphrases,required"`
 
 	KeychainPath     string `env:"keychain_path,required"`
 	KeychainPassword string `env:"keychain_password,required"`
@@ -50,30 +67,47 @@ func ParseConfig() (c Config, err error) {
 	return
 }
 
-func stringToDistribution(distribution string) appstoreconnect.ProfileType {
-	switch distribution {
-	case "development":
-		return appstoreconnect.IOSAppDevelopment
-	case "app-store":
-		return appstoreconnect.IOSAppStore
-	case "ad-hoc":
-		return appstoreconnect.IOSAppAdHoc
-	case "enterprise":
-		return appstoreconnect.IOSAppInHouse
-	default:
-		return appstoreconnect.InvalidProfileType
-	}
+// PlatformToProfileTypeByDistribution ...
+var PlatformToProfileTypeByDistribution = map[Platform]map[DistributionType]appstoreconnect.ProfileType{
+	IOS: map[DistributionType]appstoreconnect.ProfileType{
+		Development: appstoreconnect.IOSAppDevelopment,
+		AppStore:    appstoreconnect.IOSAppStore,
+		AdHoc:       appstoreconnect.IOSAppAdHoc,
+		Enterprise:  appstoreconnect.IOSAppInHouse,
+	},
+	TVOS: map[DistributionType]appstoreconnect.ProfileType{
+		Development: appstoreconnect.TvOSAppDevelopment,
+		AppStore:    appstoreconnect.TvOSAppStore,
+		AdHoc:       appstoreconnect.TvOSAppAdHoc,
+		Enterprise:  appstoreconnect.TvOSAppInHouse,
+	},
 }
 
-// Distribution returns a distribution type
-func (c Config) Distribution() appstoreconnect.ProfileType {
-	return stringToDistribution(c.distributionType)
+// CertificateTypeByDistribution ...
+var CertificateTypeByDistribution = map[DistributionType]appstoreconnect.CertificateType{
+	Development: appstoreconnect.IOSDevelopment,
+	AppStore:    appstoreconnect.IOSDistribution,
+	AdHoc:       appstoreconnect.IOSDistribution,
+	Enterprise:  appstoreconnect.IOSDistribution,
+}
+
+// DeviceIDs ...
+func (c Config) DeviceIDs() []string {
+	split := strings.Split(c.Devices, ",")
+	var a []string
+	for _, s := range split {
+		s = strings.TrimSpace(s)
+		if s != "" {
+			a = append(a, s)
+		}
+	}
+	return a
 }
 
 // ValidateCertifacates validates if the number of certificate URLs matches those of passphrases
 func (c Config) ValidateCertifacates() ([]string, []string, error) {
-	pfxURLs := splitByPipe(c.certificateURLList, true)
-	passphrases := splitByPipe(c.certificatePassphraseList, false)
+	pfxURLs := splitByPipe(c.CertificateURLList, true)
+	passphrases := splitByPipe(c.CertificatePassphraseList, false)
 
 	if len(pfxURLs) != len(passphrases) {
 		return nil, nil, fmt.Errorf("certificates count (%d) and passphrases count (%d) should match", len(pfxURLs), len(passphrases))

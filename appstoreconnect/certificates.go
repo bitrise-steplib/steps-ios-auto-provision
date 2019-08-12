@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // CertificatesURL ...
@@ -101,4 +102,20 @@ func (s ProvisioningService) FetchCertificate(serialNumber string) (Certificate,
 		return Certificate{}, fmt.Errorf("multiple certificates with serial %s found: %s", serialNumber, r.Data)
 	}
 	return r.Data[0], nil
+}
+
+// Certificates ...
+func (s ProvisioningService) Certificates(relationshipLink string) (*CertificatesResponse, error) {
+	url := strings.TrimPrefix(relationshipLink, baseURL+apiVersion)
+	req, err := s.client.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	r := &CertificatesResponse{}
+	if _, err := s.client.Do(req, r); err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }

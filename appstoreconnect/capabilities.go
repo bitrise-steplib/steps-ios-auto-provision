@@ -189,14 +189,17 @@ type BundleIDCapabilityUpdateRequest struct {
 	Data BundleIDCapabilityUpdateRequestData `json:"data"`
 }
 
+// BundleIDCapabilityAttributes ...
+type BundleIDCapabilityAttributes struct {
+	CapabilityType CapabilityType      `json:"capabilityType"`
+	Settings       []CapabilitySetting `json:"settings"`
+}
+
 // BundleIDCapability ...
 type BundleIDCapability struct {
-	Attributes struct {
-		CapabilityType CapabilityType      `json:"capabilityType"`
-		Settings       []CapabilitySetting `json:"settings"`
-	}
-	ID   string `json:"id"`
-	Type string `json:"type"`
+	Attributes BundleIDCapabilityAttributes
+	ID         string `json:"id"`
+	Type       string `json:"type"`
 }
 
 // BundleIDCapabilityResponse ...
@@ -204,8 +207,8 @@ type BundleIDCapabilityResponse struct {
 	Data BundleIDCapability `json:"data"`
 }
 
-// BundleIDCapabilitesResponse ...
-type BundleIDCapabilitesResponse struct {
+// BundleIDCapabilitiesResponse ...
+type BundleIDCapabilitiesResponse struct {
 	Data []BundleIDCapability `json:"data"`
 }
 
@@ -238,15 +241,15 @@ func (s ProvisioningService) UpdateCapability(id string, body BundleIDCapability
 	return r, nil
 }
 
-// CapabilitiesOf ...
-func (s ProvisioningService) CapabilitiesOf(bundleID BundleID) (*BundleIDCapabilitesResponse, error) {
-	capabilityURL := strings.TrimLeft(bundleID.Relationships.Capabilities.Links.Related, baseURL+"v1")
-	req, err := s.client.NewRequest(http.MethodGet, capabilityURL, nil)
+// Capabilities ...
+func (s ProvisioningService) Capabilities(relationshipLink string) (*BundleIDCapabilitiesResponse, error) {
+	url := strings.TrimPrefix(relationshipLink, baseURL+apiVersion)
+	req, err := s.client.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	r := &BundleIDCapabilitesResponse{}
+	r := &BundleIDCapabilitiesResponse{}
 	if _, err := s.client.Do(req, r); err != nil {
 		return nil, err
 	}

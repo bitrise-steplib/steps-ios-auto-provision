@@ -3,6 +3,7 @@ package appstoreconnect
 import (
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // DevicesURL ...
@@ -10,6 +11,8 @@ const DevicesURL = "devices"
 
 // ListDevicesOptions ...
 type ListDevicesOptions struct {
+	FilterUDID string `url:"filter[udid],omitempty"`
+
 	Limit  int    `url:"limit,omitempty"`
 	Cursor string `url:"cursor,omitempty"`
 	Next   string `url:"-"`
@@ -123,10 +126,10 @@ func (s ProvisioningService) RegisterNewDevice(body DeviceCreateRequest) (*Devic
 	return r, nil
 }
 
-// DevicesOf returns the devices of the profile
-// Provide the device link (self) of the profile
-func (s ProvisioningService) DevicesOf(selfLink string) (*DevicesResponse, error) {
-	req, err := s.client.NewRequest(http.MethodGet, selfLink, nil)
+// Devices ...
+func (s ProvisioningService) Devices(relationshipLink string) (*DevicesResponse, error) {
+	url := strings.TrimPrefix(relationshipLink, baseURL+apiVersion)
+	req, err := s.client.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}

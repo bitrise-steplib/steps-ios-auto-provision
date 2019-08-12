@@ -88,7 +88,7 @@ func TestNew(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			projHelp, conf, err := New(tt.projOrWSPath, tt.schemeName, tt.configurationName)
+			projHelp, conf, err := NewProjectHelper(tt.projOrWSPath, tt.schemeName, tt.configurationName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("New() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -98,86 +98,6 @@ func TestNew(t *testing.T) {
 			}
 			if conf != tt.wantConfiguration {
 				t.Errorf("New() got1 = %v, want %v", conf, tt.wantConfiguration)
-			}
-		})
-	}
-}
-
-func TestUsesXcodeAutoCodeSigning(t *testing.T) {
-	var err error
-	schemeCases, _, xcProjCases, projHelpCases, configCases, err = initTestCases()
-	if err != nil {
-		t.Fatalf("Failed to initialize test cases, error: %s", err)
-	}
-
-	//
-	// Test
-	tests := []struct {
-		name       string
-		xcProj     xcodeproj.XcodeProj
-		mainTarget xcodeproj.Target
-		config     string
-		want       bool
-		wantErr    bool
-	}{
-		{
-			name:       schemeCases[0] + " Debug",
-			xcProj:     xcProjCases[0],
-			mainTarget: projHelpCases[0].MainTarget,
-			config:     configCases[0],
-			want:       true,
-			wantErr:    false,
-		},
-		{
-			name:       schemeCases[1] + " Release",
-			xcProj:     xcProjCases[1],
-			mainTarget: projHelpCases[1].MainTarget,
-			config:     configCases[1],
-			want:       true,
-			wantErr:    false,
-		},
-		{
-			name:       schemeCases[2] + " Debug",
-			xcProj:     xcProjCases[2],
-			mainTarget: projHelpCases[2].MainTarget,
-			config:     configCases[2],
-			want:       false,
-			wantErr:    false,
-		},
-		{
-			name:       schemeCases[3] + " Release",
-			xcProj:     xcProjCases[3],
-			mainTarget: projHelpCases[3].MainTarget,
-			config:     configCases[3],
-			want:       false,
-			wantErr:    false,
-		},
-		{
-			name:       schemeCases[4] + " Debug",
-			xcProj:     xcProjCases[4],
-			mainTarget: projHelpCases[4].MainTarget,
-			config:     configCases[4],
-			want:       false,
-			wantErr:    false,
-		},
-		{
-			name:       schemeCases[5] + " Release",
-			xcProj:     xcProjCases[5],
-			mainTarget: projHelpCases[5].MainTarget,
-			config:     configCases[5],
-			want:       false,
-			wantErr:    false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := UsesXcodeAutoCodeSigning(tt.xcProj, tt.mainTarget, tt.config)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UsesXcodeAutoCodeSigning() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("UsesXcodeAutoCodeSigning() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -438,7 +358,7 @@ func TestProjectHelper_TargetBundleID(t *testing.T) {
 		}
 		xcProjCases = append(xcProjCases, xcProj)
 
-		projHelp, _, err := New(
+		projHelp, _, err := NewProjectHelper(
 			projectCases[i],
 			schemeCase,
 			configCases[i],
@@ -579,7 +499,7 @@ func initTestCases() ([]string, []string, []xcodeproj.XcodeProj, []ProjectHelper
 		}
 		xcProjCases = append(xcProjCases, xcProj)
 
-		projHelp, _, err := New(
+		projHelp, _, err := NewProjectHelper(
 			projectCases[i],
 			schemeCase,
 			configCases[i],

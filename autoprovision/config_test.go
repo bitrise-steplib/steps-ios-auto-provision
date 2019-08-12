@@ -90,8 +90,8 @@ func TestParseConfig(t *testing.T) {
 	// - DistributionType: required variable is not present
 	// - GenerateProfiles: value is not in value options (opt[no,yes])
 	// - VerboseLog: value is not in value options (opt[no,yes])
-	// - certificateURLList: required variable is not present
-	// - certificatePassphraseList: required variable is not present
+	// - CertificateURLList: required variable is not present
+	// - CertificatePassphraseList: required variable is not present
 	// - KeychainPath: required variable is not present
 	// - KeychainPassword: required variable is not present
 	// - BuildURL: required variable is not present
@@ -120,21 +120,21 @@ func TestConfig_ValidateCertificates2(t *testing.T) {
 	}{
 		{
 			name:    "",
-			config:  Config{certificateURLList: "url", certificatePassphraseList: "pass"},
+			config:  Config{CertificateURLList: "url", CertificatePassphraseList: "pass"},
 			want:    []string{"url"},
 			want1:   []string{"pass"},
 			wantErr: "",
 		},
 		{
 			name:    "",
-			config:  Config{certificateURLList: "url1|url2", certificatePassphraseList: "pass1|"},
+			config:  Config{CertificateURLList: "url1|url2", CertificatePassphraseList: "pass1|"},
 			want:    []string{"url1", "url2"},
 			want1:   []string{"pass1", ""},
 			wantErr: "",
 		},
 		{
 			name:    "",
-			config:  Config{certificateURLList: "url1|url2", certificatePassphraseList: "pass1"},
+			config:  Config{CertificateURLList: "url1|url2", CertificatePassphraseList: "pass1"},
 			want:    nil,
 			want1:   nil,
 			wantErr: "certificates count (2) and passphrases count (1) should match",
