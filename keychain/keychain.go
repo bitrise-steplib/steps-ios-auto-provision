@@ -1,7 +1,6 @@
 package keychain
 
 import (
-	"bytes"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -9,7 +8,6 @@ import (
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/errorutil"
-	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-xcode/certificateutil"
 	"github.com/hashicorp/go-version"
@@ -84,19 +82,44 @@ func (k Keychain) InstallCertificate(cert certificateutil.CertificateInfoModel, 
 	return k.unlock()
 }
 
-// listKeychains returns the paths of available keychains
-func listKeychains() ([]string, error) {
-	outbuf := bytes.NewBuffer([]byte{})
-	cmd := command.New("security", "list-keychain").SetStdout(outbuf).SetStderr(outbuf)
-
-	log.Debugf("$ %s", cmd.PrintableCommandArgs())
-	if err := cmd.Run(); err != nil {
-		log.Errorf(outbuf.String())
-		return nil, fmt.Errorf("list keychain command failed: %s", err)
+func runSecurityCmd(args ...interface{}) error {
+	var printableArgs []string
+	var cmdArgs []string
+	for _, arg := range args {
+		v, ok := arg.(stepconf.Secret)
+		if ok {
+			printableArgs = append(printableArgs, v.String())
+			cmdArgs = append(cmdArgs, string(v))
+		} else if v, ok := arg.(string); ok {
+			printableArgs = append(printableArgs, v)
+			cmdArgs = append(cmdArgs, v)
+		} else {
+			return fmt.Errorf("unknown arg provided: %T, string and stepconf.Secret are acceptable", arg)
+		}
 	}
 
-	out := outbuf.String()
-	keychains := []string{}
+	out, err := command.New("security", cmdArgs...).RunAndReturnTrimmedCombinedOutput()
+	if err != nil {
+		if errorutil.IsExitStatusError(err) {
+			return fmt.Errorf("%s failed: %s", command.PrintableCommandArgs(false, append([]string{"security"}, printableArgs...)), out)
+		}
+		return fmt.Errorf("%s failed: %s", command.PrintableCommandArgs(false, append([]string{"security"}, printableArgs...)), err)
+	}
+	return nil
+}
+
+// listKeychains returns the paths of available keychains
+func listKeychains() ([]string, error) {
+	cmd := command.New("security", "list-keychain")
+	out, err := cmd.RunAndReturnTrimmedCombinedOutput()
+	if err != nil {
+		if errorutil.IsExitStatusError(err) {
+			return nil, fmt.Errorf("%s failed: %s", cmd.PrintableCommandArgs(), out)
+		}
+		return nil, fmt.Errorf("%s failed: %s", cmd.PrintableCommandArgs(), err)
+	}
+
+	var keychains []string
 	for _, path := range strings.Split(out, "\n") {
 		trimmed := strings.TrimSpace(path)
 		trimmed = strings.Trim(trimmed, `"`)
@@ -112,16 +135,9 @@ func listKeychains() ([]string, error) {
 // a Keychain object representing the created
 // keychain is returned.
 func createKeychain(path string, password stepconf.Secret) (*Keychain, error) {
-	params := []string{"-v", "create-keychain", "-p", "*****", path}
-	log.Debugf("$ %s", command.New("security", params...).PrintableCommandArgs())
-	params[3] = string(password)
-
-	cmd := command.New("security", params...)
-	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
-		if errorutil.IsExitStatusError(err) {
-			return nil, fmt.Errorf("create-keychain failed: %s", out)
-		}
-		return nil, fmt.Errorf("create-keychain failed: %s", err)
+	err := runSecurityCmd([]interface{}{"-v", "create-keychain", "-p", password, path})
+	if err != nil {
+		return nil, err
 	}
 
 	return &Keychain{
@@ -133,52 +149,18 @@ func createKeychain(path string, password stepconf.Secret) (*Keychain, error) {
 // importCertificate adds the certificate at path, protected by
 // passphrase to the k keychain.
 func (k Keychain) importCertificate(path string, passphrase stepconf.Secret) error {
-	params := []string{"import", path, "-k", k.Path, "-P", "*****", "-A"}
-	log.Debugf("$ %s", command.New("security", params...).PrintableCommandArgs())
-	params[5] = string(passphrase)
-
-	cmd := command.New("security", params...)
-	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
-		if errorutil.IsExitStatusError(err) {
-			return fmt.Errorf("import failed: %s", out)
-		}
-		return fmt.Errorf("import failed: %s", err)
-	}
-
-	return nil
+	return runSecurityCmd([]interface{}{"import", path, "-k", k.Path, "-P", passphrase, "-A"})
 }
 
 // setKeyPartitionList sets the partition list
 // for the keychain to allow access for tools.
 func (k Keychain) setKeyPartitionList() error {
-	params := []string{"set-key-partition-list", "-S", "apple-tool:,apple:", "-k", "*****", k.Path}
-	log.Debugf("$ %s", command.New("security", params...).PrintableCommandArgs())
-	params[4] = string(k.Password)
-
-	cmd := command.New("security", params...)
-	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
-		if errorutil.IsExitStatusError(err) {
-			return fmt.Errorf("set-key-partition-list failed: %s", out)
-		}
-		return fmt.Errorf("set-key-partition-list failed: %s", err)
-	}
-
-	return nil
+	return runSecurityCmd([]interface{}{"set-key-partition-list", "-S", "apple-tool:,apple:", "-k", k.Password, k.Path})
 }
 
 // setLockSettings sets keychain autolocking.
 func (k Keychain) setLockSettings() error {
-	cmd := command.New("security", "-v", "set-keychain-settings", "-lut", "72000", k.Path)
-	log.Debugf("$ %s", cmd.PrintableCommandArgs())
-
-	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
-		if errorutil.IsExitStatusError(err) {
-			return fmt.Errorf("set-keychain-settings failed: %s", out)
-		}
-		return fmt.Errorf("set-keychain-settings failed: %s", err)
-	}
-
-	return nil
+	return runSecurityCmd([]interface{}{"security", "-v", "set-keychain-settings", "-lut", "72000", k.Path})
 }
 
 // addToSearchPath registers the keychain
@@ -189,64 +171,30 @@ func (k Keychain) addToSearchPath() error {
 		return fmt.Errorf("get keychain list: %s", err)
 	}
 
-	cmd := command.New("security", "-v", "list-keychains", "-s", strings.Join(keychains, " "))
-	log.Debugf("$ %s", cmd.PrintableCommandArgs())
-
-	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
-		if errorutil.IsExitStatusError(err) {
-			return fmt.Errorf("list-keychains failed: %s", out)
-		}
-		return fmt.Errorf("list-keychains failed: %s", err)
-	}
-
-	return nil
+	return runSecurityCmd([]interface{}{"security", "-v", "list-keychains", "-s", strings.Join(keychains, " ")})
 }
 
 // setAsDefault sets the keychain as the
 // default keychain for the system.
 func (k Keychain) setAsDefault() error {
-	cmd := command.New("security", "-v", "default-keychain", "-s", k.Path)
-	log.Debugf("$ %s", cmd.PrintableCommandArgs())
-
-	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
-		if errorutil.IsExitStatusError(err) {
-			return fmt.Errorf("default-keychain failed: %s", out)
-		}
-		return fmt.Errorf("default-keychain failed: %s", err)
-	}
-
-	return nil
+	return runSecurityCmd([]interface{}{"security", "-v", "default-keychain", "-s", k.Path})
 }
 
 // unlock unlocks the keychain
 func (k Keychain) unlock() error {
-	params := []string{"-v", "unlock-keychain", "-p", "*****", k.Path}
-	log.Debugf("$ %s", command.New("security", params...).PrintableCommandArgs())
-	params[3] = string(k.Password)
-
-	cmd := command.New("security", params...)
-	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
-		if errorutil.IsExitStatusError(err) {
-			return fmt.Errorf("unlock-keychain failed: %s", out)
-		}
-		return fmt.Errorf("unlock-keychain failed: %s", err)
-	}
-
-	return nil
+	return runSecurityCmd([]interface{}{"-v", "unlock-keychain", "-p", k.Password, k.Path})
 }
 
 // isKeyPartitionListNeeded determines whether
 // key partition lists are used by the system.
 func isKeyPartitionListNeeded() (bool, error) {
-	outbuf := bytes.NewBuffer([]byte{})
 	cmd := command.New("sw_vers", "-productVersion")
-	log.Debugf("$ %s", cmd.PrintableCommandArgs())
-
-	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
+	out, err := cmd.RunAndReturnTrimmedCombinedOutput()
+	if err != nil {
 		if errorutil.IsExitStatusError(err) {
-			return false, fmt.Errorf("sw_vers failed: %s", out)
+			return false, fmt.Errorf("%s failed: %s", cmd.PrintableCommandArgs(), out)
 		}
-		return false, fmt.Errorf("sw_vers failed: %s", err)
+		return false, fmt.Errorf("%s failed: %s", cmd.PrintableCommandArgs(), err)
 	}
 
 	const versionSierra = "10.12.0"
@@ -255,7 +203,7 @@ func isKeyPartitionListNeeded() (bool, error) {
 		return false, fmt.Errorf("invalid version (%s): %s", versionSierra, err)
 	}
 
-	current, err := version.NewVersion(outbuf.String())
+	current, err := version.NewVersion(out)
 	if err != nil {
 		return false, fmt.Errorf("invalid version (%s): %s", current, err)
 	}
