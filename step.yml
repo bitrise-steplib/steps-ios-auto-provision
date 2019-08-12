@@ -70,18 +70,6 @@ inputs:
         - "ad-hoc"
         - "enterprise"
       is_required: true
-  - team_id:
-    opts:
-      title: The Developer Portal team id
-      description: |-
-        The Developer Portal team to manage the project's code signing files.
-
-        __If your Developer Portal Account belongs to multiple development team, this input is required!__
-        Otherwise specify this input if you want to manage the Provisioning Profiles with a different team than the one set in your project.
-
-        If you leave it empty the team defined by the project will be used.
-
-        __Example:__ `1MZX23ABCD4`
   - devices:
     opts:
       title: Devices

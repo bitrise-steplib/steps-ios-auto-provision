@@ -24,7 +24,6 @@ type Config struct {
 	Configuration string `env:"configuration"`
 
 	Distribution        string `env:"distribution_type,opt[development,app-store,ad-hoc,enterprise]"`
-	TeamID              string `env:"team_id"`
 	Devices             string `env:"devices"`
 	MinProfileDaysValid string `env:"min_profile_days_valid"`
 
