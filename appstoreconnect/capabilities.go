@@ -198,8 +198,8 @@ type BundleIDCapabilityAttributes struct {
 // BundleIDCapability ...
 type BundleIDCapability struct {
 	Attributes BundleIDCapabilityAttributes
-	ID         string         `json:"id"`
-	Type       CapabilityType `json:"type"`
+	ID         string `json:"id"`
+	Type       string `json:"type"`
 }
 
 // BundleIDCapabilityResponse ...
