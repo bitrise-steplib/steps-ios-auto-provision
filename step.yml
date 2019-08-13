@@ -5,12 +5,7 @@ description: |-
 
   __Setup guide__: [Managing iOS code signing files - automatic provisioning](https://devcenter.bitrise.io/code-signing/ios-code-signing/ios-auto-provisioning/)
 
-  In the case of __Xcode managed codesigning__ projects:
-
-  - downloads the __Xcode managed Provisioning Profiles__ and installs them for the build
-  - installs the provided __Codesigning Certificates__ into the Keychain
-
-  In the case of __Manual codesigning__ projects:
+  How does it work?
 
   - ensures that the __Application Identifier__ exists on the Apple Developer Portal
   - ensures that the __project's Capabilities__ are set correctly in the Application Identifier
@@ -20,10 +15,6 @@ description: |-
 website: https://github.com/bitrise-steplib/steps-ios-auto-provision
 source_code_url: https://github.com/bitrise-steplib/steps-ios-auto-provision
 support_url: https://github.com/bitrise-steplib/steps-ios-auto-provision/issues
-
-host_os_tags:
-  - osx-10.10
-  - ubuntu-16.04
 
 project_type_tags:
   - ios
