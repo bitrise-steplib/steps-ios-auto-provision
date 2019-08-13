@@ -581,8 +581,6 @@ func TestProjectHelper_targetEntitlements(t *testing.T) {
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ProjectHelper.targetEntitlements() = %v, want %v", got, tt.want)
 			}
-
-			panic("")
 		})
 	}
 }
