@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/bitrise-io/go-steputils/stepconf"
+	"github.com/bitrise-io/go-steputils/tools"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/retry"
@@ -131,7 +132,7 @@ func main() {
 
 	log.SetEnableDebugLog(stepConf.VerboseLog == "yes")
 
-	//
+	// Creating AppstoreConnectAPI client
 	fmt.Println()
 	log.Infof("Creating AppstoreConnectAPI client")
 	privateKey, err := fileutil.ReadBytesFromFile(stepConf.PrivateKeyPth)
@@ -145,7 +146,7 @@ func main() {
 	}
 	log.Donef("client created for: %s", client.BaseURL)
 
-	//
+	// Analyzing project
 	fmt.Println()
 	log.Infof("Analyzing project")
 	projHelper, config, err := autoprovision.NewProjectHelper(stepConf.ProjectPath, stepConf.Scheme, stepConf.Configuration)
@@ -172,7 +173,7 @@ func main() {
 	}
 	log.Printf("platform: %s", platform)
 
-	//
+	// Downloading certificates
 	fmt.Println()
 	log.Infof("Downloading certificates")
 	certURLs, err := stepConf.CertificateFileURLs()
@@ -213,51 +214,58 @@ func main() {
 	}
 
 	// Ensure devices
-	fmt.Println()
-	log.Infof("Register %d Bitrise test devices", len(stepConf.DeviceIDs()))
-	var devices []appstoreconnect.Device
-	for _, id := range stepConf.DeviceIDs() {
-		log.Printf("checking device: %s", id)
-		r, err := client.Provisioning.ListDevices(&appstoreconnect.ListDevicesOptions{
-			FilterUDID: id,
-		})
-		if err != nil {
-			failf(err.Error())
-		}
-		if len(r.Data) > 0 {
-			log.Printf("device already registered: %s", id)
-			devices = append(devices, r.Data[0])
-		} else {
-			log.Printf("registering device", id)
-			req := appstoreconnect.DeviceCreateRequest{
-				Data: appstoreconnect.DeviceCreateRequestData{
-					Attributes: appstoreconnect.DeviceCreateRequestDataAttributes{
-						Name:     "Bitrise test device",
-						Platform: appstoreconnect.IOS,
-						UDID:     id,
-					},
-					Type: "",
-				},
-			}
-			r, err := client.Provisioning.RegisterNewDevice(req)
+	var deviceIDs []string
+
+	if stepConf.DistributionType() == autoprovision.Development ||
+		stepConf.DistributionType() == autoprovision.AdHoc {
+
+		fmt.Println()
+		log.Infof("Register %d Bitrise test devices", len(stepConf.DeviceIDs()))
+
+		var devices []appstoreconnect.Device
+		for _, id := range stepConf.DeviceIDs() {
+			log.Printf("checking device: %s", id)
+			r, err := client.Provisioning.ListDevices(&appstoreconnect.ListDevicesOptions{
+				FilterUDID: id,
+			})
 			if err != nil {
 				failf(err.Error())
 			}
-			devices = append(devices, r.Data...)
+			if len(r.Data) > 0 {
+				log.Printf("device already registered: %s", id)
+				devices = append(devices, r.Data[0])
+			} else {
+				log.Printf("registering device", id)
+				req := appstoreconnect.DeviceCreateRequest{
+					Data: appstoreconnect.DeviceCreateRequestData{
+						Attributes: appstoreconnect.DeviceCreateRequestDataAttributes{
+							Name:     "Bitrise test device",
+							Platform: appstoreconnect.IOS,
+							UDID:     id,
+						},
+						Type: "",
+					},
+				}
+				r, err := client.Provisioning.RegisterNewDevice(req)
+				if err != nil {
+					failf(err.Error())
+				}
+				devices = append(devices, r.Data...)
+			}
+		}
+
+		r, err := client.Provisioning.ListDevices(nil)
+		if err != nil {
+			failf(err.Error())
+		}
+		log.Printf("%d devices are registered", len(r.Data))
+
+		for _, device := range r.Data {
+			deviceIDs = append(deviceIDs, device.ID)
 		}
 	}
 
-	r, err := client.Provisioning.ListDevices(nil)
-	if err != nil {
-		failf(err.Error())
-	}
-	log.Printf("%d devices are registered", len(r.Data))
-
-	var deviceIDs []string
-	for _, device := range r.Data {
-		deviceIDs = append(deviceIDs, device.ID)
-	}
-
+	// Ensure Profiles
 	type CodesignSettings struct {
 		ProfilesByBundleID map[string]appstoreconnect.Profile
 		Certificate        certificateutil.CertificateInfoModel
@@ -377,10 +385,13 @@ func main() {
 	}
 
 	for distrType, codesignSettings := range codesignSettingsByDistributionType {
+		teamID = codesignSettings.Certificate.TeamID
+
 		fmt.Println()
 		log.Infof("Codesign settings for %s distribution", distrType)
-		log.Printf("Development Team: %s(%s)", codesignSettings.Certificate.TeamName, codesignSettings.Certificate.TeamID)
+		log.Printf("Development Team: %s(%s)", codesignSettings.Certificate.TeamName, teamID)
 		log.Printf("Provisioning Profiles:")
+
 		for bundleID, profile := range codesignSettings.ProfilesByBundleID {
 			log.Printf("  %s: %s", bundleID, profile.Attributes.Name)
 		}
@@ -390,4 +401,56 @@ func main() {
 			failf(err.Error())
 		}
 	}
+
+	// Export output
+	fmt.Println()
+	log.Infof("Exporting outputs")
+	outputs := map[string]string{
+		"BITRISE_EXPORT_METHOD":  stepConf.Distribution,
+		"BITRISE_DEVELOPER_TEAM": teamID,
+	}
+
+	settings, ok := codesignSettingsByDistributionType[autoprovision.Development]
+	if ok {
+		outputs["BITRISE_DEVELOPMENT_CODESIGN_IDENTITY"] = settings.Certificate.CommonName
+
+		bundleID, err := projHelper.TargetBundleID(projHelper.MainTarget.Name, config)
+		if err != nil {
+			failf(err.Error())
+		}
+		profile, ok := settings.ProfilesByBundleID[bundleID]
+		if !ok {
+			failf("No provisioning profile generated for the main target: %s", projHelper.MainTarget.Name)
+		}
+
+		outputs["BITRISE_DEVELOPMENT_PROFILE"] = profile.Attributes.UUID
+	}
+
+	if stepConf.DistributionType() != autoprovision.Development {
+		settings, ok := codesignSettingsByDistributionType[stepConf.DistributionType()]
+		if !ok {
+			failf("No codesign settings generated for the selected distribution type: %s", stepConf.DistributionType())
+		}
+
+		outputs["BITRISE_PRODUCTION_CODESIGN_IDENTITY"] = settings.Certificate.CommonName
+
+		bundleID, err := projHelper.TargetBundleID(projHelper.MainTarget.Name, config)
+		if err != nil {
+			failf(err.Error())
+		}
+		profile, ok := settings.ProfilesByBundleID[bundleID]
+		if !ok {
+			failf("No provisioning profile generated for the main target: %s", projHelper.MainTarget.Name)
+		}
+
+		outputs["BITRISE_PRODUCTION_PROFILE"] = profile.Attributes.UUID
+	}
+
+	for k, v := range outputs {
+		log.Donef("%s=%s", k, v)
+		if err := tools.ExportEnvironmentWithEnvman(k, v); err != nil {
+			failf("Failed to export %s=%s", k, v)
+		}
+	}
+
 }

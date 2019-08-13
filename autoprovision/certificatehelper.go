@@ -165,7 +165,7 @@ func GetValidCertificates(localCertificates []certificateutil.CertificateInfoMod
 			log.Warnf(`Multiple %s type certificates with Team ID "%s": %s`,
 				certificateType, teamID, CertsToString(typeToLocalCerts[certificateType]))
 		} else if len(typeToLocalCerts[certificateType]) == 0 {
-			log.Warnf("Maybe you forgot to provide a %s type certificate.\n", certificateType)
+			log.Warnf("Maybe you forgot to provide a(n) %s type certificate.", certificateType)
 			log.Warnf("Upload a %s type certificate (.p12) on the Code Signing tab of the Workflow Editor.", certificateType)
 			return map[appstoreconnect.CertificateType][]APICertificate{}, fmt.Errorf("no valid %s type certificates uploaded with Team ID (%s)", certificateType, teamID)
 		}
