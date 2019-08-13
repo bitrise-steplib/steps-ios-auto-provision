@@ -202,7 +202,9 @@ func GetValidCertificates(localCertificates []certificateutil.CertificateInfoMod
 			return nil, fmt.Errorf("not found any of the following %s certificates uploaded to Bitrise on Developer Portal: %s", certificateType, localCertificates)
 		}
 
-		validAPICertificates[certificateType] = matchingCertificates
+		if len(matchingCertificates) > 0 {
+			validAPICertificates[certificateType] = matchingCertificates
+		}
 	}
 
 	return validAPICertificates, nil

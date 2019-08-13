@@ -200,7 +200,6 @@ func main() {
 		distrTypes = append(distrTypes, autoprovision.Development)
 		requiredCertTypes[appstoreconnect.IOSDevelopment] = false
 	}
-	log.Printf("distribution types: %s", distrTypes)
 
 	certClient := autoprovision.APIClient(client)
 	certsByType, err := autoprovision.GetValidCertificates(certs, certClient, requiredCertTypes, teamID, false)
@@ -212,6 +211,7 @@ func main() {
 		// remove development distribution if there is no development certificate uploaded
 		distrTypes = []autoprovision.DistributionType{stepConf.DistributionType()}
 	}
+	log.Printf("distribution types: %s", distrTypes)
 
 	// Ensure devices
 	var deviceIDs []string
