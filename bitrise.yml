@@ -194,17 +194,17 @@ workflows:
           title: Step Test
           run_if: true
           inputs:
-            - build_url: $BITRISE_BUILD_URL
-            - build_api_token: $BITRISE_BUILD_API_TOKEN
+            - keyID: $BITRISE_JWT_KEY_ID
+            - issuerID: $BITRISE_JWT_ISSUER
+            - privateKey: $BITRISE_PRIVATE_KEY_PATH
+            - devices: $DEVICES
             - certificate_urls: $BITRISE_CERTIFICATE_URL
             - passphrases: $BITRISE_CERTIFICATE_PASSPHRASE
-            - team_id: $TEAM_ID
             - distribution_type: $DISTRIBUTION_TYPE
             - project_path: $BITRISE_PROJECT_PATH
             - scheme: $BITRISE_SCHEME
             - configuration: $BITRISE_CONFIGURATION
             - verbose_log: "yes"
-            - generate_profiles: $GENERATE_PROFILES
       - script:
           title: Output test
           inputs:
