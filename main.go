@@ -130,7 +130,7 @@ func main() {
 		stepconf.Print(stepConf)
 	}
 
-	log.SetEnableDebugLog(stepConf.VerboseLog == "yes")
+	log.SetEnableDebugLog(stepConf.VerboseLog)
 
 	// Creating AppstoreConnectAPI client
 	fmt.Println()
@@ -273,6 +273,8 @@ func main() {
 
 	codesignSettingsByDistributionType := map[autoprovision.DistributionType]CodesignSettings{}
 
+	bundleIDByBundleIDIdentifer := map[string]*appstoreconnect.BundleID{}
+
 	for _, distrType := range distrTypes {
 		fmt.Println()
 		log.Infof("Checking %s provisioning profiles for %d bundle id(s)", distrType, len(entitlementsByBundleID))
@@ -330,13 +332,20 @@ func main() {
 			// Search for BundleID
 			fmt.Println()
 			log.Infof("  Searching for bundle ID: %s", bundleIDIdentifier)
-			bundleID, err := autoprovision.FindBundleID(client, bundleIDIdentifier)
-			if err != nil {
-				failf(err.Error())
+			bundleID, ok := bundleIDByBundleIDIdentifer[bundleIDIdentifier]
+			if !ok {
+				var err error
+				bundleID, err = autoprovision.FindBundleID(client, bundleIDIdentifier)
+				if err != nil {
+					failf(err.Error())
+				}
 			}
 
 			if bundleID != nil {
 				log.Printf("  bundle ID found: %s", bundleID.Attributes.Name)
+
+				bundleIDByBundleIDIdentifer[bundleIDIdentifier] = bundleID
+
 				// Check if BundleID is sync with the project
 				if ok, err := autoprovision.CheckBundleIDEntitlements(client, *bundleID, autoprovision.Entitlement(entitlements)); err != nil {
 					failf(err.Error())
@@ -355,6 +364,8 @@ func main() {
 				if err := autoprovision.SyncBundleID(client, bundleID.ID, autoprovision.Entitlement(entitlements)); err != nil {
 					failf(err.Error())
 				}
+
+				bundleIDByBundleIDIdentifer[bundleIDIdentifier] = bundleID
 			}
 
 			// Create Bitrise managed Profile

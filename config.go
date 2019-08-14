@@ -32,7 +32,7 @@ type Config struct {
 	KeychainPath              string          `env:"keychain_path,required"`
 	KeychainPassword          stepconf.Secret `env:"keychain_password,required"`
 
-	VerboseLog string `env:"verbose_log,opt[no,yes]"`
+	VerboseLog bool `env:"verbose_log,opt[no,yes]"`
 }
 
 // DistributionType ...

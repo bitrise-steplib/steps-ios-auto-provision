@@ -37,11 +37,13 @@ inputs:
       title: Key id
       description: "Your private key ID from App Store Connect (Ex: 2X9R4HXF34)."
       is_required: true
+      is_sensitive: true
   - issuerID:
     opts:
       title: Issuer ID
       description: "Your issuer ID from the API Keys page in App Store Connect (Ex: 57246542-96fe-1a63-e053-0824d011072a)."
       is_required: true
+      is_sensitive: true
   - privateKey:
     opts:
       title: Private Key path
