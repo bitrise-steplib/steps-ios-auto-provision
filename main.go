@@ -125,10 +125,9 @@ func failf(s string, args ...interface{}) {
 func main() {
 	var stepConf Config
 	if err := stepconf.Parse(&stepConf); err != nil {
-		log.Warnf(err.Error())
-	} else {
-		stepconf.Print(stepConf)
+		failf(err.Error())
 	}
+	stepconf.Print(stepConf)
 
 	log.SetEnableDebugLog(stepConf.VerboseLog)
 
