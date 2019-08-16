@@ -12,6 +12,25 @@ import (
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
 
+// DistributionType ...
+type DistributionType string
+
+// DistributionTypes ...
+var (
+	Development DistributionType = "development"
+	AppStore    DistributionType = "app-store"
+	AdHoc       DistributionType = "ad-hoc"
+	Enterprise  DistributionType = "enterprise"
+)
+
+// CertificateTypeByDistribution ...
+var CertificateTypeByDistribution = map[DistributionType]appstoreconnect.CertificateType{
+	Development: appstoreconnect.IOSDevelopment,
+	AppStore:    appstoreconnect.IOSDistribution,
+	AdHoc:       appstoreconnect.IOSDistribution,
+	Enterprise:  appstoreconnect.IOSDistribution,
+}
+
 // APICertificate is certificate present on Apple App Store Connect API, could match a local certificate
 type APICertificate struct {
 	Certificate certificateutil.CertificateInfoModel
@@ -117,7 +136,8 @@ func parseCertificatesResponse(response []appstoreconnect.Certificate) ([]APICer
 	return certifacteInfos, nil
 }
 
-func certsToString(certs []certificateutil.CertificateInfoModel) string {
+// CertsToString ...
+func CertsToString(certs []certificateutil.CertificateInfoModel) string {
 	certInfo := "[\n"
 
 	for _, cert := range certs {
@@ -143,9 +163,9 @@ func GetValidCertificates(localCertificates []certificateutil.CertificateInfoMod
 		}
 		if len(typeToLocalCerts[certificateType]) > 1 {
 			log.Warnf(`Multiple %s type certificates with Team ID "%s": %s`,
-				certificateType, teamID, certsToString(typeToLocalCerts[certificateType]))
+				certificateType, teamID, CertsToString(typeToLocalCerts[certificateType]))
 		} else if len(typeToLocalCerts[certificateType]) == 0 {
-			log.Warnf("Maybe you forgot to provide a %s type certificate.\n", certificateType)
+			log.Warnf("Maybe you forgot to provide a(n) %s type certificate.", certificateType)
 			log.Warnf("Upload a %s type certificate (.p12) on the Code Signing tab of the Workflow Editor.", certificateType)
 			return map[appstoreconnect.CertificateType][]APICertificate{}, fmt.Errorf("no valid %s type certificates uploaded with Team ID (%s)", certificateType, teamID)
 		}
@@ -182,7 +202,9 @@ func GetValidCertificates(localCertificates []certificateutil.CertificateInfoMod
 			return nil, fmt.Errorf("not found any of the following %s certificates uploaded to Bitrise on Developer Portal: %s", certificateType, localCertificates)
 		}
 
-		validAPICertificates[certificateType] = matchingCertificates
+		if len(matchingCertificates) > 0 {
+			validAPICertificates[certificateType] = matchingCertificates
+		}
 	}
 
 	return validAPICertificates, nil
@@ -201,7 +223,7 @@ func GetValidLocalCertificates(certificates []certificateutil.CertificateInfoMod
 	if len(preFilteredCerts.DuplicatedCertificates) != 0 {
 		log.Warnf("Ignoring duplicated certificates with the same name: %s", preFilteredCerts.DuplicatedCertificates)
 	}
-	log.Debugf("Valid and deduplicated common name certificates: %s", certsToString(preFilteredCerts.ValidCertificates))
+	log.Debugf("Valid and deduplicated common name certificates: %s", CertsToString(preFilteredCerts.ValidCertificates))
 
 	log.Debugf("")
 	log.Debugf(`Filtering certificates for developer Team ID (%s)`, teamID)
@@ -226,6 +248,7 @@ func MatchLocalToAPICertificates(client CertificateSource, certificateType appst
 			log.Warnf("Certificate not found on Developer Portal, %s", err)
 			continue
 		}
+		cert.Certificate = localCert
 
 		log.Debugf("Found. ID: %s, %s ", cert.ID, cert.Certificate)
 		matchingCertificates = append(matchingCertificates, cert)
@@ -263,7 +286,7 @@ func filterCertificates(certificates []certificateutil.CertificateInfoModel, cer
 		}
 	}
 
-	log.Debugf("Valid certificates with type %s: %s", certificateType, certsToString(filteredCertificates))
+	log.Debugf("Valid certificates with type %s: %s", certificateType, CertsToString(filteredCertificates))
 
 	if len(filteredCertificates) == 0 {
 		return nil
@@ -275,13 +298,13 @@ func filterCertificates(certificates []certificateutil.CertificateInfoModel, cer
 		filteredCertificates = certsByTeam[teamID]
 	}
 
-	log.Debugf("Valid certificates with type %s, Team ID: (%s): %s", certificateType, teamID, certsToString(filteredCertificates))
+	log.Debugf("Valid certificates with type %s, Team ID: (%s): %s", certificateType, teamID, CertsToString(filteredCertificates))
 
 	if len(filteredCertificates) == 0 {
 		return nil
 	}
 
-	log.Debugf("Valid certificates with type %s, Team ID: (%s) %s ", certificateType, teamID, certsToString(filteredCertificates))
+	log.Debugf("Valid certificates with type %s, Team ID: (%s) %s ", certificateType, teamID, CertsToString(filteredCertificates))
 
 	return filteredCertificates
 }

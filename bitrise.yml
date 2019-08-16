@@ -1,14 +1,8 @@
-format_version: 5
+format_version: 8
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
   envs:
-    # If you want to share this step into a StepLib
-    - BITRISE_STEP_ID: ios-auto-provision
-    - BITRISE_STEP_VERSION: "1.1.3"
-    - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/steps-ios-auto-provision.git
-    - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
-
     # An example secret param, define it (A_SECRET_PARAM) in .bitrise.secrets.yml
     - BITRISE_BUILD_URL: $BITRISE_BUILD_URL
     - BITRISE_BUILD_API_TOKEN: $BITRISE_BUILD_API_TOKEN
@@ -23,72 +17,19 @@ app:
     - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
 
 workflows:
-  quick:
-    steps:
-      - path::./:
-          run_if: true
-          title: Step Test
-          inputs:
-            - keyID: $BITRISE_JWT_KEY_ID
-            - issuerID: $BITRISE_JWT_ISSUER
-            - privateKey: $BITRISE_PRIVATE_KEY_PATH
-            - devices: $DEVICES
-            - certificate_urls: $CERTIFICATES
-            - passphrases: $PASSPHRASES
-            - distribution_type: $DISTRIBUTION
-            - project_path: $PROJECT_PATH
-            - scheme: $SCHEME
-            - configuration: $CONFIGURATION
-            - verbose_log: "no"
-
-  gotests:
+  test:
+    before_run:
+      - audit-this-step
     steps:
       - go-list:
       - golint:
       - errcheck:
       - go-test:
-
-  dep-update:
-    title: Dep update
-    description: |
-      Used for updating bitrise dependencies with dep
-    steps:
-      - script:
-          title: Dependency update
+      - codecov:
+          run_if: .IsCI
           inputs:
-            - content: |-
-                #!/bin/bash
-                set -ex
-                go get -u -v github.com/golang/dep/cmd/dep
-                dep ensure -v
-                dep ensure -v -update
-
-  test:
-    before_run:
-      - audit-this-step
-      - gotests
-    steps:
-      - script:
-          title: bundle install
-          inputs:
-            - content: |-
-                #!/bin/bash
-                set -e
-                bundle install
-      - script:
-          title: rubocop
-          inputs:
-            - content: |-
-                #!/bin/bash
-                set -e
-                bundle exec rubocop
-      - script:
-          title: rspec
-          inputs:
-            - content: |-
-                #!/bin/bash
-                set -e
-                bundle exec rspec
+          - other_options: -f ${GO_CODE_COVERAGE_REPORT_PATH}
+          - CODECOV_TOKEN: "$CODECOV_UPLOAD_TOKEN"
       - trigger-bitrise-workflow:
           run_if: .IsCI
           inputs:
@@ -258,17 +199,17 @@ workflows:
           title: Step Test
           run_if: true
           inputs:
-            - build_url: $BITRISE_BUILD_URL
-            - build_api_token: $BITRISE_BUILD_API_TOKEN
+            - keyID: $BITRISE_JWT_KEY_ID
+            - issuerID: $BITRISE_JWT_ISSUER
+            - privateKey: $BITRISE_PRIVATE_KEY_PATH
+            - devices: $DEVICES
             - certificate_urls: $BITRISE_CERTIFICATE_URL
             - passphrases: $BITRISE_CERTIFICATE_PASSPHRASE
-            - team_id: $TEAM_ID
             - distribution_type: $DISTRIBUTION_TYPE
             - project_path: $BITRISE_PROJECT_PATH
             - scheme: $BITRISE_SCHEME
             - configuration: $BITRISE_CONFIGURATION
             - verbose_log: "yes"
-            - generate_profiles: $GENERATE_PROFILES
       - script:
           title: Output test
           inputs:
@@ -295,22 +236,21 @@ workflows:
           inputs:
             - notify_user_groups: none
 
-  # ----------------------------------------------------------------
-  # --- workflows to create Release
-  create-release:
+  dep-update:
+    title: Dep update
+    description: |
+      Used for updating bitrise dependencies with dep
     steps:
       - script:
-          title:
+          title: Dependency update
           inputs:
-            - content: |
+            - content: |-
                 #!/bin/bash
                 set -ex
-                go get -u github.com/bitrise-tools/releaseman
-                export CI=true
-                releaseman create --version $BITRISE_STEP_VERSION
+                go get -u -v github.com/golang/dep/cmd/dep
+                dep ensure -v
+                dep ensure -v -update
 
-  # ----------------------------------------------------------------
-  # --- workflows to Share this step into a Step Library
   audit-this-step:
     steps:
       - script:
@@ -319,43 +259,3 @@ workflows:
                 #!/bin/bash
                 set -ex
                 stepman audit --step-yml ./step.yml
-
-  share-this-step:
-    envs:
-      # if you want to share this step into a StepLib
-      - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
-      - BITRISE_STEP_ID: $BITRISE_STEP_ID
-      - BITRISE_STEP_VERSION: $BITRISE_STEP_VERSION
-      - BITRISE_STEP_GIT_CLONE_URL: $BITRISE_STEP_GIT_CLONE_URL
-    description: |-
-      If this is the first time you try to share a Step you should
-      first call: $ bitrise share
-
-      This will print you a guide, and information about how Step sharing
-      works. Please read it at least once!
-
-      As noted in the Step sharing guide you'll have to fork the
-      StepLib you want to share this step into. Once you're done with forking
-      the repository you should set your own fork's git clone URL
-      in the `.bitrise.secrets.yml` file, or here in the `envs` section,
-      as the value of the `MY_STEPLIB_REPO_FORK_GIT_URL` environment.
-
-      You're now ready to share this Step, just make sure that
-      the `BITRISE_STEP_ID` and `BITRISE_STEP_VERSION`
-      environments are set to the desired values!
-
-      To share this Step into a StepLib you can just run: $ bitrise run share-this-step
-
-      Once it finishes the only thing left is to actually create a Pull Request,
-      the way described in the guide printed at the end of the process.
-    before_run:
-      - audit-this-step
-    steps:
-      - script:
-          inputs:
-            - content: |-
-                #!/bin/bash
-                set -ex
-                bitrise share start -c "${MY_STEPLIB_REPO_FORK_GIT_URL}"
-                bitrise share create --stepid "${BITRISE_STEP_ID}" --tag "${BITRISE_STEP_VERSION}" --git "${BITRISE_STEP_GIT_CLONE_URL}"
-                bitrise share finish
