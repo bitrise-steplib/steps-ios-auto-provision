@@ -3,6 +3,7 @@ package autoprovision
 import (
 	"errors"
 	"fmt"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -295,6 +296,7 @@ func (p *ProjectHelper) TargetBundleID(name, conf string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to find info.plst file, error: %s", err)
 	}
+	infoPlistPath = path.Join(path.Dir(p.XcProj.Path), infoPlistPath)
 
 	if infoPlistPath == "" {
 		return "", fmt.Errorf("failed to to determine bundle id: xcodebuild -showBuildSettings does not contains PRODUCT_BUNDLE_IDENTIFIER nor INFOPLIST_FILE' unless info_plist_path")
