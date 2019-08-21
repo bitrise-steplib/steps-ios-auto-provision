@@ -412,6 +412,10 @@ func main() {
 			failf("failed to apply code sign settings for target (%s), error: %s", target.Name, err)
 		}
 
+		if err := projHelper.XcProj.Save(); err != nil {
+			failf("failed to save xcodeproj (%s), error: %s", projHelper.XcProj.Path, err)
+		}
+
 	}
 
 	// Install certificates and list code signing settings
