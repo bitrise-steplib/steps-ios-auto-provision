@@ -1,15 +1,13 @@
 package autoprovision
 
 import (
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
 
-	"howett.net/plist"
-
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-io/xcode-project/pretty"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
 
@@ -173,11 +171,6 @@ func WriteProfile(profile appstoreconnect.Profile) error {
 		}
 	}
 
-	b, err := plist.Marshal(profile, 1)
-	if err != nil {
-		return fmt.Errorf("failed to marshal PLIST ( format 1 ) from profile %s, error: %s", pretty.Object(profile), err)
-	}
-
 	var ext string
 	if profile.Attributes.Platform == "IOS" {
 		ext = ".mobileprovision"
@@ -187,23 +180,13 @@ func WriteProfile(profile appstoreconnect.Profile) error {
 		return fmt.Errorf("failed to write profile to file, unsupported platform: (%s). Supported platforms: `IOS`, `MAC_OS`", profile.Attributes.Platform)
 	}
 
+	var b []byte
+	if _, err := base64.StdEncoding.Decode(b, []byte(profile.Attributes.ProfileContent)); err != nil {
+		return fmt.Errorf("failed to decode ( base 64 ) the profile content, error: %s", err)
+	}
 	name := path.Join(profilesDir, profile.Attributes.UUID+ext)
 	if err := ioutil.WriteFile(name, b, 0600); err != nil {
 		return fmt.Errorf("failed to write profile to file, error: %s", err)
 	}
 	return nil
 }
-
-// def write_profile(profile)
-//     home_dir = ENV['HOME']
-//     raise 'failed to determine xcode provisioning profiles dir: $HOME not set' if home_dir.to_s.empty?
-
-//     profiles_dir = File.join(home_dir, 'Library/MobileDevice/Provisioning Profiles')
-//     FileUtils.mkdir_p(profiles_dir) unless File.directory?(profiles_dir)
-
-//     profile_path = File.join(profiles_dir, profile.uuid + '.mobileprovision')
-//     Log.warn("profile already exists at: #{profile_path}, overwriting...") if File.file?(profile_path)
-
-//     File.write(profile_path, profile.download)
-//     profile_path
-//   end
