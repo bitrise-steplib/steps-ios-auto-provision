@@ -17,6 +17,7 @@ import (
 	"github.com/bitrise-io/go-utils/retry"
 	"github.com/bitrise-io/go-xcode/certificateutil"
 	"github.com/bitrise-io/xcode-project/pretty"
+	"github.com/bitrise-io/xcode-project/xcodeproj"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/autoprovision"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/keychain"
@@ -388,7 +389,32 @@ func main() {
 		}
 	}
 
-	// Force Codesign Settings and install certificates
+	// Force Codesign Settings
+	log.Infof("Apply code sign setting in project")
+	targets := append([]xcodeproj.Target{projHelper.MainTarget}, projHelper.MainTarget.DependentExecutableProductTargets(false)...)
+	for _, target := range targets {
+		codesignSettings, ok := codesignSettingsByDistributionType[autoprovision.Development]
+		if !ok {
+			failf("failed to find development code sign settings")
+		}
+		teamID = codesignSettings.Certificate.TeamID
+
+		targetBundleID, err := projHelper.TargetBundleID(target.Name, config)
+		if err != nil {
+			failf(err.Error())
+		}
+		profile, ok := codesignSettings.ProfilesByBundleID[targetBundleID]
+		if !ok {
+			failf("failed to get profile for the bundleID %s", targetBundleID)
+		}
+
+		if err := projHelper.XcProj.ForceCodeSign(config, target.Name, teamID, codesignSettings.Certificate.CommonName, profile.Attributes.UUID); err != nil {
+			failf("failed to apply code sign settings for target (%s), error: %s", target.Name, err)
+		}
+
+	}
+
+	// Install certificates and list code signing settings
 	kc, err := keychain.New(stepConf.KeychainPath, stepConf.KeychainPassword)
 	if err != nil {
 		failf(err.Error())
