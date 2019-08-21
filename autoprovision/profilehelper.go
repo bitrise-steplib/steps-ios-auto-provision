@@ -1,11 +1,12 @@
 package autoprovision
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
+
+	"howett.net/plist"
 
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/xcode-project/pretty"
@@ -172,9 +173,9 @@ func WriteProfile(profile appstoreconnect.Profile) error {
 		}
 	}
 
-	b, err := json.Marshal(profile)
+	b, err := plist.Marshal(profile, 1)
 	if err != nil {
-		return fmt.Errorf("failed to marshal JSON from profile %s, error: %s", pretty.Object(profile), err)
+		return fmt.Errorf("failed to marshal PLIST ( format 1 ) from profile %s, error: %s", pretty.Object(profile), err)
 	}
 
 	var ext string
