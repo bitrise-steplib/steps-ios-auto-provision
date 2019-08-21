@@ -181,7 +181,7 @@ func WriteProfile(profile appstoreconnect.Profile) error {
 	}
 
 	var b []byte
-	if _, err := base64.StdEncoding.Decode(b, []byte(profile.Attributes.ProfileContent)); err != nil {
+	if _, err := base64.StdEncoding.DecodeString(profile.Attributes.ProfileContent); err != nil {
 		return fmt.Errorf("failed to decode ( base 64 ) the profile content, error: %s", err)
 	}
 	name := path.Join(profilesDir, profile.Attributes.UUID+ext)
