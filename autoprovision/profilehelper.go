@@ -1,8 +1,14 @@
 package autoprovision
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
 
+	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-io/xcode-project/pretty"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
 
@@ -151,3 +157,52 @@ func CreateProfile(client *appstoreconnect.Client, profileType appstoreconnect.P
 	}
 	return &r.Data, nil
 }
+
+// WriteProfile writes the provided profile under the `$HOME/Library/MobileDevice/Provisioning Profiles` directory.
+// Xcode uses profiles located in that directory.
+// The file extension depends on the profile's platform `IOS` => `.mobileprovision`, `MAC_OS` => `.provisionprofile`
+func WriteProfile(profile appstoreconnect.Profile) error {
+	homeDir := os.Getenv("HOME")
+	profilesDir := path.Join(homeDir, "Library/MobileDevice/Provisioning Profiles")
+	if exists, err := pathutil.IsDirExists(profilesDir); err != nil {
+		return fmt.Errorf("failed to check directory for provisioning profiles (%s), error: %s", profilesDir, err)
+	} else if !exists {
+		if err := os.MkdirAll(profilesDir, 0600); err != nil {
+			return fmt.Errorf("failed to generate directory for provisioning profiles (%s), error: %s", profilesDir, err)
+		}
+	}
+
+	b, err := json.Marshal(profile)
+	if err != nil {
+		return fmt.Errorf("failed to marshal JSON from profile %s, error: %s", pretty.Object(profile), err)
+	}
+
+	var ext string
+	if profile.Attributes.Platform == "IOS" {
+		ext = ".mobileprovision"
+	} else if profile.Attributes.Platform == "MAC_OS" {
+		ext = ".provisionprofile"
+	} else {
+		return fmt.Errorf("failed to write profile to file, unsupported platform: (%s). Supported platforms: `IOS`, `MAC_OS`", profile.Attributes.Platform)
+	}
+
+	name := path.Join(profilesDir, profile.Attributes.UUID+ext)
+	if err := ioutil.WriteFile(name, b, 0600); err != nil {
+		return fmt.Errorf("failed to write profile to file, error: %s", err)
+	}
+	return nil
+}
+
+// def write_profile(profile)
+//     home_dir = ENV['HOME']
+//     raise 'failed to determine xcode provisioning profiles dir: $HOME not set' if home_dir.to_s.empty?
+
+//     profiles_dir = File.join(home_dir, 'Library/MobileDevice/Provisioning Profiles')
+//     FileUtils.mkdir_p(profiles_dir) unless File.directory?(profiles_dir)
+
+//     profile_path = File.join(profiles_dir, profile.uuid + '.mobileprovision')
+//     Log.warn("profile already exists at: #{profile_path}, overwriting...") if File.file?(profile_path)
+
+//     File.write(profile_path, profile.download)
+//     profile_path
+//   end

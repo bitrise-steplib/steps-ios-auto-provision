@@ -418,7 +418,7 @@ func main() {
 
 	}
 
-	// Install certificates and list code signing settings
+	// Install certificates and profiles
 	kc, err := keychain.New(stepConf.KeychainPath, stepConf.KeychainPassword)
 	if err != nil {
 		failf(err.Error())
@@ -439,6 +439,12 @@ func main() {
 
 		if err := kc.InstallCertificate(codesignSettings.Certificate, ""); err != nil {
 			failf(err.Error())
+		}
+
+		for _, profile := range codesignSettings.ProfilesByBundleID {
+			if err := autoprovision.WriteProfile(profile); err != nil {
+				failf(err.Error())
+			}
 		}
 	}
 
