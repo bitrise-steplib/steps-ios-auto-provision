@@ -180,8 +180,8 @@ func WriteProfile(profile appstoreconnect.Profile) error {
 		return fmt.Errorf("failed to write profile to file, unsupported platform: (%s). Supported platforms: `IOS`, `MAC_OS`", profile.Attributes.Platform)
 	}
 
-	var b []byte
-	if _, err := base64.StdEncoding.DecodeString(profile.Attributes.ProfileContent); err != nil {
+	b, err := base64.StdEncoding.DecodeString(profile.Attributes.ProfileContent)
+	if err != nil {
 		return fmt.Errorf("failed to decode ( base 64 ) the profile content, error: %s", err)
 	}
 	name := path.Join(profilesDir, profile.Attributes.UUID+ext)
