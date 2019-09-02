@@ -36,7 +36,7 @@ func New(pth string, pass stepconf.Secret) (*Keychain, error) {
 		return nil, err
 	} else if exist {
 		return &Keychain{
-			Path:     pth,
+			Path:     p,
 			Password: pass,
 		}, nil
 	}
