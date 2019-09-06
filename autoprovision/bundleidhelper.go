@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
 
@@ -38,6 +39,11 @@ func CheckBundleIDEntitlements(client *appstoreconnect.Client, bundleID appstore
 
 	for k, v := range entitlements {
 		ent := Entitlement{k: v}
+
+		log.Warnf("entitlement key: %s", k)
+		if k == "keychain-access-groups" {
+			continue
+		}
 
 		found := false
 		for _, cap := range capabilitiesResp.Data {
