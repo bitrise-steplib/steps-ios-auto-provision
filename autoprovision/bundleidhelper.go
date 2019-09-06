@@ -84,6 +84,7 @@ func SyncBundleID(client *appstoreconnect.Client, bundleIDID string, entitlement
 						},
 					},
 				},
+				Type: "bundleIdCapabilities",
 			},
 		}
 		r, err := client.Provisioning.EnableCapability(body)
