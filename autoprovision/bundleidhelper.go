@@ -41,7 +41,7 @@ func CheckBundleIDEntitlements(client *appstoreconnect.Client, bundleID appstore
 		ent := Entitlement{k: v}
 
 		log.Warnf("entitlement key: %s", k)
-		if k == "keychain-access-groups" {
+		if k == "keychain-access-groups" || k == "com.apple.developer.ubiquity-kvstore-identifier" {
 			continue
 		}
 
