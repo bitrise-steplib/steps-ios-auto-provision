@@ -80,7 +80,7 @@ func SyncBundleID(client *appstoreconnect.Client, bundleIDID string, entitlement
 					BundleID: appstoreconnect.BundleIDCapabilityCreateRequestDataRelationshipsBundleID{
 						Data: appstoreconnect.BundleIDCapabilityCreateRequestDataRelationshipsBundleIDData{
 							ID:   bundleIDID,
-							Type: "",
+							Type: "bundleIds",
 						},
 					},
 				},

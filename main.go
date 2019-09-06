@@ -243,7 +243,7 @@ func main() {
 							Platform: appstoreconnect.IOS,
 							UDID:     id,
 						},
-						Type: "",
+						Type: "devices",
 					},
 				}
 				r, err := client.Provisioning.RegisterNewDevice(req)
