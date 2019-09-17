@@ -69,6 +69,8 @@ workflows:
     after_run:
     - test_bundle_id
     - test_xcode_managed
+    - test_bundle_id_swift
+    - test_xcode_managed_swift
     - test_xcode_managed_generate_enabled
     - test_workspace
     - test_tvos
@@ -78,22 +80,46 @@ workflows:
 
   test_bundle_id:
     envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-ios-simple-objc.git
-    - BRANCH: bundle_id
-    - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
-    - BITRISE_SCHEME: ios-simple-objc
+      - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-ios-simple-objc.git
+      - BRANCH: bundle_id
+      - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
+      - BITRISE_SCHEME: ios-simple-objc
+      - BITRISE_CONFIGURATION: Release
+      - DISTRIBUTION_TYPE: ad-hoc
+      - GENERATE_PROFILES: "yes"
+    after_run:
+      - _common
+
+  test_xcode_managed:
+    envs:
+      - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-ios-multi-target.git
+      - BRANCH: automatic
+      - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
+      - BITRISE_SCHEME: code-sign-test
+      - BITRISE_CONFIGURATION:
+      - DISTRIBUTION_TYPE: app-store
+      - GENERATE_PROFILES: "no"
+    after_run:
+      - _common
+
+  test_bundle_id_swift:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-ios-workspace-swift.git
+    - BRANCH: master
+    - BITRISE_PROJECT_PATH: sample-apps-ios-workspace-swift.xcodeproj
+    - BITRISE_SCHEME: sample-apps-ios-workspace-swift
     - BITRISE_CONFIGURATION: Release
     - DISTRIBUTION_TYPE: ad-hoc
     - GENERATE_PROFILES: "yes"
     after_run:
     - _common
 
-  test_xcode_managed:
+  test_xcode_managed_swift:
     envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-ios-multi-target.git
-    - BRANCH: automatic
-    - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
-    - BITRISE_SCHEME: code-sign-test
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-ios-workspace-swift.git
+    - BRANCH: master
+    - BITRISE_PROJECT_PATH: sample-apps-ios-workspace-swift.xcodeproj
+    - BITRISE_SCHEME: sample-apps-ios-workspace-swift
     - BITRISE_CONFIGURATION: 
     - DISTRIBUTION_TYPE: app-store
     - GENERATE_PROFILES: "no"
