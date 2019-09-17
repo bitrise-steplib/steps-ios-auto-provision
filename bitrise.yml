@@ -105,7 +105,7 @@ workflows:
   test_bundle_id_swift:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-ios-workspace-swift.git
-    - BRANCH: master
+    - BRANCH: TOOL-1068
     - BITRISE_PROJECT_PATH: sample-apps-ios-workspace-swift.xcodeproj
     - BITRISE_SCHEME: sample-apps-ios-workspace-swift
     - BITRISE_CONFIGURATION: Release
@@ -117,7 +117,7 @@ workflows:
   test_xcode_managed_swift:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-ios-workspace-swift.git
-    - BRANCH: master
+    - BRANCH: TOOL-1068
     - BITRISE_PROJECT_PATH: sample-apps-ios-workspace-swift.xcodeproj
     - BITRISE_SCHEME: sample-apps-ios-workspace-swift
     - BITRISE_CONFIGURATION: 
