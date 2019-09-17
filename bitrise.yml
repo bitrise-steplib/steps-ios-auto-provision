@@ -1,11 +1,10 @@
-format_version: 5
+format_version: 9
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
   envs:
   # If you want to share this step into a StepLib
   - BITRISE_STEP_ID: ios-auto-provision
-  - BITRISE_STEP_VERSION: "1.1.3"
   - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/steps-ios-auto-provision.git
   - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
 
@@ -69,8 +68,6 @@ workflows:
     after_run:
     - test_bundle_id
     - test_xcode_managed
-    - test_bundle_id_swift
-    - test_xcode_managed_swift
     - test_xcode_managed_generate_enabled
     - test_workspace
     - test_tvos
@@ -80,47 +77,23 @@ workflows:
 
   test_bundle_id:
     envs:
-      - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-ios-simple-objc.git
-      - BRANCH: bundle_id
-      - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
-      - BITRISE_SCHEME: ios-simple-objc
-      - BITRISE_CONFIGURATION: Release
-      - DISTRIBUTION_TYPE: ad-hoc
-      - GENERATE_PROFILES: "yes"
-    after_run:
-      - _common
-
-  test_xcode_managed:
-    envs:
-      - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-ios-multi-target.git
-      - BRANCH: automatic
-      - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
-      - BITRISE_SCHEME: code-sign-test
-      - BITRISE_CONFIGURATION:
-      - DISTRIBUTION_TYPE: app-store
-      - GENERATE_PROFILES: "no"
-    after_run:
-      - _common
-
-  test_bundle_id_swift:
-    envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-ios-workspace-swift.git
-    - BRANCH: TOOL-1068
-    - BITRISE_PROJECT_PATH: sample-apps-ios-workspace-swift.xcodeproj
-    - BITRISE_SCHEME: sample-apps-ios-workspace-swift
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
+    - BRANCH: bundle_id
+    - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
+    - BITRISE_SCHEME: ios-simple-objc
     - BITRISE_CONFIGURATION: Release
     - DISTRIBUTION_TYPE: ad-hoc
     - GENERATE_PROFILES: "yes"
     after_run:
     - _common
 
-  test_xcode_managed_swift:
+  test_xcode_managed:
     envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-ios-workspace-swift.git
-    - BRANCH: TOOL-1068
-    - BITRISE_PROJECT_PATH: sample-apps-ios-workspace-swift.xcodeproj
-    - BITRISE_SCHEME: sample-apps-ios-workspace-swift
-    - BITRISE_CONFIGURATION: 
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-ios-multi-target.git
+    - BRANCH: automatic
+    - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
+    - BITRISE_SCHEME: code-sign-test
+    - BITRISE_CONFIGURATION:
     - DISTRIBUTION_TYPE: app-store
     - GENERATE_PROFILES: "no"
     after_run:
@@ -128,7 +101,7 @@ workflows:
 
   test_xcode_managed_generate_enabled:
     envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-ios-multi-target.git
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-ios-multi-target.git
     - BRANCH: automatic
     - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
     - BITRISE_SCHEME: code-sign-test
@@ -140,7 +113,7 @@ workflows:
 
   test_entitlements:
     envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-ios-multi-target.git
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-ios-multi-target.git
     - BRANCH: entitlements
     - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
     - BITRISE_SCHEME: code-sign-test
@@ -152,7 +125,7 @@ workflows:
 
   test_workspace:
     envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-samples/ios-cocoapods-minimal-sample.git
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/ios-cocoapods-minimal-sample.git
     - BRANCH: master
     - BITRISE_PROJECT_PATH: iOSMinimalCocoaPodsSample/iOSMinimalCocoaPodsSample.xcworkspace
     - BITRISE_SCHEME: iOSMinimalCocoaPodsSample
@@ -165,7 +138,7 @@ workflows:
 
   test_tvos:
     envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-tvos-swift.git
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
     - BRANCH: master
     - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
     - BITRISE_SCHEME: NPO Live
@@ -178,7 +151,7 @@ workflows:
 
   test_tvos_development:
     envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-tvos-swift.git
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
     - BRANCH: master
     - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
     - BITRISE_SCHEME: NPO Live
@@ -191,7 +164,7 @@ workflows:
 
   test_tvos_managed:
     envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-tvos-swift.git
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
     - BRANCH: master
     - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
     - BITRISE_SCHEME: NPO Live
@@ -204,7 +177,7 @@ workflows:
 
   test_tvos_development_managed:
     envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-tvos-swift.git
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
     - BRANCH: master
     - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
     - BITRISE_SCHEME: NPO Live

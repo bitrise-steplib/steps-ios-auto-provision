@@ -21,10 +21,6 @@ website: https://github.com/bitrise-steplib/steps-ios-auto-provision
 source_code_url: https://github.com/bitrise-steplib/steps-ios-auto-provision
 support_url: https://github.com/bitrise-steplib/steps-ios-auto-provision/issues
 
-host_os_tags:
-  - osx-10.10
-  - ubuntu-16.04
-
 project_type_tags:
   - ios
 
@@ -49,7 +45,7 @@ inputs:
     is_required: true
 - team_id:
   opts:
-    title: The Developer Portal team id
+    title: The Developer Portal team ID
     description: |-
       The Developer Portal team to manage the project's code signing files.
 
