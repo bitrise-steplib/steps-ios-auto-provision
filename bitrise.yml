@@ -66,6 +66,7 @@ workflows:
         - app_slug: "$APP_SLUG"
         - workflow_id: test_entitlements
     after_run:
+    - test_new_certificates
     - test_bundle_id
     - test_xcode_managed
     - test_xcode_managed_generate_enabled
@@ -74,6 +75,18 @@ workflows:
     - test_tvos_development
     - test_tvos_managed
     - test_tvos_development_managed
+
+  test_new_certificates:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
+    - BRANCH: new-certificates
+    - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
+    - BITRISE_SCHEME: ios-simple-objc
+    - BITRISE_CONFIGURATION: Release
+    - DISTRIBUTION_TYPE: app-store
+    - GENERATE_PROFILES: "yes"
+    after_run:
+    - _common
 
   test_bundle_id:
     envs:
