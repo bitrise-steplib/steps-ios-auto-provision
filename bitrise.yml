@@ -59,14 +59,7 @@ workflows:
         - api_token: "$API_TOKEN"
         - app_slug: "$APP_SLUG"
         - workflow_id: test_entitlements
-    - trigger-bitrise-workflow:
-        run_if: .IsCI
-        inputs:
-        - api_token: "$API_TOKEN"
-        - app_slug: "$APP_SLUG"
-        - workflow_id: test_entitlements
     after_run:
-    - test_new_certificates
     - test_bundle_id
     - test_xcode_managed
     - test_xcode_managed_generate_enabled
@@ -85,6 +78,8 @@ workflows:
     - BITRISE_CONFIGURATION: Release
     - DISTRIBUTION_TYPE: app-store
     - GENERATE_PROFILES: "yes"
+    - BITRISE_CERTIFICATE_PASSPHRASE: |
+    - BITRISE_CERTIFICATE_URL: $BITRISEIO_DevelopmentAndDistributoionCertificates_URL
     after_run:
     - _common
 
