@@ -88,13 +88,22 @@ module Portal
       profile_name = "Bitrise #{distribution_type} - (#{app.bundle_id})"
       profile = all_profiles.select { |prof| prof.name == profile_name }.first
 
-      return profile if !profile.nil? &&
-                        bundle_id_matches?(profile, app.bundle_id) &&
-                        distribution_type_matches?(profile, distribution_type, platform) &&
-                        !expired?(profile, min_profile_days_valid) &&
-                        all_services_enabled?(profile, entitlements) &&
-                        include_certificate?(profile, certificate) &&
-                        device_list_up_to_date?(profile, distribution_type, test_devices)
+      unless profile.nil?
+        begin
+          return profile if bundle_id_matches?(profile, app.bundle_id) &&
+                            distribution_type_matches?(profile, distribution_type, platform) &&
+                            !expired?(profile, min_profile_days_valid) &&
+                            all_services_enabled?(profile, entitlements) &&
+                            include_certificate?(profile, certificate) &&
+                            device_list_up_to_date?(profile, distribution_type, test_devices)
+        rescue => ex
+          Log.debug_exception(ex)
+          Log.debug('failed to validate profile, retrying in 2 sec ...')
+          sleep(2)
+          ProfileClient.clear_cache(false, platform)
+          return ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, min_profile_days_valid, false, test_devices)
+        end
+      end
 
       # profile name needs to be unique
       unless profile.nil?
