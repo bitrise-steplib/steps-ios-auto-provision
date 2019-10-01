@@ -59,6 +59,12 @@ workflows:
         - api_token: "$API_TOKEN"
         - app_slug: "$APP_SLUG"
         - workflow_id: test_entitlements
+    - trigger-bitrise-workflow:
+        run_if: .IsCI
+        inputs:
+        - api_token: "$API_TOKEN"
+        - app_slug: "$APP_SLUG"
+        - workflow_id: test_entitlements
     after_run:
     - test_bundle_id
     - test_xcode_managed
