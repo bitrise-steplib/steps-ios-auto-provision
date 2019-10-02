@@ -61,6 +61,18 @@ module Portal
             include_certificate?(profile, certificate) &&
             device_list_up_to_date?(profile, distribution_type, test_devices)
         end
+
+        return profiles.first unless profiles.empty?
+
+        profiles = matching_profiles.select do |profile|
+          distribution_type_matches?(profile, distribution_type, platform) &&
+            !expired?(profile, min_profile_days_valid) &&
+            all_services_enabled?(profile, entitlements) &&
+            include_certificate?(profile, certificate) &&
+            device_list_up_to_date?(profile, distribution_type, test_devices)
+        end
+
+        return profiles.first unless profiles.empty?
       rescue => ex
         raise ex unless allow_retry
 
