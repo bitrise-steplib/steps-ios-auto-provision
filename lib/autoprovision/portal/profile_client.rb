@@ -71,8 +71,6 @@ module Portal
             include_certificate?(profile, certificate) &&
             device_list_up_to_date?(profile, distribution_type, test_devices)
         end
-
-        return profiles.first unless profiles.empty?
       rescue => ex
         raise ex unless allow_retry
 
