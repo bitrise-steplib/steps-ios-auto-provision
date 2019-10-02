@@ -75,6 +75,24 @@ workflows:
     - test_tvos_managed
     - test_tvos_development_managed
 
+  test_new_certificates:
+    title: Test new Apple Development and Distribution certificates
+    description: |-
+      Test only wired in on Bitrise.io, since this workflow needs to run on new Xcode 11 stack,  
+      while previous tests are running on stacks with lower Xcode version.
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
+    - BRANCH: new-certificates
+    - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
+    - BITRISE_SCHEME: ios-simple-objc
+    - BITRISE_CONFIGURATION: Release
+    - DISTRIBUTION_TYPE: app-store
+    - GENERATE_PROFILES: "yes"
+    - BITRISE_CERTIFICATE_PASSPHRASE: |
+    - BITRISE_CERTIFICATE_URL: $BITRISEIO_DEVELOPMENT_AND_DISTRIBUTION_CERTIFICATES_URL
+    after_run:
+    - _common
+
   test_bundle_id:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
