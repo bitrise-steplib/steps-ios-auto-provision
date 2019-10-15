@@ -23,6 +23,10 @@ support_url: https://github.com/bitrise-steplib/steps-ios-auto-provision/issues
 
 project_type_tags:
   - ios
+  - cordova
+  - ionic
+  - react-native
+  - flutter
 
 type_tags:
   - code-sign
