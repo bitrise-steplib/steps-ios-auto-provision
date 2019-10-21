@@ -216,53 +216,49 @@ func main() {
 	// Ensure devices
 	var deviceIDs []string
 
-	if stepConf.DistributionType() == autoprovision.Development ||
-		stepConf.DistributionType() == autoprovision.AdHoc {
+	fmt.Println()
+	log.Infof("Register %d Bitrise test devices", len(stepConf.DeviceIDs()))
 
-		fmt.Println()
-		log.Infof("Register %d Bitrise test devices", len(stepConf.DeviceIDs()))
-
-		var devices []appstoreconnect.Device
-		for _, id := range stepConf.DeviceIDs() {
-			log.Printf("checking device: %s", id)
-			r, err := client.Provisioning.ListDevices(&appstoreconnect.ListDevicesOptions{
-				FilterUDID: id,
-			})
-			if err != nil {
-				failf(err.Error())
-			}
-			if len(r.Data) > 0 {
-				log.Printf("device already registered: %s", id)
-				devices = append(devices, r.Data[0])
-			} else {
-				log.Printf("registering device", id)
-				req := appstoreconnect.DeviceCreateRequest{
-					Data: appstoreconnect.DeviceCreateRequestData{
-						Attributes: appstoreconnect.DeviceCreateRequestDataAttributes{
-							Name:     "Bitrise test device",
-							Platform: appstoreconnect.IOS,
-							UDID:     id,
-						},
-						Type: "devices",
-					},
-				}
-				r, err := client.Provisioning.RegisterNewDevice(req)
-				if err != nil {
-					failf(err.Error())
-				}
-				devices = append(devices, r.Data...)
-			}
-		}
-
-		r, err := client.Provisioning.ListDevices(nil)
+	var devices []appstoreconnect.Device
+	for _, id := range stepConf.DeviceIDs() {
+		log.Printf("checking device: %s", id)
+		r, err := client.Provisioning.ListDevices(&appstoreconnect.ListDevicesOptions{
+			FilterUDID: id,
+		})
 		if err != nil {
 			failf(err.Error())
 		}
-		log.Printf("%d devices are registered", len(r.Data))
-
-		for _, device := range r.Data {
-			deviceIDs = append(deviceIDs, device.ID)
+		if len(r.Data) > 0 {
+			log.Printf("device already registered: %s", id)
+			devices = append(devices, r.Data[0])
+		} else {
+			log.Printf("registering device", id)
+			req := appstoreconnect.DeviceCreateRequest{
+				Data: appstoreconnect.DeviceCreateRequestData{
+					Attributes: appstoreconnect.DeviceCreateRequestDataAttributes{
+						Name:     "Bitrise test device",
+						Platform: appstoreconnect.IOS,
+						UDID:     id,
+					},
+					Type: "devices",
+				},
+			}
+			r, err := client.Provisioning.RegisterNewDevice(req)
+			if err != nil {
+				failf(err.Error())
+			}
+			devices = append(devices, r.Data...)
 		}
+	}
+
+	r, err := client.Provisioning.ListDevices(nil)
+	if err != nil {
+		failf(err.Error())
+	}
+	log.Printf("%d devices are registered", len(r.Data))
+
+	for _, device := range r.Data {
+		deviceIDs = append(deviceIDs, device.ID)
 	}
 
 	// Ensure Profiles
