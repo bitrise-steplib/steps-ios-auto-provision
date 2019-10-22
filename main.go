@@ -220,7 +220,8 @@ func main() {
 	for _, id := range stepConf.DeviceIDs() {
 		log.Printf("checking device: %s", id)
 		responseDevices, err := autoprovision.ListDevices(client, &appstoreconnect.ListDevicesOptions{
-			FilterUDID: id,
+			FilterUDID:     id,
+			FilterPlatform: appstoreconnect.IOSDevice,
 		})
 		if err != nil {
 			failf(err.Error())
@@ -246,7 +247,9 @@ func main() {
 		}
 	}
 
-	devices, err := autoprovision.ListDevices(client, nil)
+	devices, err := autoprovision.ListDevices(client, &appstoreconnect.ListDevicesOptions{
+		FilterPlatform: appstoreconnect.IOSDevice,
+	})
 	if err != nil {
 		failf(err.Error())
 	}
