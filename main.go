@@ -396,7 +396,7 @@ func main() {
 	for _, target := range targets {
 		codesignSettings, ok := codesignSettingsByDistributionType[autoprovision.Development]
 		if !ok {
-			failf("failed to find development code sign settings")
+			failf("Failed to find development code sign settings")
 		}
 		teamID = codesignSettings.Certificate.TeamID
 
@@ -406,15 +406,15 @@ func main() {
 		}
 		profile, ok := codesignSettings.ProfilesByBundleID[targetBundleID]
 		if !ok {
-			failf("failed to get profile for the bundleID %s", targetBundleID)
+			failf("Failed to get profile for the bundleID %s", targetBundleID)
 		}
 
 		if err := projHelper.XcProj.ForceCodeSign(config, target.Name, teamID, codesignSettings.Certificate.CommonName, profile.Attributes.UUID); err != nil {
-			failf("failed to apply code sign settings for target (%s), error: %s", target.Name, err)
+			failf("Failed to apply code sign settings for target (%s), error: %s", target.Name, err)
 		}
 
 		if err := projHelper.XcProj.Save(); err != nil {
-			failf("failed to save xcodeproj (%s), error: %s", projHelper.XcProj.Path, err)
+			failf("Failed to save xcodeproj (%s), error: %s", projHelper.XcProj.Path, err)
 		}
 
 	}
