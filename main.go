@@ -214,8 +214,6 @@ func main() {
 	log.Printf("distribution types: %s", distrTypes)
 
 	// Ensure devices
-	var deviceIDs []string
-
 	fmt.Println()
 	log.Infof("Register %d Bitrise test devices", len(stepConf.DeviceIDs()))
 
@@ -365,6 +363,11 @@ func main() {
 			var certIDs []string
 			for _, cert := range certs {
 				certIDs = append(certIDs, cert.ID)
+			}
+
+			var deviceIDs []string
+			for _, d := range devices {
+				deviceIDs = append(deviceIDs, d.ID)
 			}
 
 			profile, err = autoprovision.CreateProfile(client, profileType, *bundleID, certIDs, deviceIDs)
