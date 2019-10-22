@@ -219,18 +219,16 @@ func main() {
 	fmt.Println()
 	log.Infof("Register %d Bitrise test devices", len(stepConf.DeviceIDs()))
 
-	var devices []appstoreconnect.Device
 	for _, id := range stepConf.DeviceIDs() {
 		log.Printf("checking device: %s", id)
-		r, err := client.Provisioning.ListDevices(&appstoreconnect.ListDevicesOptions{
+		responseDevices, err := autoprovision.ListDevices(client, &appstoreconnect.ListDevicesOptions{
 			FilterUDID: id,
 		})
 		if err != nil {
 			failf(err.Error())
 		}
-		if len(r.Data) > 0 {
+		if len(responseDevices) > 0 {
 			log.Printf("device already registered: %s", id)
-			devices = append(devices, r.Data[0])
 		} else {
 			log.Printf("registering device", id)
 			req := appstoreconnect.DeviceCreateRequest{
@@ -243,23 +241,18 @@ func main() {
 					Type: "devices",
 				},
 			}
-			r, err := client.Provisioning.RegisterNewDevice(req)
+			_, err := client.Provisioning.RegisterNewDevice(req)
 			if err != nil {
 				failf(err.Error())
 			}
-			devices = append(devices, r.Data...)
 		}
 	}
 
-	r, err := client.Provisioning.ListDevices(nil)
+	devices, err := autoprovision.ListDevices(client, nil)
 	if err != nil {
 		failf(err.Error())
 	}
-	log.Printf("%d devices are registered", len(r.Data))
-
-	for _, device := range r.Data {
-		deviceIDs = append(deviceIDs, device.ID)
-	}
+	log.Printf("%d devices are registered", len(devices))
 
 	// Ensure Profiles
 	type CodesignSettings struct {
