@@ -118,6 +118,15 @@ func downloadFile(httpClient *http.Client, src string) ([]byte, error) {
 	return contents, nil
 }
 
+func needToRegisterDevices(distrTypes []autoprovision.DistributionType) bool {
+	for _, distrType := range distrTypes {
+		if distrType == autoprovision.Development || distrType == autoprovision.AdHoc {
+			return true
+		}
+	}
+	return false
+}
+
 func failf(s string, args ...interface{}) {
 	log.Errorf(s, args...)
 	os.Exit(1)
@@ -214,41 +223,46 @@ func main() {
 	log.Printf("distribution types: %s", distrTypes)
 
 	// Ensure devices
-	fmt.Println()
-	log.Infof("Register %d Bitrise test devices", len(stepConf.DeviceIDs()))
+	var devices []appstoreconnect.Device
 
-	for _, id := range stepConf.DeviceIDs() {
-		log.Printf("checking device: %s", id)
-		responseDevices, err := autoprovision.ListDevices(client, id, appstoreconnect.IOSDevice)
-		if err != nil {
-			failf(err.Error())
-		}
-		if len(responseDevices) > 0 {
-			log.Printf("device already registered: %s", id)
-		} else {
-			log.Printf("registering device", id)
-			req := appstoreconnect.DeviceCreateRequest{
-				Data: appstoreconnect.DeviceCreateRequestData{
-					Attributes: appstoreconnect.DeviceCreateRequestDataAttributes{
-						Name:     "Bitrise test device",
-						Platform: appstoreconnect.IOS,
-						UDID:     id,
-					},
-					Type: "devices",
-				},
-			}
-			_, err := client.Provisioning.RegisterNewDevice(req)
+	if needToRegisterDevices(distrTypes) {
+		fmt.Println()
+		log.Infof("Register %d Bitrise test devices", len(stepConf.DeviceIDs()))
+
+		for _, id := range stepConf.DeviceIDs() {
+			log.Printf("checking device: %s", id)
+			responseDevices, err := autoprovision.ListDevices(client, id, appstoreconnect.IOSDevice)
 			if err != nil {
 				failf(err.Error())
 			}
+			if len(responseDevices) > 0 {
+				log.Printf("device already registered: %s", id)
+			} else {
+				log.Printf("registering device", id)
+				req := appstoreconnect.DeviceCreateRequest{
+					Data: appstoreconnect.DeviceCreateRequestData{
+						Attributes: appstoreconnect.DeviceCreateRequestDataAttributes{
+							Name:     "Bitrise test device",
+							Platform: appstoreconnect.IOS,
+							UDID:     id,
+						},
+						Type: "devices",
+					},
+				}
+				_, err := client.Provisioning.RegisterNewDevice(req)
+				if err != nil {
+					failf(err.Error())
+				}
+			}
 		}
-	}
 
-	devices, err := autoprovision.ListDevices(client, "", appstoreconnect.IOSDevice)
-	if err != nil {
-		failf(err.Error())
+		var err error
+		devices, err = autoprovision.ListDevices(client, "", appstoreconnect.IOSDevice)
+		if err != nil {
+			failf(err.Error())
+		}
+		log.Printf("%d devices are registered", len(devices))
 	}
-	log.Printf("%d devices are registered", len(devices))
 
 	// Ensure Profiles
 	type CodesignSettings struct {
