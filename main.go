@@ -229,16 +229,28 @@ func main() {
 		fmt.Println()
 		log.Infof("Register %d Bitrise test devices", len(stepConf.DeviceIDs()))
 
+		var err error
+		devices, err = autoprovision.ListDevices(client, "", appstoreconnect.IOSDevice)
+		if err != nil {
+			failf(err.Error())
+		}
+		log.Printf("%d devices are already registered", len(devices))
+
 		for _, id := range stepConf.DeviceIDs() {
 			log.Printf("checking device: %s", id)
-			responseDevices, err := autoprovision.ListDevices(client, id, appstoreconnect.IOSDevice)
-			if err != nil {
-				failf(err.Error())
+
+			found := false
+			for _, device := range devices {
+				if device.Attributes.UDID == id {
+					found = true
+					break
+				}
 			}
-			if len(responseDevices) > 0 {
-				log.Printf("device already registered: %s", id)
+
+			if found {
+				log.Printf("device already registered")
 			} else {
-				log.Printf("registering device", id)
+				log.Printf("registering device")
 				req := appstoreconnect.DeviceCreateRequest{
 					Data: appstoreconnect.DeviceCreateRequestData{
 						Attributes: appstoreconnect.DeviceCreateRequestDataAttributes{
@@ -255,13 +267,6 @@ func main() {
 				}
 			}
 		}
-
-		var err error
-		devices, err = autoprovision.ListDevices(client, "", appstoreconnect.IOSDevice)
-		if err != nil {
-			failf(err.Error())
-		}
-		log.Printf("%d devices are registered", len(devices))
 	}
 
 	// Ensure Profiles
