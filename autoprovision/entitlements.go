@@ -68,6 +68,18 @@ func dataProtectionEquals(entVal string, cap appstoreconnect.BundleIDCapability)
 	return true, nil
 }
 
+// AppearsOnDeveloperPortal reports whether the given (project) Entitlement needs to be registered on Apple Developer Portal or not.
+// List of services, to be registered: https://developer.apple.com/documentation/appstoreconnectapi/capabilitytype.
+func (e Entitlement) AppearsOnDeveloperPortal() bool {
+	if len(e) == 0 {
+		return false
+	}
+	entKey := serialized.Object(e).Keys()[0]
+
+	_, ok := appstoreconnect.ServiceTypeByKey[entKey]
+	return ok
+}
+
 // Equal ...
 func (e Entitlement) Equal(cap appstoreconnect.BundleIDCapability) (bool, error) {
 	if len(e) == 0 {
