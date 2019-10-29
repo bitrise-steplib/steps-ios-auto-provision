@@ -293,19 +293,36 @@ func main() {
 			Certificate:        certs[0].Certificate,
 		}
 
+		var certIDs []string
+		for _, cert := range certs {
+			certIDs = append(certIDs, cert.ID)
+		}
+
+		platformProfileTypes, ok := autoprovision.PlatformToProfileTypeByDistribution[platform]
+		if !ok {
+			failf("unknown platform: %s", platform)
+		}
+
+		profileType := platformProfileTypes[distrType]
+		log.Printf("  profile type: %s", profileType)
+
+		var deviceIDs []string
+		for _, d := range devices {
+			if strings.HasPrefix(string(profileType), "TVOS") && d.Attributes.DeviceClass != "APPLE_TV" {
+				continue
+			} else if strings.HasPrefix(string(profileType), "IOS") &&
+				string(d.Attributes.DeviceClass) != "IPHONE" && string(d.Attributes.DeviceClass) != "IPAD" && string(d.Attributes.DeviceClass) != "IPOD" {
+				continue
+			}
+			deviceIDs = append(deviceIDs, d.ID)
+		}
+
 		for bundleIDIdentifier, entitlements := range entitlementsByBundleID {
 			fmt.Println()
 			log.Infof("  Checking bundle id: %s", bundleIDIdentifier)
 			log.Printf("  capabilities: %s", entitlements)
 
 			// Search for Bitrise managed Profile
-			platformProfileTypes, ok := autoprovision.PlatformToProfileTypeByDistribution[platform]
-			if !ok {
-				failf("unknown platform: %s", platform)
-			}
-			profileType := platformProfileTypes[distrType]
-			log.Printf("  profile type: %s", profileType)
-
 			profile, err := autoprovision.FindProfile(client, profileType, bundleIDIdentifier)
 			if err != nil {
 				failf(err.Error())
@@ -315,17 +332,17 @@ func main() {
 				log.Printf("  Bitrise managed profile found: %s", profile.Attributes.Name)
 
 				// Check if Bitrise managed Profile is sync with the project
-				if ok, err := autoprovision.CheckProfile(client, *profile, autoprovision.Entitlement(entitlements), nil, nil); err != nil {
+				if ok, err := autoprovision.CheckProfile(client, *profile, autoprovision.Entitlement(entitlements), deviceIDs, certIDs); err != nil {
 					failf(err.Error())
 				} else if ok {
-					log.Donef("  profile capabilities are in sync with the project capabilities")
+					log.Donef("  profile is in sync with the project requirements")
 					codesignSettings.ProfilesByBundleID[bundleIDIdentifier] = *profile
 					codesignSettingsByDistributionType[distrType] = codesignSettings
 					continue
 				}
 
 				// If not in sync, delete and re generate
-				log.Warnf("  profile capabilities are not in sync with the project capabilities, re generating ...")
+				log.Warnf("  profile is not in sync with the project requirements, re generating ...")
 				if err := autoprovision.DeleteProfile(client, profile.ID); err != nil {
 					failf(err.Error())
 				}
@@ -375,24 +392,6 @@ func main() {
 			// Create Bitrise managed Profile
 			fmt.Println()
 			log.Infof("  Creating profile for bundle id: %s", bundleID.Attributes.Name)
-			certType := autoprovision.CertificateTypeByDistribution[distrType]
-			certs := certsByType[certType]
-			var certIDs []string
-			for _, cert := range certs {
-				certIDs = append(certIDs, cert.ID)
-			}
-
-			var deviceIDs []string
-			for _, d := range devices {
-				if strings.HasPrefix(string(profileType), "TVOS") && d.Attributes.DeviceClass != "APPLE_TV" {
-					continue
-				} else if strings.HasPrefix(string(profileType), "IOS") &&
-					string(d.Attributes.DeviceClass) != "IPHONE" && string(d.Attributes.DeviceClass) != "IPAD" && string(d.Attributes.DeviceClass) != "IPOD" {
-					continue
-				}
-				deviceIDs = append(deviceIDs, d.ID)
-			}
-
 			profile, err = autoprovision.CreateProfile(client, profileType, *bundleID, certIDs, deviceIDs)
 			if err != nil {
 				failf(err.Error())
