@@ -38,7 +38,8 @@ const (
 	AccessWIFIInformation          CapabilityType = "ACCESS_WIFI_INFORMATION"
 )
 
-// ServiceNameByKey ...
+// ServiceNameByKey maps iOS specific entitlement keys to names
+// based on the entitlements list: https://developer.apple.com/documentation/bundleresources/entitlements.
 var ServiceNameByKey = map[string]string{
 	"com.apple.security.application-groups":               "App Groups",
 	"com.apple.developer.in-app-payments":                 "Apple Pay",
