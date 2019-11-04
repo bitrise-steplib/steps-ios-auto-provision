@@ -2,7 +2,7 @@ package autoprovision
 
 import "github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 
-// ListDevices returns the reigestered devices on the Apple Developer portal
+// ListDevices returns the registered devices on the Apple Developer portal
 func ListDevices(client *appstoreconnect.Client, udid string, platform appstoreconnect.DevicePlatform) ([]appstoreconnect.Device, error) {
 	var nextPageURL string
 	var devices []appstoreconnect.Device

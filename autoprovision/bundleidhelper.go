@@ -46,6 +46,7 @@ func checkBundleIDEntitlements(bundleIDEntitlements []appstoreconnect.BundleIDCa
 
 			if equal {
 				found = true
+				break
 			}
 		}
 

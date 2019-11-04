@@ -79,7 +79,7 @@ func NewProjectHelper(projOrWSPath, schemeName, configurationName string) (*Proj
 
 	scheme, _, err := xcproj.Scheme(schemeName)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to found scheme with name: %s in project: %s, error: %s", schemeName, projOrWSPath, err)
+		return nil, "", fmt.Errorf("failed to find scheme with name: %s in project: %s, error: %s", schemeName, projOrWSPath, err)
 	}
 
 	// Check if the archive is availabe for the scheme or not
@@ -137,7 +137,7 @@ func (p *ProjectHelper) Platform(configurationName string) (Platform, error) {
 	}
 
 	if platformDisplayName != string(IOS) && platformDisplayName != string(MacOS) && platformDisplayName != string(TVOS) {
-		return "", fmt.Errorf("not supported platform. Platform (PLATFORM_DISPLAY_NAME) = %s", platformDisplayName)
+		return "", fmt.Errorf("not supported platform. Platform (PLATFORM_DISPLAY_NAME) = %s, supported: %s, %s", platformDisplayName, IOS, TVOS)
 	}
 	return Platform(platformDisplayName), nil
 }
@@ -401,7 +401,7 @@ func mainTargetOfScheme(proj xcodeproj.XcodeProj, scheme string) (xcodeproj.Targ
 	projTargets := proj.Proj.Targets
 	sch, _, err := proj.Scheme(scheme)
 	if err != nil {
-		return xcodeproj.Target{}, fmt.Errorf("failed to found scheme (%s) in project, error: %s", scheme, err)
+		return xcodeproj.Target{}, fmt.Errorf("failed to find scheme (%s) in project, error: %s", scheme, err)
 	}
 
 	var blueIdent string
@@ -435,7 +435,7 @@ func findBuiltProject(pth, schemeName, configurationName string) (xcodeproj.Xcod
 
 		scheme, _, err = project.Scheme(schemeName)
 		if err != nil {
-			return xcodeproj.XcodeProj{}, "", fmt.Errorf("failed to found scheme with name: %s in project: %s, error: %s", schemeName, pth, err)
+			return xcodeproj.XcodeProj{}, "", fmt.Errorf("failed to find scheme with name: %s in project: %s, error: %s", schemeName, pth, err)
 		}
 		schemeContainerDir = filepath.Dir(pth)
 	} else if xcworkspace.IsWorkspace(pth) {

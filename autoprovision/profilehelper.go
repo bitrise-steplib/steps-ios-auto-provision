@@ -172,12 +172,12 @@ func WriteProfile(profile appstoreconnect.Profile) error {
 	}
 
 	var ext string
-	if profile.Attributes.Platform == "IOS" {
+	if profile.Attributes.Platform == appstoreconnect.IOS {
 		ext = ".mobileprovision"
-	} else if profile.Attributes.Platform == "MAC_OS" {
+	} else if profile.Attributes.Platform == appstoreconnect.MacOS {
 		ext = ".provisionprofile"
 	} else {
-		return fmt.Errorf("failed to write profile to file, unsupported platform: (%s). Supported platforms: `IOS`, `MAC_OS`", profile.Attributes.Platform)
+		return fmt.Errorf("failed to write profile to file, unsupported platform: (%s). Supported platforms: %s, %s", profile.Attributes.Platform, appstoreconnect.IOS, appstoreconnect.MacOS)
 	}
 
 	b, err := base64.StdEncoding.DecodeString(profile.Attributes.ProfileContent)

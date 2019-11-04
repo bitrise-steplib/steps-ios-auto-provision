@@ -341,7 +341,7 @@ func main() {
 					continue
 				}
 
-				// If not in sync, delete and re generate
+				// If not in sync, delete and regenerate
 				log.Warnf("  profile is not in sync with the project requirements, re generating ...")
 				if err := autoprovision.DeleteProfile(client, profile.ID); err != nil {
 					failf(err.Error())
