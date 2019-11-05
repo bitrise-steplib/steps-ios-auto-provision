@@ -64,3 +64,13 @@ func (p Proj) Target(id string) (Target, bool) {
 	}
 	return Target{}, false
 }
+
+// TargetByName ...
+func (p Proj) TargetByName(name string) (Target, bool) {
+	for _, target := range p.Targets {
+		if target.Name == name {
+			return target, true
+		}
+	}
+	return Target{}, false
+}

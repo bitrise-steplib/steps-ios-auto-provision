@@ -11,7 +11,8 @@ const DevicesURL = "devices"
 
 // ListDevicesOptions ...
 type ListDevicesOptions struct {
-	FilterUDID string `url:"filter[udid],omitempty"`
+	FilterUDID     string         `url:"filter[udid],omitempty"`
+	FilterPlatform DevicePlatform `url:"filter[platform],omitempty"`
 
 	Limit  int    `url:"limit,omitempty"`
 	Cursor string `url:"cursor,omitempty"`
@@ -29,6 +30,15 @@ const (
 	Ipod       DeviceClass = "IPOD"
 	AppleTV    DeviceClass = "APPLE_TV"
 	Mac        DeviceClass = "MAC"
+)
+
+// DevicePlatform ...
+type DevicePlatform string
+
+// DevicePlatforms ...
+const (
+	IOSDevice   DevicePlatform = "IOS"
+	MacOSDevice DevicePlatform = "MAC_OS"
 )
 
 // Status ...

@@ -3,6 +3,7 @@ package autoprovision
 import (
 	"errors"
 	"fmt"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -76,9 +77,9 @@ func NewProjectHelper(projOrWSPath, schemeName, configurationName string) (*Proj
 		return nil, "", fmt.Errorf("failed to find the main target of the scheme (%s), error: %s", schemeName, err)
 	}
 
-	scheme, ok := xcproj.Scheme(schemeName)
-	if !ok {
-		return nil, "", fmt.Errorf("no scheme found with name: %s in project: %s", schemeName, projOrWSPath)
+	scheme, _, err := xcproj.Scheme(schemeName)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to find scheme with name: %s in project: %s, error: %s", schemeName, projOrWSPath, err)
 	}
 
 	// Check if the archive is availabe for the scheme or not
@@ -87,7 +88,7 @@ func NewProjectHelper(projOrWSPath, schemeName, configurationName string) (*Proj
 	}
 
 	// Configuration
-	conf, err := configuration(configurationName, scheme, xcproj)
+	conf, err := configuration(configurationName, *scheme, xcproj)
 	if err != nil {
 		return nil, "", err
 	}
@@ -136,7 +137,7 @@ func (p *ProjectHelper) Platform(configurationName string) (Platform, error) {
 	}
 
 	if platformDisplayName != string(IOS) && platformDisplayName != string(MacOS) && platformDisplayName != string(TVOS) {
-		return "", fmt.Errorf("not supported platform. Platform (PLATFORM_DISPLAY_NAME) = %s", platformDisplayName)
+		return "", fmt.Errorf("not supported platform. Platform (PLATFORM_DISPLAY_NAME) = %s, supported: %s, %s", platformDisplayName, IOS, TVOS)
 	}
 	return Platform(platformDisplayName), nil
 }
@@ -295,6 +296,7 @@ func (p *ProjectHelper) TargetBundleID(name, conf string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to find info.plst file, error: %s", err)
 	}
+	infoPlistPath = path.Join(path.Dir(p.XcProj.Path), infoPlistPath)
 
 	if infoPlistPath == "" {
 		return "", fmt.Errorf("failed to to determine bundle id: xcodebuild -showBuildSettings does not contains PRODUCT_BUNDLE_IDENTIFIER nor INFOPLIST_FILE' unless info_plist_path")
@@ -397,9 +399,9 @@ func configuration(configurationName string, scheme xcscheme.Scheme, xcproj xcod
 // mainTargetOfScheme return the main target
 func mainTargetOfScheme(proj xcodeproj.XcodeProj, scheme string) (xcodeproj.Target, error) {
 	projTargets := proj.Proj.Targets
-	sch, ok := proj.Scheme(scheme)
-	if !ok {
-		return xcodeproj.Target{}, fmt.Errorf("Failed to found scheme (%s) in project", scheme)
+	sch, _, err := proj.Scheme(scheme)
+	if err != nil {
+		return xcodeproj.Target{}, fmt.Errorf("failed to find scheme (%s) in project, error: %s", scheme, err)
 	}
 
 	var blueIdent string
@@ -422,7 +424,7 @@ func mainTargetOfScheme(proj xcodeproj.XcodeProj, scheme string) (xcodeproj.Targ
 
 // findBuiltProject returns the Xcode project which will be built for the provided scheme
 func findBuiltProject(pth, schemeName, configurationName string) (xcodeproj.XcodeProj, string, error) {
-	var scheme xcscheme.Scheme
+	var scheme *xcscheme.Scheme
 	var schemeContainerDir string
 
 	if xcodeproj.IsXcodeProj(pth) {
@@ -431,10 +433,9 @@ func findBuiltProject(pth, schemeName, configurationName string) (xcodeproj.Xcod
 			return xcodeproj.XcodeProj{}, "", err
 		}
 
-		var ok bool
-		scheme, ok = project.Scheme(schemeName)
-		if !ok {
-			return xcodeproj.XcodeProj{}, "", fmt.Errorf("no scheme found with name: %s in project: %s", schemeName, pth)
+		scheme, _, err = project.Scheme(schemeName)
+		if err != nil {
+			return xcodeproj.XcodeProj{}, "", fmt.Errorf("failed to find scheme with name: %s in project: %s, error: %s", schemeName, pth, err)
 		}
 		schemeContainerDir = filepath.Dir(pth)
 	} else if xcworkspace.IsWorkspace(pth) {

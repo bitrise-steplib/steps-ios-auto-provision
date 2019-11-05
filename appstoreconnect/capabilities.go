@@ -38,7 +38,8 @@ const (
 	AccessWIFIInformation          CapabilityType = "ACCESS_WIFI_INFORMATION"
 )
 
-// ServiceNameByKey ...
+// ServiceNameByKey maps iOS specific entitlement keys to names
+// based on the entitlements list: https://developer.apple.com/documentation/bundleresources/entitlements.
 var ServiceNameByKey = map[string]string{
 	"com.apple.security.application-groups":               "App Groups",
 	"com.apple.developer.in-app-payments":                 "Apple Pay",
@@ -56,6 +57,7 @@ var ServiceNameByKey = map[string]string{
 	"com.apple.developer.siri":                            "SiriKit",
 	"com.apple.developer.pass-type-identifiers":           "Wallet",
 	"com.apple.external-accessory.wireless-configuration": "Wireless Accessory Configuration",
+	"com.apple.developer.default-data-protection":         "Data Protection",
 }
 
 // ServiceTypeByKey ...
@@ -76,6 +78,7 @@ var ServiceTypeByKey = map[string]CapabilityType{
 	"com.apple.developer.siri":                            Sirikit,
 	"com.apple.developer.pass-type-identifiers":           Wallet,
 	"com.apple.external-accessory.wireless-configuration": WirelessAccessoryConfiguration,
+	"com.apple.developer.default-data-protection":         DataProtection,
 }
 
 // CapabilitySettingAllowedInstances ...

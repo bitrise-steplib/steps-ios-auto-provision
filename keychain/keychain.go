@@ -36,7 +36,7 @@ func New(pth string, pass stepconf.Secret) (*Keychain, error) {
 		return nil, err
 	} else if exist {
 		return &Keychain{
-			Path:     pth,
+			Path:     p,
 			Password: pass,
 		}, nil
 	}
@@ -98,8 +98,11 @@ func runSecurityCmd(args ...interface{}) error {
 		} else if v, ok := arg.(string); ok {
 			printableArgs = append(printableArgs, v)
 			cmdArgs = append(cmdArgs, v)
+		} else if v, ok := arg.([]string); ok {
+			printableArgs = append(printableArgs, v...)
+			cmdArgs = append(cmdArgs, v...)
 		} else {
-			return fmt.Errorf("unknown arg provided: %T, string and stepconf.Secret are acceptable", arg)
+			return fmt.Errorf("unknown arg provided: %T, string, []string, and stepconf.Secret are acceptable", arg)
 		}
 	}
 
@@ -176,7 +179,7 @@ func (k Keychain) addToSearchPath() error {
 		return fmt.Errorf("get keychain list: %s", err)
 	}
 
-	return runSecurityCmd("-v", "list-keychains", "-s", strings.Join(keychains, " "))
+	return runSecurityCmd("-v", "list-keychains", "-s", keychains)
 }
 
 // setAsDefault sets the keychain as the

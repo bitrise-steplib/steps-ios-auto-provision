@@ -1,8 +1,13 @@
 package autoprovision
 
 import (
+	"encoding/base64"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
 
+	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
 
@@ -150,4 +155,38 @@ func CreateProfile(client *appstoreconnect.Client, profileType appstoreconnect.P
 		return nil, fmt.Errorf("failed to create Manual %s provisioning profile for %s bundle ID, error: %s", profileType.ReadableString(), bundleID.Attributes.Identifier, err)
 	}
 	return &r.Data, nil
+}
+
+// WriteProfile writes the provided profile under the `$HOME/Library/MobileDevice/Provisioning Profiles` directory.
+// Xcode uses profiles located in that directory.
+// The file extension depends on the profile's platform `IOS` => `.mobileprovision`, `MAC_OS` => `.provisionprofile`
+func WriteProfile(profile appstoreconnect.Profile) error {
+	homeDir := os.Getenv("HOME")
+	profilesDir := path.Join(homeDir, "Library/MobileDevice/Provisioning Profiles")
+	if exists, err := pathutil.IsDirExists(profilesDir); err != nil {
+		return fmt.Errorf("failed to check directory for provisioning profiles (%s), error: %s", profilesDir, err)
+	} else if !exists {
+		if err := os.MkdirAll(profilesDir, 0600); err != nil {
+			return fmt.Errorf("failed to generate directory for provisioning profiles (%s), error: %s", profilesDir, err)
+		}
+	}
+
+	var ext string
+	if profile.Attributes.Platform == appstoreconnect.IOS {
+		ext = ".mobileprovision"
+	} else if profile.Attributes.Platform == appstoreconnect.MacOS {
+		ext = ".provisionprofile"
+	} else {
+		return fmt.Errorf("failed to write profile to file, unsupported platform: (%s). Supported platforms: %s, %s", profile.Attributes.Platform, appstoreconnect.IOS, appstoreconnect.MacOS)
+	}
+
+	b, err := base64.StdEncoding.DecodeString(profile.Attributes.ProfileContent)
+	if err != nil {
+		return fmt.Errorf("failed to decode ( base 64 ) the profile content, error: %s", err)
+	}
+	name := path.Join(profilesDir, profile.Attributes.UUID+ext)
+	if err := ioutil.WriteFile(name, b, 0600); err != nil {
+		return fmt.Errorf("failed to write profile to file, error: %s", err)
+	}
+	return nil
 }

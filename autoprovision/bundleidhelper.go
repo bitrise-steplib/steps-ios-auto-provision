@@ -29,18 +29,16 @@ func FindBundleID(client *appstoreconnect.Client, bundleIDIdentifier string) (*a
 	return nil, nil
 }
 
-// CheckBundleIDEntitlements ...
-func CheckBundleIDEntitlements(client *appstoreconnect.Client, bundleID appstoreconnect.BundleID, entitlements Entitlement) (bool, error) {
-	capabilitiesResp, err := client.Provisioning.Capabilities(bundleID.Relationships.Capabilities.Links.Related)
-	if err != nil {
-		return false, err
-	}
-
-	for k, v := range entitlements {
+func checkBundleIDEntitlements(bundleIDEntitlements []appstoreconnect.BundleIDCapability, projectEntitlements Entitlement) (bool, error) {
+	for k, v := range projectEntitlements {
 		ent := Entitlement{k: v}
 
+		if !ent.AppearsOnDeveloperPortal() {
+			continue
+		}
+
 		found := false
-		for _, cap := range capabilitiesResp.Data {
+		for _, cap := range bundleIDEntitlements {
 			equal, err := ent.Equal(cap)
 			if err != nil {
 				return false, err
@@ -48,6 +46,7 @@ func CheckBundleIDEntitlements(client *appstoreconnect.Client, bundleID appstore
 
 			if equal {
 				found = true
+				break
 			}
 		}
 
@@ -57,6 +56,16 @@ func CheckBundleIDEntitlements(client *appstoreconnect.Client, bundleID appstore
 	}
 
 	return true, nil
+}
+
+// CheckBundleIDEntitlements checks if a given Bundle ID has every capability enabled, required by the project.
+func CheckBundleIDEntitlements(client *appstoreconnect.Client, bundleID appstoreconnect.BundleID, projectEntitlements Entitlement) (bool, error) {
+	capabilitiesResp, err := client.Provisioning.Capabilities(bundleID.Relationships.Capabilities.Links.Related)
+	if err != nil {
+		return false, err
+	}
+
+	return checkBundleIDEntitlements(capabilitiesResp.Data, projectEntitlements)
 }
 
 // SyncBundleID ...
@@ -80,10 +89,11 @@ func SyncBundleID(client *appstoreconnect.Client, bundleIDID string, entitlement
 					BundleID: appstoreconnect.BundleIDCapabilityCreateRequestDataRelationshipsBundleID{
 						Data: appstoreconnect.BundleIDCapabilityCreateRequestDataRelationshipsBundleIDData{
 							ID:   bundleIDID,
-							Type: "",
+							Type: "bundleIds",
 						},
 					},
 				},
+				Type: "bundleIdCapabilities",
 			},
 		}
 		r, err := client.Provisioning.EnableCapability(body)

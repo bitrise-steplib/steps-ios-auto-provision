@@ -51,7 +51,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:14671d7364c629f3d8aec6d79a43dc12a7d2831b07093db174cb2a03363a30f0"
+  digest = "1:c2d90e71eab0b89195680d794dd0aafb8fe10efc56543a70f475e171d0c2e669"
   name = "github.com/bitrise-io/xcode-project"
   packages = [
     "pretty",
@@ -62,7 +62,7 @@
     "xcworkspace",
   ]
   pruneopts = "UT"
-  revision = "22f5faeb65f6ab795230d678bec8160686ab848b"
+  revision = "e74e748ca5af39e2bd2b24ed4e9476bc4abd1a50"
 
 [[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
