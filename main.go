@@ -307,14 +307,16 @@ func main() {
 		log.Printf("  profile type: %s", profileType)
 
 		var deviceIDs []string
-		for _, d := range devices {
-			if strings.HasPrefix(string(profileType), "TVOS") && d.Attributes.DeviceClass != "APPLE_TV" {
-				continue
-			} else if strings.HasPrefix(string(profileType), "IOS") &&
-				string(d.Attributes.DeviceClass) != "IPHONE" && string(d.Attributes.DeviceClass) != "IPAD" && string(d.Attributes.DeviceClass) != "IPOD" {
-				continue
+		if needToRegisterDevices([]autoprovision.DistributionType{distrType}) {
+			for _, d := range devices {
+				if strings.HasPrefix(string(profileType), "TVOS") && d.Attributes.DeviceClass != "APPLE_TV" {
+					continue
+				} else if strings.HasPrefix(string(profileType), "IOS") &&
+					string(d.Attributes.DeviceClass) != "IPHONE" && string(d.Attributes.DeviceClass) != "IPAD" && string(d.Attributes.DeviceClass) != "IPOD" {
+					continue
+				}
+				deviceIDs = append(deviceIDs, d.ID)
 			}
-			deviceIDs = append(deviceIDs, d.ID)
 		}
 
 		for bundleIDIdentifier, entitlements := range entitlementsByBundleID {
