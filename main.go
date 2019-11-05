@@ -300,7 +300,7 @@ func main() {
 
 		platformProfileTypes, ok := autoprovision.PlatformToProfileTypeByDistribution[platform]
 		if !ok {
-			failf("unknown platform: %s", platform)
+			failf("unknown platform: %s, known platforms: %s, %s", platform, autoprovision.IOS, autoprovision.TVOS)
 		}
 
 		profileType := platformProfileTypes[distrType]
@@ -344,7 +344,7 @@ func main() {
 				}
 
 				// If not in sync, delete and regenerate
-				log.Warnf("  profile is not in sync with the project requirements, re generating ...")
+				log.Warnf("  profile is not in sync with the project requirements, regenerating ...")
 				if err := autoprovision.DeleteProfile(client, profile.ID); err != nil {
 					failf(err.Error())
 				}
