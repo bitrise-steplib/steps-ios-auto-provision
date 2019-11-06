@@ -166,8 +166,10 @@ func (p *ProjectHelper) ProjectTeamID(config string) (string, error) {
 			if err != nil && !serialized.IsKeyNotFoundError(err) {
 				return "", fmt.Errorf("failed to parse development team for target %s: %s", target.ID, err)
 			}
+
+			log.Debugf("%s target DevelopmentTeam attribute: %s", target.Name, targetAttributesTeamID)
+
 			if targetAttributesTeamID == "" {
-				log.Warnf("no DevelopmentTeam target attribute found for target: %s", target.Name)
 				continue
 			}
 
@@ -180,7 +182,8 @@ func (p *ProjectHelper) ProjectTeamID(config string) (string, error) {
 		}
 
 		if teamID != currentTeamID {
-			log.Warnf("target team id: %s does not match to the already registered team id: %s", currentTeamID, teamID)
+			log.Warnf("%s target team id: %s does not match to the already registered team id: %s\nThis causes build issue like: `Embedded binary is not signed with the same certificate as the parent app. Verify the embedded binary target's code sign settings match the parent app's.`", target.Name, currentTeamID, teamID)
+
 			teamID = ""
 			break
 		}
@@ -255,8 +258,7 @@ func (p *ProjectHelper) TargetBundleID(name, conf string) (string, error) {
 		return bundleID, nil
 	}
 
-	log.Debugf("PRODUCT_BUNDLE_IDENTIFIER env not found in 'xcodebuild -showBuildSettings -project %s -target %s -configuration %s command's output", p.XcProj.Path, name, conf)
-	log.Debugf("checking the Info.plist file's CFBundleIdentifier property...")
+	log.Debugf("PRODUCT_BUNDLE_IDENTIFIER env not found in 'xcodebuild -showBuildSettings -project %s -target %s -configuration %s command's output, checking the Info.plist file's CFBundleIdentifier property...", p.XcProj.Path, name, conf)
 
 	infoPlistPath, err := settings.String("INFOPLIST_FILE")
 	if err != nil {
@@ -287,12 +289,14 @@ func (p *ProjectHelper) TargetBundleID(name, conf string) (string, error) {
 		return bundleID, nil
 	}
 
-	log.Warnf("CFBundleIdentifier defined with variable: %s, trying to resolve it...", bundleID)
+	log.Debugf("CFBundleIdentifier defined with variable: %s, trying to resolve it...", bundleID)
+
 	resolved, err := resolveBundleID(bundleID, settings)
 	if err != nil {
 		return "", fmt.Errorf("failed to resolve bundle ID: %s", err)
 	}
-	log.Warnf("resolved CFBundleIdentifier: %s", resolved)
+
+	log.Debugf("resolved CFBundleIdentifier: %s", resolved)
 
 	return resolved, nil
 }
@@ -355,7 +359,7 @@ func configuration(configurationName string, scheme xcscheme.Scheme, xcproj xcod
 				return "", fmt.Errorf("build configuration (%s) not defined for target: (%s)", configurationName, target.Name)
 			}
 		}
-		log.Debugf("Using defined build configuration: %s instead of the scheme's default one: %s", configurationName, defaultConfiguration)
+		log.Warnf("Using user defined build configuration: %s instead of the scheme's default one: %s.\nMake sure you use the same configuration in further steps.", configurationName, defaultConfiguration)
 		configuration = configurationName
 	}
 
