@@ -211,9 +211,15 @@ func main() {
 	}
 
 	certClient := autoprovision.APIClient(client)
-	certsByType, err := autoprovision.GetValidCertificates(certs, certClient, requiredCertTypes, teamID, false)
+	certsByType, err := autoprovision.GetValidCertificates(certs, certClient, requiredCertTypes, teamID)
 	if err != nil {
-		failf(err.Error())
+		if missingCertErr, ok := err.(autoprovision.MissingCertificateError); ok {
+			log.Errorf(err.Error())
+			log.Warnf("Maybe you forgot to provide a(n) %s type certificate.", missingCertErr.Type)
+			log.Warnf("Upload a %s type certificate (.p12) on the Code Signing tab of the Workflow Editor.", missingCertErr.Type)
+			os.Exit(1)
+		}
+		failf("Failed to get valid certificates: %s", err.Error())
 	}
 
 	if len(certsByType) == 1 && stepConf.DistributionType() != autoprovision.Development {

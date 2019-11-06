@@ -67,7 +67,6 @@ func TestGetValidCertificates(t *testing.T) {
 		client                   CertificateSource
 		requiredCertificateTypes map[appstoreconnect.CertificateType]bool
 		teamID                   string
-		logAllCerts              bool
 	}
 	tests := []struct {
 		name    string
@@ -84,7 +83,6 @@ func TestGetValidCertificates(t *testing.T) {
 				client:                   mockAPIClient(map[appstoreconnect.CertificateType][]APICertificate{}),
 				requiredCertificateTypes: map[appstoreconnect.CertificateType]bool{appstoreconnect.IOSDevelopment: true, appstoreconnect.IOSDistribution: false},
 				teamID:                   "",
-				logAllCerts:              true,
 			},
 			want:    map[appstoreconnect.CertificateType][]APICertificate{},
 			wantErr: true,
@@ -105,7 +103,6 @@ func TestGetValidCertificates(t *testing.T) {
 				}),
 				requiredCertificateTypes: map[appstoreconnect.CertificateType]bool{appstoreconnect.IOSDevelopment: true, appstoreconnect.IOSDistribution: false},
 				teamID:                   "",
-				logAllCerts:              true,
 			},
 			want: map[appstoreconnect.CertificateType][]APICertificate{
 				appstoreconnect.IOSDevelopment: []APICertificate{{
@@ -122,7 +119,6 @@ func TestGetValidCertificates(t *testing.T) {
 				client:                   mockAPIClient(map[appstoreconnect.CertificateType][]APICertificate{}),
 				requiredCertificateTypes: map[appstoreconnect.CertificateType]bool{appstoreconnect.IOSDevelopment: true, appstoreconnect.IOSDistribution: true},
 				teamID:                   "",
-				logAllCerts:              true,
 			},
 			want:    map[appstoreconnect.CertificateType][]APICertificate{},
 			wantErr: true,
@@ -136,7 +132,6 @@ func TestGetValidCertificates(t *testing.T) {
 				client:                   mockAPIClient(map[appstoreconnect.CertificateType][]APICertificate{}),
 				requiredCertificateTypes: map[appstoreconnect.CertificateType]bool{appstoreconnect.IOSDevelopment: true, appstoreconnect.IOSDistribution: true},
 				teamID:                   "",
-				logAllCerts:              true,
 			},
 			want:    map[appstoreconnect.CertificateType][]APICertificate{},
 			wantErr: true,
@@ -155,7 +150,6 @@ func TestGetValidCertificates(t *testing.T) {
 				}),
 				requiredCertificateTypes: map[appstoreconnect.CertificateType]bool{appstoreconnect.IOSDevelopment: true, appstoreconnect.IOSDistribution: false},
 				teamID:                   "",
-				logAllCerts:              true,
 			},
 			want: map[appstoreconnect.CertificateType][]APICertificate{
 				appstoreconnect.IOSDevelopment: []APICertificate{{
@@ -180,7 +174,6 @@ func TestGetValidCertificates(t *testing.T) {
 				}),
 				requiredCertificateTypes: map[appstoreconnect.CertificateType]bool{appstoreconnect.IOSDevelopment: true, appstoreconnect.IOSDistribution: false},
 				teamID:                   "",
-				logAllCerts:              true,
 			},
 			want: map[appstoreconnect.CertificateType][]APICertificate{
 				appstoreconnect.IOSDevelopment: []APICertificate{{
@@ -210,7 +203,6 @@ func TestGetValidCertificates(t *testing.T) {
 				}),
 				requiredCertificateTypes: map[appstoreconnect.CertificateType]bool{appstoreconnect.IOSDevelopment: true, appstoreconnect.IOSDistribution: true},
 				teamID:                   "",
-				logAllCerts:              true,
 			},
 			want:    map[appstoreconnect.CertificateType][]APICertificate{},
 			wantErr: true,
@@ -232,8 +224,7 @@ func TestGetValidCertificates(t *testing.T) {
 					appstoreconnect.IOSDevelopment:  true,
 					appstoreconnect.IOSDistribution: true,
 				},
-				teamID:      "",
-				logAllCerts: true,
+				teamID: "",
 			},
 			want:    map[appstoreconnect.CertificateType][]APICertificate{},
 			wantErr: true,
@@ -261,7 +252,6 @@ func TestGetValidCertificates(t *testing.T) {
 				}),
 				requiredCertificateTypes: map[appstoreconnect.CertificateType]bool{appstoreconnect.IOSDevelopment: true, appstoreconnect.IOSDistribution: true},
 				teamID:                   "",
-				logAllCerts:              true,
 			},
 			want: map[appstoreconnect.CertificateType][]APICertificate{
 				appstoreconnect.IOSDevelopment: []APICertificate{{
@@ -278,7 +268,7 @@ func TestGetValidCertificates(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetValidCertificates(tt.args.localCertificates, tt.args.client, tt.args.requiredCertificateTypes, tt.args.teamID, tt.args.logAllCerts)
+			got, err := GetValidCertificates(tt.args.localCertificates, tt.args.client, tt.args.requiredCertificateTypes, tt.args.teamID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetValidCertificates() error = %v, wantErr %v", err, tt.wantErr)
 				return
