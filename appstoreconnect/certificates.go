@@ -93,7 +93,7 @@ func (s ProvisioningService) FetchCertificate(serialNumber string) (Certificate,
 		FilterSerialNumber: serialNumber,
 	})
 	if err != nil {
-		return Certificate{}, fmt.Errorf("failed to fetch certificate %s, error :%s", serialNumber, err)
+		return Certificate{}, fmt.Errorf("failed to fetch certificate %s: %s", serialNumber, err)
 	}
 
 	if len(r.Data) == 0 {
