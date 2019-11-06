@@ -68,7 +68,7 @@ func queryAllIOSCertificates(client *appstoreconnect.Client) (map[appstoreconnec
 	for _, certType := range []appstoreconnect.CertificateType{appstoreconnect.IOSDevelopment, appstoreconnect.IOSDistribution} {
 		certs, err := queryCertificatesByType(client, certType)
 		if err != nil {
-			return map[appstoreconnect.CertificateType][]APICertificate{}, fmt.Errorf("failed to query certificates, error: %s", err)
+			return map[appstoreconnect.CertificateType][]APICertificate{}, err
 		}
 		typeToCertificates[certType] = certs
 	}
@@ -116,12 +116,12 @@ func parseCertificatesResponse(response []appstoreconnect.Certificate) ([]APICer
 		if connectCertResponse.Type == "certificates" {
 			certificateData, err := base64.StdEncoding.DecodeString(connectCertResponse.Attributes.CertificateContent)
 			if err != nil {
-				return nil, fmt.Errorf("failed to decode certificate connect, error: %s", err)
+				return nil, fmt.Errorf("failed to decode certificate content: %s", err)
 			}
 
 			cert, err := x509.ParseCertificate(certificateData)
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse certificate, error: %s", err)
+				return nil, fmt.Errorf("failed to parse certificate: %s", err)
 			}
 
 			certInfo := certificateutil.NewCertificateInfo(*cert, nil)
@@ -173,7 +173,7 @@ func GetValidCertificates(localCertificates []certificateutil.CertificateInfoMod
 
 	if logAllAPICerts {
 		if err := LogAllAPICertificates(client, typeToLocalCerts); err != nil {
-			return nil, fmt.Errorf("failed to log all Developer Portal certificates, error: %s", err)
+			return nil, fmt.Errorf("failed to log all Developer Portal certificates: %s", err)
 		}
 	}
 
@@ -195,7 +195,7 @@ func GetValidCertificates(localCertificates []certificateutil.CertificateInfoMod
 		if requiredCertificateTypes[certificateType] && len(matchingCertificates) == 0 {
 			if !logAllAPICerts {
 				if err := LogAllAPICertificates(client, typeToLocalCerts); err != nil {
-					log.Errorf("failed to log all Developer Portal certificates, error: %s", err)
+					log.Errorf("failed to log all Developer Portal certificates: %s", err)
 				}
 			}
 

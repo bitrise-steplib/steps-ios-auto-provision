@@ -26,7 +26,7 @@ func TestNew(t *testing.T) {
 	var err error
 	schemeCases, _, xcProjCases, projHelpCases, configCases, err = initTestCases()
 	if err != nil {
-		t.Fatalf("Failed to initialize test cases, error: %s", err)
+		t.Fatalf("Failed to initialize test cases: %s", err)
 	}
 
 	tests := []struct {
@@ -107,7 +107,7 @@ func TestProjectHelper_ProjectTeamID(t *testing.T) {
 	var err error
 	schemeCases, _, _, projHelpCases, configCases, err = initTestCases()
 	if err != nil {
-		t.Fatalf("Failed to initialize test cases, error: %s", err)
+		t.Fatalf("Failed to initialize test cases: %s", err)
 	}
 
 	tests := []struct {
@@ -344,7 +344,7 @@ func TestProjectHelper_TargetBundleID(t *testing.T) {
 	var err error
 	schemeCases, targetCases, xcProjCases, projHelpCases, configCases, err = initTestCases()
 	if err != nil {
-		t.Fatalf("Failed to initialize test cases, error: %s", err)
+		t.Fatalf("Failed to initialize test cases: %s", err)
 	}
 
 	for i, schemeCase := range schemeCases {
@@ -354,7 +354,7 @@ func TestProjectHelper_TargetBundleID(t *testing.T) {
 			configCases[i],
 		)
 		if err != nil {
-			t.Fatalf("Failed to generate XcodeProj for test case, error: %s", err)
+			t.Fatalf("Failed to generate XcodeProj for test case: %s", err)
 		}
 		xcProjCases = append(xcProjCases, xcProj)
 
@@ -364,7 +364,7 @@ func TestProjectHelper_TargetBundleID(t *testing.T) {
 			configCases[i],
 		)
 		if err != nil {
-			t.Fatalf("Failed to generate projectHelper for test case, error: %s", err)
+			t.Fatalf("Failed to generate projectHelper for test case: %s", err)
 		}
 		projHelpCases = append(projHelpCases, *projHelp)
 	}
@@ -495,7 +495,7 @@ func initTestCases() ([]string, []string, []xcodeproj.XcodeProj, []ProjectHelper
 			configCases[i],
 		)
 		if err != nil {
-			return nil, nil, nil, nil, nil, fmt.Errorf("Failed to generate XcodeProj for test case, error: %s", err)
+			return nil, nil, nil, nil, nil, fmt.Errorf("Failed to generate XcodeProj for test case: %s", err)
 		}
 		xcProjCases = append(xcProjCases, xcProj)
 
@@ -505,7 +505,7 @@ func initTestCases() ([]string, []string, []xcodeproj.XcodeProj, []ProjectHelper
 			configCases[i],
 		)
 		if err != nil {
-			return nil, nil, nil, nil, nil, fmt.Errorf("Failed to generate projectHelper for test case, error: %s", err)
+			return nil, nil, nil, nil, nil, fmt.Errorf("Failed to generate projectHelper for test case: %s", err)
 		}
 		projHelpCases = append(projHelpCases, *projHelp)
 	}
@@ -517,7 +517,7 @@ func TestProjectHelper_targetEntitlements(t *testing.T) {
 	var err error
 	schemeCases, targetCases, xcProjCases, projHelpCases, configCases, err = initTestCases()
 	if err != nil {
-		t.Fatalf("Failed to initialize test cases, error: %s", err)
+		t.Fatalf("Failed to initialize test cases: %s", err)
 	}
 
 	tests := []struct {

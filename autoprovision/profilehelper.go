@@ -152,7 +152,7 @@ func CreateProfile(client *appstoreconnect.Client, profileType appstoreconnect.P
 		),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create Manual %s provisioning profile for %s bundle ID, error: %s", profileType.ReadableString(), bundleID.Attributes.Identifier, err)
+		return nil, fmt.Errorf("failed to create %s provisioning profile for %s bundle ID: %s", profileType.ReadableString(), bundleID.Attributes.Identifier, err)
 	}
 	return &r.Data, nil
 }
@@ -164,10 +164,10 @@ func WriteProfile(profile appstoreconnect.Profile) error {
 	homeDir := os.Getenv("HOME")
 	profilesDir := path.Join(homeDir, "Library/MobileDevice/Provisioning Profiles")
 	if exists, err := pathutil.IsDirExists(profilesDir); err != nil {
-		return fmt.Errorf("failed to check directory for provisioning profiles (%s), error: %s", profilesDir, err)
+		return fmt.Errorf("failed to check directory (%s) for provisioning profiles: %s", profilesDir, err)
 	} else if !exists {
 		if err := os.MkdirAll(profilesDir, 0600); err != nil {
-			return fmt.Errorf("failed to generate directory for provisioning profiles (%s), error: %s", profilesDir, err)
+			return fmt.Errorf("failed to generate directory (%s) for provisioning profiles: %s", profilesDir, err)
 		}
 	}
 
@@ -182,11 +182,11 @@ func WriteProfile(profile appstoreconnect.Profile) error {
 
 	b, err := base64.StdEncoding.DecodeString(profile.Attributes.ProfileContent)
 	if err != nil {
-		return fmt.Errorf("failed to decode ( base 64 ) the profile content, error: %s", err)
+		return fmt.Errorf("failed to decode profile content: %s", err)
 	}
 	name := path.Join(profilesDir, profile.Attributes.UUID+ext)
 	if err := ioutil.WriteFile(name, b, 0600); err != nil {
-		return fmt.Errorf("failed to write profile to file, error: %s", err)
+		return fmt.Errorf("failed to write profile to file: %s", err)
 	}
 	return nil
 }

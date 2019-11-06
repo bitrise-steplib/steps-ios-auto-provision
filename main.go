@@ -66,7 +66,7 @@ func downloadPKCS12(httpClient *http.Client, certificateURL, passphrase string) 
 func downloadFile(httpClient *http.Client, src string) ([]byte, error) {
 	url, err := url.Parse(src)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse url (%s), error: %s", src, err)
+		return nil, fmt.Errorf("failed to parse url (%s): %s", src, err)
 	}
 
 	// Local file
@@ -79,7 +79,7 @@ func downloadFile(httpClient *http.Client, src string) ([]byte, error) {
 	// Remote file
 	req, err := http.NewRequest(http.MethodGet, url.String(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create request, error: %s", err)
+		return nil, fmt.Errorf("failed to create request: %s", err)
 	}
 
 	var contents []byte
@@ -92,11 +92,11 @@ func downloadFile(httpClient *http.Client, src string) ([]byte, error) {
 
 		resp, err := httpClient.Do(req)
 		if err != nil {
-			return fmt.Errorf("failed to download (%s), error: %s", src, err)
+			return fmt.Errorf("failed to download (%s): %s", src, err)
 		}
 		defer func() {
 			if err := resp.Body.Close(); err != nil {
-				log.Warnf("failed to close (%s) body, error: %s", src, err)
+				log.Warnf("failed to close (%s) body: %s", src, err)
 			}
 		}()
 
@@ -106,7 +106,7 @@ func downloadFile(httpClient *http.Client, src string) ([]byte, error) {
 
 		contents, err = ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return fmt.Errorf("failed to read response (%s), error: %s", src, err)
+			return fmt.Errorf("failed to read response (%s): %s", src, err)
 		}
 
 		return nil
@@ -425,11 +425,11 @@ func main() {
 		}
 
 		if err := projHelper.XcProj.ForceCodeSign(config, target.Name, teamID, codesignSettings.Certificate.CommonName, profile.Attributes.UUID); err != nil {
-			failf("Failed to apply code sign settings for target (%s), error: %s", target.Name, err)
+			failf("Failed to apply code sign settings for target (%s): %s", target.Name, err)
 		}
 
 		if err := projHelper.XcProj.Save(); err != nil {
-			failf("Failed to save xcodeproj (%s), error: %s", projHelper.XcProj.Path, err)
+			failf("Failed to save xcodeproj (%s): %s", projHelper.XcProj.Path, err)
 		}
 
 	}

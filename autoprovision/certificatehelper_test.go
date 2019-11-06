@@ -43,21 +43,21 @@ func TestGetValidCertificates(t *testing.T) {
 
 	cert, privateKey, err := certificateutil.GenerateTestCertificate(int64(1), teamID, teamName, commonNameIOSDevelopment, expiry)
 	if err != nil {
-		t.Errorf("init: failed to generate certificate, error: %s", err)
+		t.Errorf("init: failed to generate certificate: %s", err)
 	}
 	devCert := certificateutil.NewCertificateInfo(*cert, privateKey)
 	t.Logf("Test certificate generated. %s", devCert)
 
 	cert, privateKey, err = certificateutil.GenerateTestCertificate(int64(2), teamID, teamName, "iPhone Developer: test2", expiry)
 	if err != nil {
-		t.Errorf("init: failed to generate certificate, error: %s", err)
+		t.Errorf("init: failed to generate certificate: %s", err)
 	}
 	devCert2 := certificateutil.NewCertificateInfo(*cert, privateKey)
 	t.Logf("Test certificate generated. %s", devCert)
 
 	distCert, privateKey, err := certificateutil.GenerateTestCertificate(int64(10), teamID, teamName, commonNameIOSDistribution, expiry)
 	if err != nil {
-		t.Errorf("init: failed to generate certificate, error: %s", err)
+		t.Errorf("init: failed to generate certificate: %s", err)
 	}
 	distributionCert := certificateutil.NewCertificateInfo(*distCert, privateKey)
 	t.Logf("Test certificate generated. %s", distributionCert)

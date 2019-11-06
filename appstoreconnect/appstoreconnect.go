@@ -136,7 +136,7 @@ func checkResponse(r *http.Response) error {
 	data, err := ioutil.ReadAll(r.Body)
 	if err == nil && data != nil {
 		if err := json.Unmarshal(data, errorResponse); err != nil {
-			log.Errorf("Failed to unmarshal response, error: %s", err)
+			log.Errorf("Failed to unmarshal response: %s", err)
 		}
 	}
 	return errorResponse
@@ -161,7 +161,7 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	}
 	defer func() {
 		if cerr := resp.Body.Close(); cerr != nil {
-			log.Warnf("failed to close response body, error: %s", cerr)
+			log.Warnf("Failed to close response body: %s", cerr)
 		}
 	}()
 

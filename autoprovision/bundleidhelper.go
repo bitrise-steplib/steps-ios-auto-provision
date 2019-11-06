@@ -13,7 +13,7 @@ func FindBundleID(client *appstoreconnect.Client, bundleIDIdentifier string) (*a
 		FilterIdentifier: bundleIDIdentifier,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch bundleID: %s, error: %s", bundleIDIdentifier, err)
+		return nil, fmt.Errorf("failed to fetch bundleID (%s): %s", bundleIDIdentifier, err)
 	}
 	if len(r.Data) == 0 {
 		return nil, nil
@@ -135,7 +135,7 @@ func CreateBundleID(client *appstoreconnect.Client, bundleIDIdentifier string, e
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to register AppID for bundleID %s, error: %s", bundleIDIdentifier, err)
+		return nil, fmt.Errorf("failed to register AppID for bundleID (%s): %s", bundleIDIdentifier, err)
 	}
 
 	return &r.Data, nil
