@@ -28,6 +28,8 @@ type service struct {
 
 // Client communicate with the Apple API
 type Client struct {
+	EnableDebugLogs bool
+
 	keyID             string
 	issuerID          string
 	privateKeyContent []byte
@@ -142,18 +144,29 @@ func checkResponse(r *http.Response) error {
 	return errorResponse
 }
 
+// Debugf ...
+func (c *Client) Debugf(format string, v ...interface{}) {
+	if c.EnableDebugLogs {
+		log.Debugf(format, v...)
+	}
+}
+
 // Do ...
 func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
-	log.Debugf("Request:")
-	if err := httputil.PrintRequest(req); err != nil {
-		log.Debugf("Failed to print request: %s", err)
+	c.Debugf("Request:")
+	if c.EnableDebugLogs {
+		if err := httputil.PrintRequest(req); err != nil {
+			c.Debugf("Failed to print request: %s", err)
+		}
 	}
 
 	resp, err := c.client.Do(req)
 
-	log.Debugf("Response:")
-	if err := httputil.PrintResponse(resp); err != nil {
-		log.Debugf("Failed to print response: %s", err)
+	c.Debugf("Response:")
+	if c.EnableDebugLogs {
+		if err := httputil.PrintResponse(resp); err != nil {
+			c.Debugf("Failed to print response: %s", err)
+		}
 	}
 
 	if err != nil {

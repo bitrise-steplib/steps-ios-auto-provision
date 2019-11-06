@@ -153,6 +153,10 @@ func main() {
 	if err != nil {
 		failf(err.Error())
 	}
+
+	// Turn off client debug logs includeing HTTP call debug logs
+	client.EnableDebugLogs = false
+
 	log.Donef("client created for: %s", client.BaseURL)
 
 	// Analyzing project
