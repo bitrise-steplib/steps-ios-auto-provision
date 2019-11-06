@@ -9,7 +9,6 @@ import (
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-io/go-utils/sliceutil"
 
 	"github.com/bitrise-io/xcode-project/serialized"
 	"github.com/bitrise-io/xcode-project/xcodeproj"
@@ -212,71 +211,6 @@ func Test_codesignIdentitesMatch(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := codesignIdentitesMatch(tt.identity1, tt.identity2); got != tt.want {
 				t.Errorf("codesignIdentitesMatch() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestProjectHelper_ProjectCodeSignIdentity(t *testing.T) {
-	var err error
-	schemeCases, _, _, projHelpCases, configCases, err = initTestCases()
-	if err != nil {
-		t.Fatalf("Failed to initialize test cases, error: %s", err)
-	}
-
-	tests := []struct {
-		name    string
-		config  string
-		want    []string
-		wantErr bool
-	}{
-		{
-			name:    schemeCases[0] + " Debug",
-			config:  configCases[0],
-			want:    []string{"iPhone Developer"},
-			wantErr: false,
-		},
-		{
-			name:    schemeCases[1] + " Release",
-			config:  configCases[1],
-			want:    []string{"iPhone Developer"},
-			wantErr: false,
-		},
-		{
-			name:    schemeCases[2] + " Debug",
-			config:  configCases[2],
-			want:    []string{"-"},
-			wantErr: false,
-		},
-		{
-			name:    schemeCases[3] + " Release",
-			config:  configCases[3],
-			want:    []string{"-"},
-			wantErr: false,
-		},
-		{
-			name:    schemeCases[4] + " Debug",
-			config:  configCases[4],
-			want:    []string{"iPhone Developer", "Apple Development"},
-			wantErr: false,
-		},
-		{
-			name:    schemeCases[5] + " Release",
-			config:  configCases[5],
-			want:    []string{"iPhone Developer", "Apple Development"},
-			wantErr: false,
-		},
-	}
-	for i, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			p := projHelpCases[i]
-			got, err := p.ProjectCodeSignIdentity(tt.config)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ProjectHelper.ProjectCodeSignIdentity() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !sliceutil.IsStringInSlice(got, tt.want) {
-				t.Errorf("ProjectHelper.ProjectCodeSignIdentity() = %v, want %v", got, tt.want)
 			}
 		})
 	}

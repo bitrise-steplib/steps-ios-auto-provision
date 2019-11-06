@@ -190,39 +190,6 @@ func (p *ProjectHelper) ProjectTeamID(config string) (string, error) {
 
 }
 
-// ProjectCodeSignIdentity returns the codesign identity of the project
-// If there is mutlitple codesign identity in the project (different identity for targets) it will return an error
-// It returns the codesign identity
-func (p *ProjectHelper) ProjectCodeSignIdentity(config string) (string, error) {
-	var codesignIdentity string
-
-	for _, t := range p.Targets {
-		targetIdentity, err := p.targetCodesignIdentity(t.Name, config)
-		if err != nil {
-			return "", err
-		}
-
-		log.Debugf("%s codesign identity: %s", t.Name, targetIdentity)
-
-		if targetIdentity == "" {
-			log.Warnf("no CODE_SIGN_IDENTITY build settings found for target: %s", t.Name)
-			continue
-		}
-
-		if codesignIdentity == "" {
-			codesignIdentity = targetIdentity
-			continue
-		}
-
-		if !codesignIdentitesMatch(codesignIdentity, targetIdentity) {
-			log.Warnf("target codesign identity: %s does not match to the already registered codesign identity: %s", targetIdentity, codesignIdentity)
-			codesignIdentity = ""
-			break
-		}
-	}
-	return codesignIdentity, nil
-}
-
 func (p *ProjectHelper) targetCodesignIdentity(targatName, config string) (string, error) {
 	settings, err := p.targetBuildSettings(targatName, config)
 	if err != nil {
