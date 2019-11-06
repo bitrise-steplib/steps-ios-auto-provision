@@ -170,6 +170,7 @@ func (p *ProjectHelper) ProjectTeamID(config string) (string, error) {
 			log.Debugf("%s target DevelopmentTeam attribute: %s", target.Name, targetAttributesTeamID)
 
 			if targetAttributesTeamID == "" {
+				log.Debugf("No team id found for %s target", target.Name)
 				continue
 			}
 
