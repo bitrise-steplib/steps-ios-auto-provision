@@ -78,7 +78,7 @@ module Portal
         Log.debug('failed to validate profiles, retrying in 2 sec ...')
         sleep(2)
         ProfileClient.clear_cache(true, platform)
-        return ProfileClient.ensure_xcode_managed_profile(app.bundle_id, entitlements, distribution_type, certificate, platform, test_devices, min_profile_days_valid, false)
+        return ProfileClient.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, certificate, platform, test_devices, min_profile_days_valid, false)
       end
 
       return profiles.first unless profiles.empty?
