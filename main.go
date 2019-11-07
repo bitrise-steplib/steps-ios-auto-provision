@@ -410,6 +410,10 @@ func main() {
 				// Create BundleID
 				log.Warnf("  App ID not found, generating...")
 				bundleID, err = autoprovision.CreateBundleID(client, bundleIDIdentifier, autoprovision.Entitlement(entitlements))
+				if err != nil {
+					failf(err.Error())
+				}
+
 				if err := autoprovision.SyncBundleID(client, bundleID.ID, autoprovision.Entitlement(entitlements)); err != nil {
 					failf(err.Error())
 				}
