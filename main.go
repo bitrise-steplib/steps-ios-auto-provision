@@ -258,12 +258,20 @@ func main() {
 		fmt.Println()
 		log.Infof("Checking if %d Bitrise test device(s) are registered on Developer Portal", len(stepConf.DeviceIDs()))
 
+		for _, d := range stepConf.DeviceIDs() {
+			log.Debugf("- %s", d)
+		}
+
 		var err error
 		devices, err = autoprovision.ListDevices(client, "", appstoreconnect.IOSDevice)
 		if err != nil {
 			failf("Failed to list devices: %s", err)
 		}
+
 		log.Printf("%d devices are registered on Developer Portal", len(devices))
+		for _, d := range devices {
+			log.Debugf("- %s (%s)", d.Attributes.Name, d.Attributes.UDID)
+		}
 
 		for _, id := range stepConf.DeviceIDs() {
 			log.Printf("checking if the device (%s) is registered", id)
@@ -338,9 +346,11 @@ func main() {
 		if needToRegisterDevices([]autoprovision.DistributionType{distrType}) {
 			for _, d := range devices {
 				if strings.HasPrefix(string(profileType), "TVOS") && d.Attributes.DeviceClass != "APPLE_TV" {
+					log.Debugf("dropping device %s, since device type: %s, required device type: APPLE_TV", d.ID, d.Attributes.DeviceClass)
 					continue
 				} else if strings.HasPrefix(string(profileType), "IOS") &&
 					string(d.Attributes.DeviceClass) != "IPHONE" && string(d.Attributes.DeviceClass) != "IPAD" && string(d.Attributes.DeviceClass) != "IPOD" {
+					log.Debugf("dropping device %s, since device type: %s, required device type: IPHONE, IPAD or IPOD", d.ID, d.Attributes.DeviceClass)
 					continue
 				}
 				deviceIDs = append(deviceIDs, d.ID)
