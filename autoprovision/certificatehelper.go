@@ -193,7 +193,7 @@ func GetValidCertificates(localCertificates []certificateutil.CertificateInfoMod
 		if len(matchingCertificates) > 0 {
 			log.Debugf("Certificates type %s has matches on Developer Portal:", certificateType)
 			for _, cert := range matchingCertificates {
-				log.Debugf("%s", cert.Certificate)
+				log.Debugf("- %s", cert.Certificate)
 			}
 		}
 
@@ -262,7 +262,7 @@ func LogAllAPICertificates(client CertificateSource, localCertificates map[appst
 	for certType, certs := range certificates {
 		log.Debugf("Developer Portal %s certificates:", certType)
 		for _, cert := range certs {
-			log.Debugf("%s", cert.Certificate)
+			log.Debugf("- %s", cert.Certificate)
 		}
 	}
 
