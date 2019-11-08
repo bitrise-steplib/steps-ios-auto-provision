@@ -101,7 +101,7 @@ func (s ProvisioningService) FetchBundleID(bundleID string) (BundleID, error) {
 		FilterIdentifier: bundleID,
 	})
 	if err != nil {
-		return BundleID{}, fmt.Errorf("failed to fetch bundle ID %s from App Store Connect, error :%s", bundleID, err)
+		return BundleID{}, fmt.Errorf("failed to fetch bundle ID %s from App Store Connect: %s", bundleID, err)
 	}
 
 	if len(r.Data) == 0 {

@@ -35,7 +35,7 @@ func TestImportCertificate(t *testing.T) {
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		t.Errorf("setup: faliled to get working dir, error: %s", err)
+		t.Errorf("setup: faliled to get working dir: %s", err)
 	}
 	dirTest := filepath.Join(cwd, "..", "test")
 	pathGolden := filepath.Join(dirTest, "testkeychain")
