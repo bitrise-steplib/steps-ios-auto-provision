@@ -138,7 +138,7 @@ func checkResponse(r *http.Response) error {
 	data, err := ioutil.ReadAll(r.Body)
 	if err == nil && data != nil {
 		if err := json.Unmarshal(data, errorResponse); err != nil {
-			log.Errorf("Failed to unmarshal response: %s", err)
+			log.Errorf("Failed to unmarshal response (%s): %s", string(data), err)
 		}
 	}
 	return errorResponse

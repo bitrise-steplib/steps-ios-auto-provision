@@ -321,8 +321,15 @@ func main() {
 		log.Infof("Checking %s provisioning profiles for %d bundle id(s)", distrType, len(entitlementsByBundleID))
 		certType := autoprovision.CertificateTypeByDistribution[distrType]
 		certs := certsByType[certType]
+
 		if len(certs) == 0 {
 			failf("No valid certificate provided for distribution type: %s", distrType)
+		} else if len(certs) > 1 {
+			log.Warnf("Multiple certificates provided for distribution type: %s", distrType)
+			for _, c := range certs {
+				log.Warnf("- %s", c.Certificate.CommonName)
+			}
+			log.Warnf("Using: %s", certs[0].Certificate.CommonName)
 		}
 
 		codesignSettings := CodesignSettings{
