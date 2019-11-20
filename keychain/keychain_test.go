@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	"github.com/bitrise-io/go-steputils/stepconf"
 )
 
 func TestCreateKeychain(t *testing.T) {
@@ -25,10 +27,11 @@ func TestCreateKeychain(t *testing.T) {
 	}
 }
 
-func TestImportCertificate(t *testing.T) {
+func TestKeychain_importCertificate(t *testing.T) {
 	const (
-		testCertPassword     = "challenge"
-		testCertFilename     = "testcert.crt"
+		// #nosec: G101  Potential hardcoded credentials (gosec)
+		testCertPassword     = "xGG}!Tk3/L'f-w){9pAD(tHKusK}?om$"
+		testCertFilename     = "TestCert.p12"
 		testKeychainFilename = "testkeychain"
 		testKeychainPassword = "password"
 	)
@@ -55,9 +58,62 @@ func TestImportCertificate(t *testing.T) {
 	pathCert := filepath.Join(dirTest, testCertFilename)
 
 	kchain := Keychain{Path: pathTesting, Password: testKeychainPassword}
-
-	if err := kchain.importCertificate(pathCert, testCertPassword); err != nil {
-		t.Errorf("could not import cert: %s", err)
+	if err := kchain.unlock(); err != nil {
+		t.Errorf("failed to unlock keychain: %s", err)
 	}
 
+	type fields struct {
+		Path     string
+		Password stepconf.Secret
+	}
+	type args struct {
+		path       string
+		passphrase stepconf.Secret
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Good password",
+			fields: fields{
+				Path:     pathTesting,
+				Password: testKeychainPassword,
+			},
+			args: args{
+				path:       pathCert,
+				passphrase: testCertPassword,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Incorrect password",
+			fields: fields{
+				Path:     pathTesting,
+				Password: testKeychainPassword,
+			},
+			args: args{
+				path:       pathCert,
+				passphrase: "Incorrect password",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			k := Keychain{
+				Path:     tt.fields.Path,
+				Password: tt.fields.Password,
+			}
+			err := k.importCertificate(tt.args.path, tt.args.passphrase)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Keychain.importCertificate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err != nil {
+				t.Logf("Keychain.importCertificate() error = %v", err)
+			}
+		})
+	}
 }
