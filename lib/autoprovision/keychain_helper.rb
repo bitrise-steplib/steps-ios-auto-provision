@@ -43,7 +43,7 @@ class KeychainHelper
   private
 
   def import_certificate(path, passphrase)
-    cmd = ['security', 'import', "\"#{path}\"", '-k', "\'#{keychain_path}\'", "-P", "\"#{passphrase}\"", '-A'].join(' ')
+    cmd = ['security', 'import', "\"#{path}\"", '-k', "\'#{keychain_path}\'", '-P', "\"#{passphrase}\"", '-A'].join(' ')
     debugParams = cmdParams.dup
     debugParams[5] = "\"****\""
     Log.debug(" #{debugParams.join(' ')}")
