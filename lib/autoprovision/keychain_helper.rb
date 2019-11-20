@@ -43,12 +43,11 @@ class KeychainHelper
   private
 
   def import_certificate(path, passphrase)
-    cmd = ['security', 'import', "\"#{path}\"", '-k', "\'#{keychain_path}\'", '-P', "\"#{passphrase}\"", '-A'].join(' ')
-    debugParams = cmdParams.dup
-    debugParams[5] = "\"****\""
-    Log.debug(" #{debugParams.join(' ')}")
-    cmd = cmdParams.join(' ')
-    Log.debug("$ #{cmd}")
+    cmd_params = ['security', 'import', "\"#{path}\"", '-k', "\'#{keychain_path}\'", "-P", "\"#{passphrase}\"", '-A']
+    debug_params = cmd_params.dup
+    debug_params[5] = '\"****\"'
+    Log.debug(" #{debug_params.join(' ')}")
+    cmd = cmd_params.join(' ')
     raise "#{cmd} failed, out: #{out}" unless $CHILD_STATUS.success?
   end
 
