@@ -48,6 +48,8 @@ class KeychainHelper
     debug_params[6] = '"****"'
     Log.debug(" #{debug_params.join(' ')}")
     cmd = cmd_params.join(' ')
+    # run command
+    out = `#{cmd}`
     raise "#{cmd} failed, out: #{out}" unless $CHILD_STATUS.success?
   end
 
