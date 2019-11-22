@@ -31,7 +31,7 @@ func TestCreateKeychain(t *testing.T) {
 func TestKeychain_importCertificate(t *testing.T) {
 	const (
 		// #nosec: G101  Potential hardcoded credentials (gosec)
-		testPassphrase       = "xGG}!Tk3/L'f-w){9pAD(tHKusK}?om$"
+		testPassphrase       = "!&$(){}?<>@;'\"/_=+-xGG}!Tk3/L'f-w){(}?om$DR&AM887)yowl"
 		testKeychainPassword = "password"
 	)
 
@@ -76,7 +76,7 @@ func TestKeychain_importCertificate(t *testing.T) {
 
 	pfxData, err := devCert.EncodeToP12(testPassphrase)
 	if err != nil {
-		t.Fatalf("Setup: failed to encode test certificate to p12")
+		t.Fatalf("Setup: failed to encode test certificate to p12, error: %s", err)
 	}
 
 	testcertPath := filepath.Join(dirTmp, "TestCert.p12")
