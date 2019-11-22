@@ -3,9 +3,12 @@ package keychain
 import (
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
+
+	"github.com/bitrise-io/go-steputils/stepconf"
+	"github.com/bitrise-io/go-xcode/certificateutil"
 )
 
 func TestCreateKeychain(t *testing.T) {
@@ -25,39 +28,114 @@ func TestCreateKeychain(t *testing.T) {
 	}
 }
 
-func TestImportCertificate(t *testing.T) {
+func TestKeychain_importCertificate(t *testing.T) {
 	const (
-		testCertPassword     = "challenge"
-		testCertFilename     = "testcert.crt"
-		testKeychainFilename = "testkeychain"
+		// #nosec: G101  Potential hardcoded credentials (gosec)
+		testPassphrase       = `!&$(){}?<>@ ;'\"/_=+-x\nGG}!Tk3/L'f-w){(}?om$DR&AM887)yowl` + "\t\n"
 		testKeychainPassword = "password"
 	)
 
-	cwd, err := os.Getwd()
-	if err != nil {
-		t.Errorf("setup: faliled to get working dir: %s", err)
-	}
-	dirTest := filepath.Join(cwd, "..", "test")
-	pathGolden := filepath.Join(dirTest, "testkeychain")
+	// Create test keychain
 	dirTmp, err := ioutil.TempDir("", "test-import-certificate")
 	if err != nil {
-		t.Errorf("setup: create temp dir for keychain: %s", err)
+		t.Fatalf("setup: create temp dir for keychain: %s", err)
 	}
+	defer func() {
+		if err := os.RemoveAll(dirTmp); err != nil {
+			t.Fatalf("could not remove temp dir.")
+		}
+	}()
 
-	pathTesting := filepath.Join(dirTmp, testKeychainFilename)
-
-	cmd := exec.Command("cp", pathGolden, pathTesting)
-	out, err := cmd.CombinedOutput()
+	keychainPath := filepath.Join(dirTmp, "testkeychain")
+	_, err = createKeychain(keychainPath, testKeychainPassword)
 	if err != nil {
-		t.Logf(string(out))
-		t.Errorf("setup: copy golden file: %s", err)
-	}
-	pathCert := filepath.Join(dirTest, testCertFilename)
-
-	kchain := Keychain{Path: pathTesting, Password: testKeychainPassword}
-
-	if err := kchain.importCertificate(pathCert, testCertPassword); err != nil {
-		t.Errorf("could not import cert: %s", err)
+		t.Fatalf("error creating keychain: %s", err)
 	}
 
+	if _, err := os.Stat(keychainPath); os.IsNotExist(err) {
+		t.Fatalf("keychain not created")
+	}
+
+	kchain := Keychain{Path: keychainPath, Password: testKeychainPassword}
+	if err := kchain.unlock(); err != nil {
+		t.Fatalf("failed to unlock keychain: %s", err)
+	}
+
+	// Create test p12 file
+	const teamID = "MYTEAMID"
+	const commonNameIOSDevelopment = "iPhone Developer: test"
+	const teamName = "BITFALL FEJLESZTO KORLATOLT FELELOSSEGU TARSASAG"
+	expiry := time.Now().AddDate(1, 0, 0)
+
+	cert, privateKey, err := certificateutil.GenerateTestCertificate(int64(1), teamID, teamName, commonNameIOSDevelopment, expiry)
+	if err != nil {
+		t.Fatalf("init: failed to generate certificate: %s", err)
+	}
+	devCert := certificateutil.NewCertificateInfo(*cert, privateKey)
+	t.Logf("Test certificate generated. %s", devCert)
+
+	pfxData, err := devCert.EncodeToP12(testPassphrase)
+	if err != nil {
+		t.Fatalf("Setup: failed to encode test certificate to p12, error: %s", err)
+	}
+
+	testcertPath := filepath.Join(dirTmp, "TestCert.p12")
+	if err := ioutil.WriteFile(testcertPath, pfxData, 0600); err != nil {
+		t.Fatalf("Setup: failed to write test p12 file.")
+	}
+
+	type fields struct {
+		Path     string
+		Password stepconf.Secret
+	}
+	type args struct {
+		path       string
+		passphrase stepconf.Secret
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Good password",
+			fields: fields{
+				Path:     keychainPath,
+				Password: testKeychainPassword,
+			},
+			args: args{
+				path:       testcertPath,
+				passphrase: testPassphrase,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Incorrect password",
+			fields: fields{
+				Path:     keychainPath,
+				Password: testKeychainPassword,
+			},
+			args: args{
+				path:       testcertPath,
+				passphrase: "Incorrect password",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			k := Keychain{
+				Path:     tt.fields.Path,
+				Password: tt.fields.Password,
+			}
+			err := k.importCertificate(tt.args.path, tt.args.passphrase)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Keychain.importCertificate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err != nil {
+				t.Logf("Keychain.importCertificate() error = %v", err)
+			}
+		})
+	}
 }
