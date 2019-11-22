@@ -31,7 +31,7 @@ func TestCreateKeychain(t *testing.T) {
 func TestKeychain_importCertificate(t *testing.T) {
 	const (
 		// #nosec: G101  Potential hardcoded credentials (gosec)
-		testPassphrase       = "!&$(){}?<>@;'\"/_=+-xGG}!Tk3/L'f-w){(}?om$DR&AM887)yowl"
+		testPassphrase       = `!&$(){}?<>@ ;'\"/_=+-x\nGG}!Tk3/L'f-w){(}?om$DR&AM887)yowl` + "\t\n"
 		testKeychainPassword = "password"
 	)
 
