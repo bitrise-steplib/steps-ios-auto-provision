@@ -96,15 +96,27 @@ func checkProfileCertificates(client *appstoreconnect.Client, prof appstoreconne
 }
 
 func checkProfileDevices(client *appstoreconnect.Client, prof appstoreconnect.Profile, deviceIDs []string) (bool, error) {
-	devicesResp, err := client.Provisioning.Devices(prof.Relationships.Devices.Links.Related)
-	if err != nil {
-		return false, err
+	var nextPageURL string
+	ids := map[string]bool{}
+	for {
+		response, err := client.Provisioning.Devices(prof.Relationships.Devices.Links.Related, &appstoreconnect.ListDevicesOptions{
+			Limit: 20,
+			Next:  nextPageURL,
+		})
+		if err != nil {
+			return false, err
+		}
+
+		for _, dev := range response.Data {
+			ids[dev.ID] = true
+		}
+
+		nextPageURL = response.Links.Next
+		if nextPageURL == "" {
+			break
+		}
 	}
 
-	ids := map[string]bool{}
-	for _, dev := range devicesResp.Data {
-		ids[dev.ID] = true
-	}
 	for _, id := range deviceIDs {
 		if !ids[id] {
 			return false, nil

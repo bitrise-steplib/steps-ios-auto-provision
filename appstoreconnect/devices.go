@@ -137,8 +137,22 @@ func (s ProvisioningService) RegisterNewDevice(body DeviceCreateRequest) (*Devic
 }
 
 // Devices ...
-func (s ProvisioningService) Devices(relationshipLink string) (*DevicesResponse, error) {
-	url := strings.TrimPrefix(relationshipLink, baseURL+apiVersion)
+func (s ProvisioningService) Devices(relationshipLink string, opt *ListDevicesOptions) (*DevicesResponse, error) {
+	if opt != nil && opt.Next != "" {
+		u, err := url.Parse(opt.Next)
+		if err != nil {
+			return nil, err
+		}
+		cursor := u.Query().Get("cursor")
+		opt.Cursor = cursor
+	}
+
+	u, err := addOptions(relationshipLink, opt)
+	if err != nil {
+		return nil, err
+	}
+
+	url := strings.TrimPrefix(u, baseURL+apiVersion)
 	req, err := s.client.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
