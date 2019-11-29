@@ -21,8 +21,8 @@ type CertificateFileURL struct {
 
 // Config holds the step inputs
 type Config struct {
-	KeyID         stepconf.Secret `env:"keyID,required"`
-	IssuerID      stepconf.Secret `env:"issuerID,required"`
+	KeyID         stepconf.Secret `env:"key_id,required"`
+	IssuerID      stepconf.Secret `env:"issuer_id,required"`
 	PrivateKeyURL string          `env:"private_key,required"`
 
 	ProjectPath   string `env:"project_path,dir"`

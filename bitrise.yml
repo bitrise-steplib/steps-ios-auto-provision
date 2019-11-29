@@ -217,9 +217,9 @@ workflows:
           title: Step Test
           run_if: true
           inputs:
-            - keyID: $BITRISE_JWT_KEY_ID
-            - issuerID: $BITRISE_JWT_ISSUER
-            - privateKey: $BITRISE_PRIVATE_KEY_PATH
+            - key_id: $BITRISE_JWT_KEY_ID
+            - issuer_id: $BITRISE_JWT_ISSUER
+            - private_key: $BITRISE_PRIVATE_KEY_PATH
             - devices: $DEVICES
             - certificate_urls: $BITRISE_CERTIFICATE_URL
             - passphrases: $BITRISE_CERTIFICATE_PASSPHRASE
