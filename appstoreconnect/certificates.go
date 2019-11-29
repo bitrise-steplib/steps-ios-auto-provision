@@ -102,8 +102,22 @@ func (s ProvisioningService) FetchCertificate(serialNumber string) (Certificate,
 }
 
 // Certificates ...
-func (s ProvisioningService) Certificates(relationshipLink string) (*CertificatesResponse, error) {
-	url := strings.TrimPrefix(relationshipLink, baseURL+apiVersion)
+func (s ProvisioningService) Certificates(relationshipLink string, opt *PagingOptions) (*CertificatesResponse, error) {
+	if opt != nil && opt.Next != "" {
+		u, err := url.Parse(opt.Next)
+		if err != nil {
+			return nil, err
+		}
+		cursor := u.Query().Get("cursor")
+		opt.Cursor = cursor
+	}
+
+	u, err := addOptions(relationshipLink, opt)
+	if err != nil {
+		return nil, err
+	}
+
+	url := strings.TrimPrefix(u, baseURL+apiVersion)
 	req, err := s.client.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err

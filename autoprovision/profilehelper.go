@@ -80,13 +80,30 @@ func checkProfileEntitlements(client *appstoreconnect.Client, prof appstoreconne
 }
 
 func checkProfileCertificates(client *appstoreconnect.Client, prof appstoreconnect.Profile, certificateIDs []string) (bool, error) {
-	ceretificatesResp, err := client.Provisioning.Certificates(prof.Relationships.Certificates.Links.Related)
-	if err != nil {
-		return false, err
+	var nextPageURL string
+	var certificates []appstoreconnect.Certificate
+	for {
+		response, err := client.Provisioning.Certificates(
+			prof.Relationships.Certificates.Links.Related,
+			&appstoreconnect.PagingOptions{
+				Limit: 20,
+				Next:  nextPageURL,
+			},
+		)
+		if err != nil {
+			return false, err
+		}
+
+		certificates = append(certificates, response.Data...)
+
+		nextPageURL = response.Links.Next
+		if nextPageURL == "" {
+			break
+		}
 	}
 
 	ids := map[string]bool{}
-	for _, cert := range ceretificatesResp.Data {
+	for _, cert := range certificates {
 		ids[cert.ID] = true
 	}
 	for _, id := range certificateIDs {
