@@ -219,7 +219,7 @@ workflows:
           inputs:
             - key_id: $BITRISE_JWT_KEY_ID
             - issuer_id: $BITRISE_JWT_ISSUER
-            - private_key: $BITRISE_PRIVATE_KEY_PATH
+            - private_key: $BITRISEIO_PRIVATE_KEY_URL
             - devices: $DEVICES
             - certificate_urls: $BITRISE_CERTIFICATE_URL
             - passphrases: $BITRISE_CERTIFICATE_PASSPHRASE
