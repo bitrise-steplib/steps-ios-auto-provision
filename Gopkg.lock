@@ -7,22 +7,22 @@
   name = "github.com/bitrise-io/bitrise-add-new-project"
   packages = ["httputil"]
   pruneopts = "UT"
-  revision = "d26ac481989033683ee4bb27b68a4a99646d77aa"
+  revision = "c221ee0d40117670b70ebe05dfa56fa816bac92e"
 
 [[projects]]
   branch = "master"
-  digest = "1:8f5fdb79a7a38f6b7dafbc47f620322f384a0cb06858cb28df0e5635e5bb4df4"
+  digest = "1:89562e1ecde606efbc12f60b41582279cccea8f4d39b31290e2d64bd1f08ee29"
   name = "github.com/bitrise-io/go-steputils"
   packages = [
     "stepconf",
     "tools",
   ]
   pruneopts = "UT"
-  revision = "f540824d77dfd382ce84fd0ee0a9da2fba1cce0a"
+  revision = "3c98d95a94d51624a26e99419d0fc03d2aab0055"
 
 [[projects]]
   branch = "master"
-  digest = "1:20ccbc96328b3c0a5b4dbeead4882e322fbee4b48b4ba709e1ecc11a5e848654"
+  digest = "1:66aaf6307c35e7075172d6281cebcb0af104fcad57144328e1052d422aba738d"
   name = "github.com/bitrise-io/go-utils"
   packages = [
     "colorstring",
@@ -39,7 +39,7 @@
     "sliceutil",
   ]
   pruneopts = "UT"
-  revision = "fcff02f7bce9d2e56a989e6a78f4f4d12f9b516c"
+  revision = "5067a2a682f21030f379f88e853b9e0734a24516"
 
 [[projects]]
   branch = "master"
@@ -47,13 +47,14 @@
   name = "github.com/bitrise-io/go-xcode"
   packages = ["certificateutil"]
   pruneopts = "UT"
-  revision = "07ccf582b6b1afa2c33e133447a3e22c811ffd90"
+  revision = "19cbfe6430acc193d779847a13be0b8585d866c1"
 
 [[projects]]
   branch = "master"
-  digest = "1:c2d90e71eab0b89195680d794dd0aafb8fe10efc56543a70f475e171d0c2e669"
+  digest = "1:96dce0e947311f3985d20c3f368e71a4d281c916d3e3b85566f867f4a22980a3"
   name = "github.com/bitrise-io/xcode-project"
   packages = [
+    ".",
     "pretty",
     "serialized",
     "xcodebuild",
@@ -62,7 +63,7 @@
     "xcworkspace",
   ]
   pruneopts = "UT"
-  revision = "e74e748ca5af39e2bd2b24ed4e9476bc4abd1a50"
+  revision = "a4e01d69cacc7dd9acbe8fb987dba69c9ce01b1c"
 
 [[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
@@ -89,12 +90,12 @@
   version = "v1.2.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:deff41c4160cc5b487a1d1a69a58925f2d3ac11befa0692b50e76940594e20f5"
+  digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
   name = "github.com/pkg/errors"
   packages = ["."]
   pruneopts = "UT"
-  revision = "27936f6d90f9c8e1145f11ed52ffffbfdb9e0af7"
+  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
+  version = "v0.8.1"
 
 [[projects]]
   digest = "1:1093f2eb4b344996604f7d8b29a16c5b22ab9e1b25652140d3fede39f640d5cd"
@@ -134,11 +135,10 @@
     "github.com/bitrise-io/go-utils/retry",
     "github.com/bitrise-io/go-utils/sliceutil",
     "github.com/bitrise-io/go-xcode/certificateutil",
-    "github.com/bitrise-io/xcode-project/pretty",
+    "github.com/bitrise-io/xcode-project",
     "github.com/bitrise-io/xcode-project/serialized",
     "github.com/bitrise-io/xcode-project/xcodeproj",
     "github.com/bitrise-io/xcode-project/xcscheme",
-    "github.com/bitrise-io/xcode-project/xcworkspace",
     "github.com/dgrijalva/jwt-go",
     "github.com/google/go-querystring/query",
     "github.com/hashicorp/go-version",
