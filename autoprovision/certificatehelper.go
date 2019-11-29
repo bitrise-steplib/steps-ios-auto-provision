@@ -81,9 +81,11 @@ func queryCertificatesByType(client *appstoreconnect.Client, certificateType app
 	var responseCertificates []appstoreconnect.Certificate
 	for {
 		response, err := client.Provisioning.ListCertificates(&appstoreconnect.ListCertificatesOptions{
+			PagingOptions: appstoreconnect.PagingOptions{
+				Limit: 10,
+				Next:  nextPageURL,
+			},
 			FilterCertificateType: certificateType,
-			Limit:                 10,
-			Next:                  nextPageURL,
 		})
 		if err != nil {
 			return nil, err

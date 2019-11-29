@@ -12,14 +12,11 @@ const BundleIDsURL = "bundleIds"
 
 // ListBundleIDsOptions ...
 type ListBundleIDsOptions struct {
+	PagingOptions
 	FilterIdentifier string           `url:"filter[identifier],omitempty"`
 	FilterName       string           `url:"filter[name],omitempty"`
 	FilterPlatform   BundleIDPlatform `url:"filter[platform],omitempty"`
 	Include          string           `url:"include,omitempty"`
-
-	Limit  int    `url:"limit,omitempty"`
-	Cursor string `url:"cursor,omitempty"`
-	Next   string `url:"-"`
 }
 
 // PagedDocumentLinks ...

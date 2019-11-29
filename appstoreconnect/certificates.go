@@ -12,12 +12,9 @@ const CertificatesURL = "certificates"
 
 // ListCertificatesOptions ...
 type ListCertificatesOptions struct {
+	PagingOptions
 	FilterSerialNumber    string          `url:"filter[serialNumber],omitempty"`
 	FilterCertificateType CertificateType `url:"filter[certificateType],omitempty"`
-
-	Limit  int    `url:"limit,omitempty"`
-	Cursor string `url:"cursor,omitempty"`
-	Next   string `url:"-"`
 }
 
 // CertificateType ...

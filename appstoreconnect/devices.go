@@ -11,12 +11,9 @@ const DevicesURL = "devices"
 
 // ListDevicesOptions ...
 type ListDevicesOptions struct {
+	PagingOptions
 	FilterUDID     string         `url:"filter[udid],omitempty"`
 	FilterPlatform DevicePlatform `url:"filter[platform],omitempty"`
-
-	Limit  int    `url:"limit,omitempty"`
-	Cursor string `url:"cursor,omitempty"`
-	Next   string `url:"-"`
 }
 
 // DeviceClass ...
@@ -137,7 +134,7 @@ func (s ProvisioningService) RegisterNewDevice(body DeviceCreateRequest) (*Devic
 }
 
 // Devices ...
-func (s ProvisioningService) Devices(relationshipLink string, opt *ListDevicesOptions) (*DevicesResponse, error) {
+func (s ProvisioningService) Devices(relationshipLink string, opt *PagingOptions) (*DevicesResponse, error) {
 	if opt != nil && opt.Next != "" {
 		u, err := url.Parse(opt.Next)
 		if err != nil {

@@ -52,10 +52,12 @@ func FindProfile(client *appstoreconnect.Client, profileType appstoreconnect.Pro
 	}
 
 	opt := &appstoreconnect.ListProfilesOptions{
+		PagingOptions: appstoreconnect.PagingOptions{
+			Limit: 1,
+		},
 		FilterProfileState: appstoreconnect.Active,
 		FilterProfileType:  profileType,
 		FilterName:         name,
-		Limit:              1,
 	}
 
 	r, err := client.Provisioning.ListProfiles(opt)
@@ -99,10 +101,13 @@ func checkProfileDevices(client *appstoreconnect.Client, prof appstoreconnect.Pr
 	var nextPageURL string
 	ids := map[string]bool{}
 	for {
-		response, err := client.Provisioning.Devices(prof.Relationships.Devices.Links.Related, &appstoreconnect.ListDevicesOptions{
-			Limit: 20,
-			Next:  nextPageURL,
-		})
+		response, err := client.Provisioning.Devices(
+			prof.Relationships.Devices.Links.Related,
+			&appstoreconnect.PagingOptions{
+				Limit: 20,
+				Next:  nextPageURL,
+			},
+		)
 		if err != nil {
 			return false, err
 		}

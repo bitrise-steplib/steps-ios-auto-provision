@@ -13,14 +13,11 @@ const ProfilesURL = "profiles"
 
 // ListProfilesOptions ...
 type ListProfilesOptions struct {
+	PagingOptions
 	FilterProfileState ProfileState `url:"filter[profileState],omitempty"`
 	FilterProfileType  ProfileType  `url:"filter[profileType],omitempty"`
 	FilterName         string       `url:"filter[name],omitempty"`
 	Include            string       `url:"include,omitempty"`
-
-	Limit  int    `url:"limit,omitempty"`
-	Cursor string `url:"cursor,omitempty"`
-	Next   string `url:"-"`
 }
 
 // BundleIDPlatform ...
