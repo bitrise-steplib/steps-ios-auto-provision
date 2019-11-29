@@ -2,9 +2,15 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/bitrise-io/go-steputils/stepconf"
+	"github.com/bitrise-io/go-utils/fileutil"
+	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-io/go-utils/retry"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/autoprovision"
 )
 
@@ -17,7 +23,7 @@ type CertificateFileURL struct {
 type Config struct {
 	KeyID         stepconf.Secret `env:"keyID,required"`
 	IssuerID      stepconf.Secret `env:"issuerID,required"`
-	PrivateKeyPth string          `env:"privateKey,required"`
+	PrivateKeyURL string          `env:"private_key,required"`
 
 	ProjectPath   string `env:"project_path,dir"`
 	Scheme        string `env:"scheme,required"`
@@ -33,6 +39,15 @@ type Config struct {
 	KeychainPassword          stepconf.Secret `env:"keychain_password,required"`
 
 	VerboseLog bool `env:"verbose_log,opt[no,yes]"`
+}
+
+// PrivateKey ...
+func (c Config) PrivateKey() ([]byte, error) {
+	if strings.HasPrefix(c.PrivateKeyURL, "file://") {
+		return fileutil.ReadBytesFromFile(strings.TrimPrefix(c.PrivateKeyURL, "file://"))
+	}
+
+	return downloadContent(c.PrivateKeyURL)
 }
 
 // DistributionType ...
@@ -85,4 +100,25 @@ func split(list string, sep string, omitEmpty bool) (items []string) {
 		}
 	}
 	return
+}
+
+func downloadContent(url string) ([]byte, error) {
+	var contentBytes []byte
+	return contentBytes, retry.Times(2).Wait(time.Duration(3) * time.Second).Try(func(attempt uint) error {
+		resp, err := http.Get(url)
+		if err != nil {
+			return fmt.Errorf("failed to download from %s: %s", url, err)
+		}
+		defer func() {
+			if err := resp.Body.Close(); err != nil {
+				log.Warnf("failed to close (%s) body", url)
+			}
+		}()
+
+		contentBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read received conent: %s", err)
+		}
+		return nil
+	})
 }

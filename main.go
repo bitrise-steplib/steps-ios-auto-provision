@@ -12,7 +12,6 @@ import (
 
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-steputils/tools"
-	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/retry"
 	"github.com/bitrise-io/go-xcode/certificateutil"
@@ -151,9 +150,9 @@ func main() {
 	fmt.Println()
 	log.Infof("Creating AppstoreConnectAPI client")
 
-	privateKey, err := fileutil.ReadBytesFromFile(stepConf.PrivateKeyPth)
+	privateKey, err := stepConf.PrivateKey()
 	if err != nil {
-		failf("Failed to read private key file: %s", err)
+		failf("Failed get private key: %s", err)
 	}
 
 	client, err := appstoreconnect.NewClient(string(stepConf.KeyID), string(stepConf.IssuerID), privateKey)

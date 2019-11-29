@@ -44,10 +44,14 @@ inputs:
       description: "Your issuer ID from the API Keys page in App Store Connect (Ex: 57246542-96fe-1a63-e053-0824d011072a)."
       is_required: true
       is_sensitive: true
-  - privateKey:
+  - private_key:
     opts:
-      title: Private Key path
-      description: Path of the API Key for App Store Connect API.
+      title: Private Key URL
+      description: |-
+        URL of the API Key for App Store Connect API.
+
+        For remote API Key provide remote URL (ex: `https://URL/TO/AuthKey_ASDF.p8`).  
+        For local API Key provide local file path URL (ex: `file://PATH/TO/AuthKey_ASDF.p8`).
       is_required: true
   - devices:
     opts:
