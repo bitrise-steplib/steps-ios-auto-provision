@@ -12,10 +12,10 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/sliceutil"
+	project "github.com/bitrise-io/xcode-project"
 	"github.com/bitrise-io/xcode-project/serialized"
 	"github.com/bitrise-io/xcode-project/xcodeproj"
 	"github.com/bitrise-io/xcode-project/xcscheme"
-	"github.com/bitrise-io/xcode-project/xcworkspace"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 	"howett.net/plist"
 )
@@ -67,7 +67,7 @@ func NewProjectHelper(projOrWSPath, schemeName, configurationName string) (*Proj
 	}
 
 	// Get the project of the provided .xcodeproj or .xcworkspace
-	xcproj, _, err := findBuiltProject(projOrWSPath, schemeName, configurationName)
+	xcproj, err := findBuiltProject(projOrWSPath, schemeName, configurationName)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to find build project: %s", err)
 	}
@@ -394,65 +394,34 @@ func mainTargetOfScheme(proj xcodeproj.XcodeProj, scheme string) (xcodeproj.Targ
 }
 
 // findBuiltProject returns the Xcode project which will be built for the provided scheme
-func findBuiltProject(pth, schemeName, configurationName string) (xcodeproj.XcodeProj, string, error) {
-	var scheme *xcscheme.Scheme
-	var schemeContainerDir string
-
-	if xcodeproj.IsXcodeProj(pth) {
-		project, err := xcodeproj.Open(pth)
-		if err != nil {
-			return xcodeproj.XcodeProj{}, "", err
-		}
-
-		scheme, _, err = project.Scheme(schemeName)
-		if err != nil {
-			return xcodeproj.XcodeProj{}, "", fmt.Errorf("failed to find scheme with name: %s in project: %s: %s", schemeName, pth, err)
-		}
-		schemeContainerDir = filepath.Dir(pth)
-	} else if xcworkspace.IsWorkspace(pth) {
-		workspace, err := xcworkspace.Open(pth)
-		if err != nil {
-			return xcodeproj.XcodeProj{}, "", err
-		}
-
-		var containerProject string
-		scheme, containerProject, err = workspace.Scheme(schemeName)
-		if err != nil {
-			return xcodeproj.XcodeProj{}, "", fmt.Errorf("no scheme found with name: %s in workspace: %s: %s", schemeName, pth, err)
-		}
-		schemeContainerDir = filepath.Dir(containerProject)
-	} else {
-		return xcodeproj.XcodeProj{}, "", fmt.Errorf("unknown project extension: %s", filepath.Ext(pth))
+func findBuiltProject(pth, schemeName, configurationName string) (xcodeproj.XcodeProj, error) {
+	scheme, schemeContainerDir, err := project.Scheme(pth, schemeName)
+	if err != nil {
+		return xcodeproj.XcodeProj{}, fmt.Errorf("could not get scheme with name %s from path %s", schemeName, pth)
 	}
 
-	if configurationName == "" && scheme.ArchiveAction.BuildConfiguration == "" {
-		return xcodeproj.XcodeProj{}, "", fmt.Errorf("no configuration provided nor default defined for the scheme's (%s) archive action", schemeName)
-	} else if configurationName == "" {
+	if configurationName == "" {
 		configurationName = scheme.ArchiveAction.BuildConfiguration
 	}
 
-	var archiveEntry xcscheme.BuildActionEntry
-	for _, entry := range scheme.BuildAction.BuildActionEntries {
-		if entry.BuildForArchiving != "YES" || !entry.BuildableReference.IsAppReference() {
-			continue
-		}
-		archiveEntry = entry
-		break
+	if configurationName == "" {
+		return xcodeproj.XcodeProj{}, fmt.Errorf("no configuration provided nor default defined for the scheme's (%s) archive action", schemeName)
 	}
 
-	if archiveEntry.BuildableReference.BlueprintIdentifier == "" {
-		return xcodeproj.XcodeProj{}, "", fmt.Errorf("archivable entry not found")
+	archiveEntry, ok := scheme.AppBuildActionEntry()
+	if !ok {
+		return xcodeproj.XcodeProj{}, fmt.Errorf("archivable entry not found")
 	}
 
-	projectPth, err := archiveEntry.BuildableReference.ReferencedContainerAbsPath(schemeContainerDir)
+	projectPth, err := archiveEntry.BuildableReference.ReferencedContainerAbsPath(filepath.Dir(schemeContainerDir))
 	if err != nil {
-		return xcodeproj.XcodeProj{}, "", err
+		return xcodeproj.XcodeProj{}, err
 	}
 
-	project, err := xcodeproj.Open(projectPth)
+	xcodeProj, err := xcodeproj.Open(projectPth)
 	if err != nil {
-		return xcodeproj.XcodeProj{}, "", err
+		return xcodeproj.XcodeProj{}, err
 	}
 
-	return project, scheme.Name, nil
+	return xcodeProj, nil
 }
