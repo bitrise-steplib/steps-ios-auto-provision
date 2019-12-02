@@ -212,8 +212,7 @@ type BundleIDCapabilityResponse struct {
 
 // BundleIDCapabilitiesResponse ...
 type BundleIDCapabilitiesResponse struct {
-	Data  []BundleIDCapability `json:"data"`
-	Links PagedDocumentLinks   `json:"links,omitempty"`
+	Data []BundleIDCapability `json:"data"`
 }
 
 // EnableCapability ...
