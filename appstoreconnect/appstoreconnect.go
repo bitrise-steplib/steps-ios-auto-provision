@@ -204,12 +204,14 @@ type PagingOptions struct {
 
 // UpdateCursor ...
 func (opt *PagingOptions) UpdateCursor() error {
-	u, err := url.Parse(opt.Next)
-	if err != nil {
-		return err
+	if opt != nil && opt.Next != "" {
+		u, err := url.Parse(opt.Next)
+		if err != nil {
+			return err
+		}
+		cursor := u.Query().Get("cursor")
+		opt.Cursor = cursor
 	}
-	cursor := u.Query().Get("cursor")
-	opt.Cursor = cursor
 	return nil
 }
 

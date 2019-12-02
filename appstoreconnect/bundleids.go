@@ -63,10 +63,8 @@ type BundleIdsResponse struct {
 
 // ListBundleIDs ...
 func (s ProvisioningService) ListBundleIDs(opt *ListBundleIDsOptions) (*BundleIdsResponse, error) {
-	if opt != nil && opt.Next != "" {
-		if err := opt.UpdateCursor(); err != nil {
-			return nil, err
-		}
+	if err := opt.UpdateCursor(); err != nil {
+		return nil, err
 	}
 
 	u, err := addOptions(BundleIDsURL, opt)

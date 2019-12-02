@@ -157,10 +157,8 @@ type ProfilesResponse struct {
 
 // ListProfiles ...
 func (s ProvisioningService) ListProfiles(opt *ListProfilesOptions) (*ProfilesResponse, error) {
-	if opt != nil && opt.Next != "" {
-		if err := opt.UpdateCursor(); err != nil {
-			return nil, err
-		}
+	if err := opt.UpdateCursor(); err != nil {
+		return nil, err
 	}
 
 	u, err := addOptions(ProfilesURL, opt)

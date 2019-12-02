@@ -72,10 +72,8 @@ type DevicesResponse struct {
 
 // ListDevices ...
 func (s ProvisioningService) ListDevices(opt *ListDevicesOptions) (*DevicesResponse, error) {
-	if opt != nil && opt.Next != "" {
-		if err := opt.UpdateCursor(); err != nil {
-			return nil, err
-		}
+	if err := opt.UpdateCursor(); err != nil {
+		return nil, err
 	}
 
 	u, err := addOptions(DevicesURL, opt)
@@ -131,10 +129,8 @@ func (s ProvisioningService) RegisterNewDevice(body DeviceCreateRequest) (*Devic
 
 // Devices ...
 func (s ProvisioningService) Devices(relationshipLink string, opt *PagingOptions) (*DevicesResponse, error) {
-	if opt != nil && opt.Next != "" {
-		if err := opt.UpdateCursor(); err != nil {
-			return nil, err
-		}
+	if err := opt.UpdateCursor(); err != nil {
+		return nil, err
 	}
 
 	u, err := addOptions(relationshipLink, opt)
