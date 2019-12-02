@@ -3,7 +3,6 @@ package appstoreconnect
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 )
 
@@ -58,12 +57,9 @@ type CertificatesResponse struct {
 // ListCertificates ...
 func (s ProvisioningService) ListCertificates(opt *ListCertificatesOptions) (*CertificatesResponse, error) {
 	if opt != nil && opt.Next != "" {
-		u, err := url.Parse(opt.Next)
-		if err != nil {
+		if err := opt.UpdateCursor(); err != nil {
 			return nil, err
 		}
-		cursor := u.Query().Get("cursor")
-		opt.Cursor = cursor
 	}
 
 	u, err := addOptions(CertificatesURL, opt)
@@ -104,12 +100,9 @@ func (s ProvisioningService) FetchCertificate(serialNumber string) (Certificate,
 // Certificates ...
 func (s ProvisioningService) Certificates(relationshipLink string, opt *PagingOptions) (*CertificatesResponse, error) {
 	if opt != nil && opt.Next != "" {
-		u, err := url.Parse(opt.Next)
-		if err != nil {
+		if err := opt.UpdateCursor(); err != nil {
 			return nil, err
 		}
-		cursor := u.Query().Get("cursor")
-		opt.Cursor = cursor
 	}
 
 	u, err := addOptions(relationshipLink, opt)

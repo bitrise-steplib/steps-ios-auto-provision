@@ -2,7 +2,6 @@ package appstoreconnect
 
 import (
 	"net/http"
-	"net/url"
 	"strings"
 )
 
@@ -65,12 +64,9 @@ type BundleIdsResponse struct {
 // ListBundleIDs ...
 func (s ProvisioningService) ListBundleIDs(opt *ListBundleIDsOptions) (*BundleIdsResponse, error) {
 	if opt != nil && opt.Next != "" {
-		u, err := url.Parse(opt.Next)
-		if err != nil {
+		if err := opt.UpdateCursor(); err != nil {
 			return nil, err
 		}
-		cursor := u.Query().Get("cursor")
-		opt.Cursor = cursor
 	}
 
 	u, err := addOptions(BundleIDsURL, opt)

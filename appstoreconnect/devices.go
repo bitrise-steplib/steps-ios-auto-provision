@@ -2,7 +2,6 @@ package appstoreconnect
 
 import (
 	"net/http"
-	"net/url"
 	"strings"
 )
 
@@ -74,12 +73,9 @@ type DevicesResponse struct {
 // ListDevices ...
 func (s ProvisioningService) ListDevices(opt *ListDevicesOptions) (*DevicesResponse, error) {
 	if opt != nil && opt.Next != "" {
-		u, err := url.Parse(opt.Next)
-		if err != nil {
+		if err := opt.UpdateCursor(); err != nil {
 			return nil, err
 		}
-		cursor := u.Query().Get("cursor")
-		opt.Cursor = cursor
 	}
 
 	u, err := addOptions(DevicesURL, opt)
@@ -136,12 +132,9 @@ func (s ProvisioningService) RegisterNewDevice(body DeviceCreateRequest) (*Devic
 // Devices ...
 func (s ProvisioningService) Devices(relationshipLink string, opt *PagingOptions) (*DevicesResponse, error) {
 	if opt != nil && opt.Next != "" {
-		u, err := url.Parse(opt.Next)
-		if err != nil {
+		if err := opt.UpdateCursor(); err != nil {
 			return nil, err
 		}
-		cursor := u.Query().Get("cursor")
-		opt.Cursor = cursor
 	}
 
 	u, err := addOptions(relationshipLink, opt)

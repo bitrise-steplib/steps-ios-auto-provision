@@ -2,7 +2,6 @@ package appstoreconnect
 
 import (
 	"net/http"
-	"net/url"
 	"strings"
 
 	"github.com/bitrise-io/xcode-project/serialized"
@@ -159,12 +158,9 @@ type ProfilesResponse struct {
 // ListProfiles ...
 func (s ProvisioningService) ListProfiles(opt *ListProfilesOptions) (*ProfilesResponse, error) {
 	if opt != nil && opt.Next != "" {
-		u, err := url.Parse(opt.Next)
-		if err != nil {
+		if err := opt.UpdateCursor(); err != nil {
 			return nil, err
 		}
-		cursor := u.Query().Get("cursor")
-		opt.Cursor = cursor
 	}
 
 	u, err := addOptions(ProfilesURL, opt)

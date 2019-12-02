@@ -202,6 +202,17 @@ type PagingOptions struct {
 	Next   string `url:"-"`
 }
 
+// UpdateCursor ...
+func (opt *PagingOptions) UpdateCursor() error {
+	u, err := url.Parse(opt.Next)
+	if err != nil {
+		return err
+	}
+	cursor := u.Query().Get("cursor")
+	opt.Cursor = cursor
+	return nil
+}
+
 // addOptions adds the parameters in opt as URL query parameters to s. opt
 // must be a struct whose fields may contain "url" tags.
 func addOptions(s string, opt interface{}) (string, error) {
