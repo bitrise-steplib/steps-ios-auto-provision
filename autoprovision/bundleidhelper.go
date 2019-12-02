@@ -76,30 +76,14 @@ func checkBundleIDEntitlements(bundleIDEntitlements []appstoreconnect.BundleIDCa
 
 // CheckBundleIDEntitlements checks if a given Bundle ID has every capability enabled, required by the project.
 func CheckBundleIDEntitlements(client *appstoreconnect.Client, bundleID appstoreconnect.BundleID, projectEntitlements Entitlement) (bool, error) {
-	var nextPageURL string
-	var capabilities []appstoreconnect.BundleIDCapability
-	for {
-		response, err := client.Provisioning.Capabilities(
-			bundleID.Relationships.Capabilities.Links.Related,
-			&appstoreconnect.PagingOptions{
-				Limit: 20,
-				Next:  nextPageURL,
-			},
-		)
+	response, err := client.Provisioning.Capabilities(
+		bundleID.Relationships.Capabilities.Links.Related)
 
-		if err != nil {
-			return false, err
-		}
-
-		capabilities = append(capabilities, response.Data...)
-
-		nextPageURL = response.Links.Next
-		if nextPageURL == "" {
-			break
-		}
+	if err != nil {
+		return false, err
 	}
 
-	return checkBundleIDEntitlements(capabilities, projectEntitlements)
+	return checkBundleIDEntitlements(response.Data, projectEntitlements)
 }
 
 // SyncBundleID ...

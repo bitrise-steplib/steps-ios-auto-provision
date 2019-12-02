@@ -2,7 +2,6 @@ package appstoreconnect
 
 import (
 	"net/http"
-	"net/url"
 	"strings"
 )
 
@@ -247,22 +246,8 @@ func (s ProvisioningService) UpdateCapability(id string, body BundleIDCapability
 }
 
 // Capabilities ...
-func (s ProvisioningService) Capabilities(relationshipLink string, opt *PagingOptions) (*BundleIDCapabilitiesResponse, error) {
-	if opt != nil && opt.Next != "" {
-		u, err := url.Parse(opt.Next)
-		if err != nil {
-			return nil, err
-		}
-		cursor := u.Query().Get("cursor")
-		opt.Cursor = cursor
-	}
-
-	u, err := addOptions(relationshipLink, opt)
-	if err != nil {
-		return nil, err
-	}
-
-	url := strings.TrimPrefix(u, baseURL+apiVersion)
+func (s ProvisioningService) Capabilities(relationshipLink string) (*BundleIDCapabilitiesResponse, error) {
+	url := strings.TrimPrefix(relationshipLink, baseURL+apiVersion)
 	req, err := s.client.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
