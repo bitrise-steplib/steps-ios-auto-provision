@@ -55,9 +55,8 @@ func FindProfile(client *appstoreconnect.Client, profileType appstoreconnect.Pro
 		PagingOptions: appstoreconnect.PagingOptions{
 			Limit: 1,
 		},
-		FilterProfileState: appstoreconnect.Active,
-		FilterProfileType:  profileType,
-		FilterName:         name,
+		FilterProfileType: profileType,
+		FilterName:        name,
 	}
 
 	r, err := client.Provisioning.ListProfiles(opt)
