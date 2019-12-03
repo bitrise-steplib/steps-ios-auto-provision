@@ -374,26 +374,33 @@ func main() {
 				failf("Failed to find profile: %s", err)
 			}
 
-			if profile != nil {
+			if profile == nil {
+				log.Warnf("  profile does not exist, generating...")
+			} else {
 				log.Printf("  Bitrise managed profile found: %s", profile.Attributes.Name)
 
-				// Check if Bitrise managed Profile is sync with the project
-				if ok, err := autoprovision.CheckProfile(client, *profile, autoprovision.Entitlement(entitlements), deviceIDs, certIDs); err != nil {
-					failf("Failed to check if profile is valid: %s", err)
-				} else if ok {
-					log.Donef("  profile is in sync with the project requirements")
-					codesignSettings.ProfilesByBundleID[bundleIDIdentifier] = *profile
-					codesignSettingsByDistributionType[distrType] = codesignSettings
-					continue
+				if profile.Attributes.ProfileState == appstoreconnect.Active {
+					// Check if Bitrise managed Profile is sync with the project
+					if ok, err := autoprovision.CheckProfile(client, *profile, autoprovision.Entitlement(entitlements), deviceIDs, certIDs); err != nil {
+						failf("Failed to check if profile is valid: %s", err)
+					} else if ok {
+						log.Donef("  profile is in sync with the project requirements")
+						codesignSettings.ProfilesByBundleID[bundleIDIdentifier] = *profile
+						codesignSettingsByDistributionType[distrType] = codesignSettings
+						continue
+					} else {
+						log.Warnf("  the profile is not in sync with the project requirements, regenerating ...")
+					}
 				}
 
-				// If not in sync, delete and regenerate
-				log.Warnf("  the profile is not in sync with the project requirements, regenerating ...")
+				if profile.Attributes.ProfileState == appstoreconnect.Invalid {
+					// If the profile's bundle id gets modified, the profile turns in Invalid state.
+					log.Warnf("  the profile state is invalid, regenerating ...")
+				}
+
 				if err := autoprovision.DeleteProfile(client, profile.ID); err != nil {
 					failf("Failed to delete profile: %s", err)
 				}
-			} else {
-				log.Warnf("  profile does not exist, generating...")
 			}
 
 			// Search for BundleID
