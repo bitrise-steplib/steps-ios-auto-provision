@@ -2,7 +2,6 @@ package appstoreconnect
 
 import (
 	"net/http"
-	"net/url"
 	"strings"
 )
 
@@ -11,12 +10,9 @@ const DevicesURL = "devices"
 
 // ListDevicesOptions ...
 type ListDevicesOptions struct {
+	PagingOptions
 	FilterUDID     string         `url:"filter[udid],omitempty"`
 	FilterPlatform DevicePlatform `url:"filter[platform],omitempty"`
-
-	Limit  int    `url:"limit,omitempty"`
-	Cursor string `url:"cursor,omitempty"`
-	Next   string `url:"-"`
 }
 
 // DeviceClass ...
@@ -76,13 +72,8 @@ type DevicesResponse struct {
 
 // ListDevices ...
 func (s ProvisioningService) ListDevices(opt *ListDevicesOptions) (*DevicesResponse, error) {
-	if opt != nil && opt.Next != "" {
-		u, err := url.Parse(opt.Next)
-		if err != nil {
-			return nil, err
-		}
-		cursor := u.Query().Get("cursor")
-		opt.Cursor = cursor
+	if err := opt.UpdateCursor(); err != nil {
+		return nil, err
 	}
 
 	u, err := addOptions(DevicesURL, opt)
@@ -137,8 +128,17 @@ func (s ProvisioningService) RegisterNewDevice(body DeviceCreateRequest) (*Devic
 }
 
 // Devices ...
-func (s ProvisioningService) Devices(relationshipLink string) (*DevicesResponse, error) {
-	url := strings.TrimPrefix(relationshipLink, baseURL+apiVersion)
+func (s ProvisioningService) Devices(relationshipLink string, opt *PagingOptions) (*DevicesResponse, error) {
+	if err := opt.UpdateCursor(); err != nil {
+		return nil, err
+	}
+
+	u, err := addOptions(relationshipLink, opt)
+	if err != nil {
+		return nil, err
+	}
+
+	url := strings.TrimPrefix(u, baseURL+apiVersion)
 	req, err := s.client.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err

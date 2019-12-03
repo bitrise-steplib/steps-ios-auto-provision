@@ -78,21 +78,23 @@ func queryAllIOSCertificates(client *appstoreconnect.Client) (map[appstoreconnec
 
 func queryCertificatesByType(client *appstoreconnect.Client, certificateType appstoreconnect.CertificateType) ([]APICertificate, error) {
 	nextPageURL := ""
-	var responseCertificates []appstoreconnect.Certificate
+	var certificates []appstoreconnect.Certificate
 	for {
 		response, err := client.Provisioning.ListCertificates(&appstoreconnect.ListCertificatesOptions{
+			PagingOptions: appstoreconnect.PagingOptions{
+				Limit: 20,
+				Next:  nextPageURL,
+			},
 			FilterCertificateType: certificateType,
-			Limit:                 10,
-			Next:                  nextPageURL,
 		})
 		if err != nil {
 			return nil, err
 		}
-		responseCertificates = append(responseCertificates, response.Data...)
+		certificates = append(certificates, response.Data...)
 
 		nextPageURL = response.Links.Next
 		if nextPageURL == "" {
-			return parseCertificatesResponse(responseCertificates)
+			return parseCertificatesResponse(certificates)
 		}
 	}
 }

@@ -2,7 +2,6 @@ package appstoreconnect
 
 import (
 	"net/http"
-	"net/url"
 	"strings"
 
 	"github.com/bitrise-io/xcode-project/serialized"
@@ -13,14 +12,11 @@ const ProfilesURL = "profiles"
 
 // ListProfilesOptions ...
 type ListProfilesOptions struct {
+	PagingOptions
 	FilterProfileState ProfileState `url:"filter[profileState],omitempty"`
 	FilterProfileType  ProfileType  `url:"filter[profileType],omitempty"`
 	FilterName         string       `url:"filter[name],omitempty"`
 	Include            string       `url:"include,omitempty"`
-
-	Limit  int    `url:"limit,omitempty"`
-	Cursor string `url:"cursor,omitempty"`
-	Next   string `url:"-"`
 }
 
 // BundleIDPlatform ...
@@ -161,13 +157,8 @@ type ProfilesResponse struct {
 
 // ListProfiles ...
 func (s ProvisioningService) ListProfiles(opt *ListProfilesOptions) (*ProfilesResponse, error) {
-	if opt != nil && opt.Next != "" {
-		u, err := url.Parse(opt.Next)
-		if err != nil {
-			return nil, err
-		}
-		cursor := u.Query().Get("cursor")
-		opt.Cursor = cursor
+	if err := opt.UpdateCursor(); err != nil {
+		return nil, err
 	}
 
 	u, err := addOptions(ProfilesURL, opt)

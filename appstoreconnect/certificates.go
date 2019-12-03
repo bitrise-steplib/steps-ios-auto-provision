@@ -3,7 +3,6 @@ package appstoreconnect
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 )
 
@@ -12,12 +11,9 @@ const CertificatesURL = "certificates"
 
 // ListCertificatesOptions ...
 type ListCertificatesOptions struct {
+	PagingOptions
 	FilterSerialNumber    string          `url:"filter[serialNumber],omitempty"`
 	FilterCertificateType CertificateType `url:"filter[certificateType],omitempty"`
-
-	Limit  int    `url:"limit,omitempty"`
-	Cursor string `url:"cursor,omitempty"`
-	Next   string `url:"-"`
 }
 
 // CertificateType ...
@@ -60,13 +56,8 @@ type CertificatesResponse struct {
 
 // ListCertificates ...
 func (s ProvisioningService) ListCertificates(opt *ListCertificatesOptions) (*CertificatesResponse, error) {
-	if opt != nil && opt.Next != "" {
-		u, err := url.Parse(opt.Next)
-		if err != nil {
-			return nil, err
-		}
-		cursor := u.Query().Get("cursor")
-		opt.Cursor = cursor
+	if err := opt.UpdateCursor(); err != nil {
+		return nil, err
 	}
 
 	u, err := addOptions(CertificatesURL, opt)
@@ -105,8 +96,17 @@ func (s ProvisioningService) FetchCertificate(serialNumber string) (Certificate,
 }
 
 // Certificates ...
-func (s ProvisioningService) Certificates(relationshipLink string) (*CertificatesResponse, error) {
-	url := strings.TrimPrefix(relationshipLink, baseURL+apiVersion)
+func (s ProvisioningService) Certificates(relationshipLink string, opt *PagingOptions) (*CertificatesResponse, error) {
+	if err := opt.UpdateCursor(); err != nil {
+		return nil, err
+	}
+
+	u, err := addOptions(relationshipLink, opt)
+	if err != nil {
+		return nil, err
+	}
+
+	url := strings.TrimPrefix(u, baseURL+apiVersion)
 	req, err := s.client.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err

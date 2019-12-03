@@ -195,6 +195,26 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	return resp, err
 }
 
+// PagingOptions ...
+type PagingOptions struct {
+	Limit  int    `url:"limit,omitempty"`
+	Cursor string `url:"cursor,omitempty"`
+	Next   string `url:"-"`
+}
+
+// UpdateCursor ...
+func (opt *PagingOptions) UpdateCursor() error {
+	if opt != nil && opt.Next != "" {
+		u, err := url.Parse(opt.Next)
+		if err != nil {
+			return err
+		}
+		cursor := u.Query().Get("cursor")
+		opt.Cursor = cursor
+	}
+	return nil
+}
+
 // addOptions adds the parameters in opt as URL query parameters to s. opt
 // must be a struct whose fields may contain "url" tags.
 func addOptions(s string, opt interface{}) (string, error) {

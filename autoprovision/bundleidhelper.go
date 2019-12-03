@@ -9,19 +9,35 @@ import (
 
 // FindBundleID ...
 func FindBundleID(client *appstoreconnect.Client, bundleIDIdentifier string) (*appstoreconnect.BundleID, error) {
-	r, err := client.Provisioning.ListBundleIDs(&appstoreconnect.ListBundleIDsOptions{
-		FilterIdentifier: bundleIDIdentifier,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch bundleID (%s): %s", bundleIDIdentifier, err)
+	var nextPageURL string
+	var bundleIDs []appstoreconnect.BundleID
+	for {
+		response, err := client.Provisioning.ListBundleIDs(&appstoreconnect.ListBundleIDsOptions{
+			PagingOptions: appstoreconnect.PagingOptions{
+				Limit: 20,
+				Next:  nextPageURL,
+			},
+			FilterIdentifier: bundleIDIdentifier,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		bundleIDs = append(bundleIDs, response.Data...)
+
+		nextPageURL = response.Links.Next
+		if nextPageURL == "" {
+			break
+		}
 	}
-	if len(r.Data) == 0 {
+
+	if len(bundleIDs) == 0 {
 		return nil, nil
 	}
 
 	// The FilterIdentifier works as a Like command. It will not search for the exact match,
 	// this is why we need to find the exact match in the list.
-	for _, d := range r.Data {
+	for _, d := range bundleIDs {
 		if d.Attributes.Identifier == bundleIDIdentifier {
 			return &d, nil
 		}
@@ -60,12 +76,14 @@ func checkBundleIDEntitlements(bundleIDEntitlements []appstoreconnect.BundleIDCa
 
 // CheckBundleIDEntitlements checks if a given Bundle ID has every capability enabled, required by the project.
 func CheckBundleIDEntitlements(client *appstoreconnect.Client, bundleID appstoreconnect.BundleID, projectEntitlements Entitlement) (bool, error) {
-	capabilitiesResp, err := client.Provisioning.Capabilities(bundleID.Relationships.Capabilities.Links.Related)
+	response, err := client.Provisioning.Capabilities(
+		bundleID.Relationships.Capabilities.Links.Related)
+
 	if err != nil {
 		return false, err
 	}
 
-	return checkBundleIDEntitlements(capabilitiesResp.Data, projectEntitlements)
+	return checkBundleIDEntitlements(response.Data, projectEntitlements)
 }
 
 // SyncBundleID ...

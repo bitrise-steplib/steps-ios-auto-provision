@@ -1,9 +1,7 @@
 package appstoreconnect
 
 import (
-	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 )
 
@@ -12,14 +10,11 @@ const BundleIDsURL = "bundleIds"
 
 // ListBundleIDsOptions ...
 type ListBundleIDsOptions struct {
+	PagingOptions
 	FilterIdentifier string           `url:"filter[identifier],omitempty"`
 	FilterName       string           `url:"filter[name],omitempty"`
 	FilterPlatform   BundleIDPlatform `url:"filter[platform],omitempty"`
 	Include          string           `url:"include,omitempty"`
-
-	Limit  int    `url:"limit,omitempty"`
-	Cursor string `url:"cursor,omitempty"`
-	Next   string `url:"-"`
 }
 
 // PagedDocumentLinks ...
@@ -68,13 +63,8 @@ type BundleIdsResponse struct {
 
 // ListBundleIDs ...
 func (s ProvisioningService) ListBundleIDs(opt *ListBundleIDsOptions) (*BundleIdsResponse, error) {
-	if opt != nil && opt.Next != "" {
-		u, err := url.Parse(opt.Next)
-		if err != nil {
-			return nil, err
-		}
-		cursor := u.Query().Get("cursor")
-		opt.Cursor = cursor
+	if err := opt.UpdateCursor(); err != nil {
+		return nil, err
 	}
 
 	u, err := addOptions(BundleIDsURL, opt)
@@ -93,23 +83,6 @@ func (s ProvisioningService) ListBundleIDs(opt *ListBundleIDsOptions) (*BundleId
 	}
 
 	return r, err
-}
-
-// FetchBundleID fetch the provided bundle ID from the App Store Connect
-func (s ProvisioningService) FetchBundleID(bundleID string) (BundleID, error) {
-	r, err := s.ListBundleIDs(&ListBundleIDsOptions{
-		FilterIdentifier: bundleID,
-	})
-	if err != nil {
-		return BundleID{}, fmt.Errorf("failed to fetch bundle ID %s from App Store Connect: %s", bundleID, err)
-	}
-
-	if len(r.Data) == 0 {
-		return BundleID{}, fmt.Errorf("no bundle ID entity found for %s", bundleID)
-	} else if len(r.Data) == 0 {
-		return BundleID{}, fmt.Errorf("multiple bundle ID entity found for %s . Entyties: %s", bundleID, r.Data)
-	}
-	return r.Data[0], nil
 }
 
 // BundleIDResponse ...

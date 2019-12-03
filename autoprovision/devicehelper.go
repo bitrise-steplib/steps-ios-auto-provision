@@ -8,10 +8,12 @@ func ListDevices(client *appstoreconnect.Client, udid string, platform appstorec
 	var devices []appstoreconnect.Device
 	for {
 		response, err := client.Provisioning.ListDevices(&appstoreconnect.ListDevicesOptions{
+			PagingOptions: appstoreconnect.PagingOptions{
+				Limit: 20,
+				Next:  nextPageURL,
+			},
 			FilterUDID:     udid,
 			FilterPlatform: platform,
-			Limit:          20,
-			Next:           nextPageURL,
 		})
 		if err != nil {
 			return nil, err

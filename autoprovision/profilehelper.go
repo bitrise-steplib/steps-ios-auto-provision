@@ -52,10 +52,12 @@ func FindProfile(client *appstoreconnect.Client, profileType appstoreconnect.Pro
 	}
 
 	opt := &appstoreconnect.ListProfilesOptions{
+		PagingOptions: appstoreconnect.PagingOptions{
+			Limit: 1,
+		},
 		FilterProfileState: appstoreconnect.Active,
 		FilterProfileType:  profileType,
 		FilterName:         name,
-		Limit:              1,
 	}
 
 	r, err := client.Provisioning.ListProfiles(opt)
@@ -78,13 +80,30 @@ func checkProfileEntitlements(client *appstoreconnect.Client, prof appstoreconne
 }
 
 func checkProfileCertificates(client *appstoreconnect.Client, prof appstoreconnect.Profile, certificateIDs []string) (bool, error) {
-	ceretificatesResp, err := client.Provisioning.Certificates(prof.Relationships.Certificates.Links.Related)
-	if err != nil {
-		return false, err
+	var nextPageURL string
+	var certificates []appstoreconnect.Certificate
+	for {
+		response, err := client.Provisioning.Certificates(
+			prof.Relationships.Certificates.Links.Related,
+			&appstoreconnect.PagingOptions{
+				Limit: 20,
+				Next:  nextPageURL,
+			},
+		)
+		if err != nil {
+			return false, err
+		}
+
+		certificates = append(certificates, response.Data...)
+
+		nextPageURL = response.Links.Next
+		if nextPageURL == "" {
+			break
+		}
 	}
 
 	ids := map[string]bool{}
-	for _, cert := range ceretificatesResp.Data {
+	for _, cert := range certificates {
 		ids[cert.ID] = true
 	}
 	for _, id := range certificateIDs {
@@ -96,15 +115,30 @@ func checkProfileCertificates(client *appstoreconnect.Client, prof appstoreconne
 }
 
 func checkProfileDevices(client *appstoreconnect.Client, prof appstoreconnect.Profile, deviceIDs []string) (bool, error) {
-	devicesResp, err := client.Provisioning.Devices(prof.Relationships.Devices.Links.Related)
-	if err != nil {
-		return false, err
+	var nextPageURL string
+	ids := map[string]bool{}
+	for {
+		response, err := client.Provisioning.Devices(
+			prof.Relationships.Devices.Links.Related,
+			&appstoreconnect.PagingOptions{
+				Limit: 20,
+				Next:  nextPageURL,
+			},
+		)
+		if err != nil {
+			return false, err
+		}
+
+		for _, dev := range response.Data {
+			ids[dev.ID] = true
+		}
+
+		nextPageURL = response.Links.Next
+		if nextPageURL == "" {
+			break
+		}
 	}
 
-	ids := map[string]bool{}
-	for _, dev := range devicesResp.Data {
-		ids[dev.ID] = true
-	}
 	for _, id := range deviceIDs {
 		if !ids[id] {
 			return false, nil
