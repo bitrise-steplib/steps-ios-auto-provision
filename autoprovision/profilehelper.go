@@ -55,6 +55,7 @@ func FindProfile(client *appstoreconnect.Client, profileType appstoreconnect.Pro
 		PagingOptions: appstoreconnect.PagingOptions{
 			Limit: 1,
 		},
+		FilterProfileState: appstoreconnect.Active,
 		FilterProfileType:  profileType,
 		FilterName:         name,
 	}
