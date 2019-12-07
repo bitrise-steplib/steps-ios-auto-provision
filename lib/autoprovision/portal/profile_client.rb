@@ -95,7 +95,7 @@ module Portal
       all_profiles = ProfileClient.fetch_profiles(false, platform)
 
       # search for the Bitrise managed profile
-      profile_name = "Bitrise #{distribution_type} - (#{app.bundle_id})"
+      profile_name = "Bitrise #{platform} #{distribution_type} - (#{app.bundle_id})"
       profile = all_profiles.select { |prof| prof.name == profile_name }.first
 
       unless profile.nil?
