@@ -43,11 +43,15 @@ class KeychainHelper
   private
 
   def import_certificate(path, passphrase)
-    passphrase = '""' if passphrase.empty?
-    cmd = ['security', 'import', "\"#{path}\"", '-k', "\"#{@keychain_path}\"", '-P', passphrase, '-A'].join(' ')
-    Log.debug("$ #{cmd}")
+    cmd_params = ['security', 'import', "\"#{path}\"", '-k', "\'#{@keychain_path}\'", '-P', "\"#{passphrase}\"", '-A']
+    debug_params = cmd_params.dup
+    debug_params[6] = '"****"'
+    debug_cmd = debug_params.join(' ')
+    Log.debug("$ #{debug_cmd}")
+    cmd = cmd_params.join(' ')
+    # run command
     out = `#{cmd}`
-    raise "#{cmd} failed, out: #{out}" unless $CHILD_STATUS.success?
+    raise "#{debug_cmd} failed, out: #{out}" unless $CHILD_STATUS.success?
   end
 
   def set_key_partition_list_if_needed
