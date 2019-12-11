@@ -191,6 +191,17 @@ module Portal
           Log.success('set iCloud: on')
           app = app.update_service(Spaceship::Portal.app_service.cloud.on)
         end
+        
+        icloud_container_identifiers = entitlements['com.apple.developer.icloud-container-identifiers']
+        
+        unless icloud_services.to_a.empty?
+          icloud_container_identifiers.to_a.each do |identifier|
+             container = Spaceship::Portal.cloud_container.find(identifier)
+             app = app.associate_cloud_containers([container])
+          end
+        end
+        
+        
       end
 
       app
