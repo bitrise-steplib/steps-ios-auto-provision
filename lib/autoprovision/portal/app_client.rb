@@ -189,7 +189,7 @@ module Portal
           Log.print('iCloud: already set')
         else
           Log.success('set iCloud: on')
-          app = app.update_service(Spaceship::Portal.app_service.icloud.on)
+          app = app.update_service(Spaceship::Portal.app_service.cloud.on)
         end
       end
 
