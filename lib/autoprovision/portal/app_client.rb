@@ -212,7 +212,7 @@ module Portal
              icloud_containers.push(icloud_container)            
           end
           
-          app = app.associate_cloud_containers([container])
+          app = app.associate_cloud_containers(icloud_containers)
         end
         
         
