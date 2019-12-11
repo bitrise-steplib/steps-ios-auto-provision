@@ -195,10 +195,24 @@ module Portal
         icloud_container_identifiers = entitlements['com.apple.developer.icloud-container-identifiers']
         
         unless icloud_services.to_a.empty?
+          Log.print('iCloud: setting iCloud containers')
+          icloud_containers = []
+          
           icloud_container_identifiers.to_a.each do |identifier|
-             container = Spaceship::Portal.cloud_container.find(identifier)
-             app = app.associate_cloud_containers([container])
+             identifier = identifier.gsub("$(CFBundleIdentifier)", app.bundle_id)
+             icloud_container = Spaceship::Portal.cloud_container.find(identifier)
+            
+             if !icloud_container
+               icloud_container = Spaceship::Portal.cloud_container.create!(
+                 identifier: identifier,
+                 name: "Bitrise - " + identifier
+               )
+             end
+             
+             icloud_containers.push(icloud_container)            
           end
+          
+          app = app.associate_cloud_containers([container])
         end
         
         
