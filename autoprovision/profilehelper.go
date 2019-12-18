@@ -30,14 +30,22 @@ var PlatformToProfileTypeByDistribution = map[Platform]map[DistributionType]apps
 func profileName(profileType appstoreconnect.ProfileType, bundleID string) (string, error) {
 	var distr string
 	switch profileType {
-	case appstoreconnect.IOSAppStore, appstoreconnect.TvOSAppStore:
-		distr = "app-store"
-	case appstoreconnect.IOSAppAdHoc, appstoreconnect.TvOSAppAdHoc:
-		distr = "ad-hoc"
-	case appstoreconnect.IOSAppInHouse, appstoreconnect.TvOSAppInHouse:
-		distr = "enterprise"
-	case appstoreconnect.IOSAppDevelopment, appstoreconnect.TvOSAppDevelopment:
-		distr = "development"
+	case appstoreconnect.IOSAppStore:
+		distr = "app-store-ios"
+	case appstoreconnect.TvOSAppStore:
+		distr = "app-store-tvos"
+	case appstoreconnect.IOSAppAdHoc:
+		distr = "ad-hoc-ios"
+	case appstoreconnect.TvOSAppAdHoc:
+		distr = "ad-hoc-tvos"
+	case appstoreconnect.IOSAppInHouse:
+		distr = "enterprise-ios"
+	case appstoreconnect.TvOSAppInHouse:
+		distr = "enterprise-tvos"
+	case appstoreconnect.IOSAppDevelopment:
+		distr = "development-ios"
+	case appstoreconnect.TvOSAppDevelopment:
+		distr = "development-tvos"
 	default:
 		return "", fmt.Errorf("unsupported profileType: %s, supported: IOS_APP_*, TVOS_APP_*", profileType)
 	}
