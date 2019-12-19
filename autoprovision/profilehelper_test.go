@@ -39,25 +39,6 @@ func Test_profileName(t *testing.T) {
 		},
 
 		{
-			profileType: appstoreconnect.MacAppDevelopment,
-			bundleID:    "io.bitrise.app",
-			want:        "Bitrise macOS development - (io.bitrise.app)",
-			wantErr:     false,
-		},
-		{
-			profileType: appstoreconnect.MacAppStore,
-			bundleID:    "io.bitrise.app",
-			want:        "Bitrise macOS app-store - (io.bitrise.app)",
-			wantErr:     false,
-		},
-		{
-			profileType: appstoreconnect.MacAppDirect,
-			bundleID:    "io.bitrise.app",
-			want:        "Bitrise macOS direct - (io.bitrise.app)",
-			wantErr:     false,
-		},
-
-		{
 			profileType: appstoreconnect.TvOSAppDevelopment,
 			bundleID:    "io.bitrise.app",
 			want:        "Bitrise tvOS development - (io.bitrise.app)",
