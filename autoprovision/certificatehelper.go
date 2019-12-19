@@ -21,6 +21,7 @@ var (
 	AppStore    DistributionType = "app-store"
 	AdHoc       DistributionType = "ad-hoc"
 	Enterprise  DistributionType = "enterprise"
+	Direct      DistributionType = "direct"
 )
 
 // CertificateTypeByDistribution ...

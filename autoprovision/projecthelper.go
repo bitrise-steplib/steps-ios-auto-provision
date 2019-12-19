@@ -1,7 +1,6 @@
 package autoprovision
 
 import (
-	"errors"
 	"fmt"
 	"path"
 	"path/filepath"
@@ -16,33 +15,7 @@ import (
 	"github.com/bitrise-io/xcode-project/serialized"
 	"github.com/bitrise-io/xcode-project/xcodeproj"
 	"github.com/bitrise-io/xcode-project/xcscheme"
-	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 	"howett.net/plist"
-)
-
-// Platform of the target
-// iOS, tvOS, macOS
-type Platform string
-
-// BundleIDPlatform ...
-func (p Platform) BundleIDPlatform() (*appstoreconnect.BundleIDPlatform, error) {
-	var apiPlatform appstoreconnect.BundleIDPlatform
-	switch p {
-	case IOS, TVOS:
-		apiPlatform = appstoreconnect.IOS
-	case MacOS:
-		apiPlatform = appstoreconnect.MacOS
-	default:
-		return nil, errors.New("unknown platform: " + string(p))
-	}
-	return &apiPlatform, nil
-}
-
-// Const
-const (
-	IOS   Platform = "iOS"
-	TVOS  Platform = "tvOS"
-	MacOS Platform = "macOS"
 )
 
 // ProjectHelper ...

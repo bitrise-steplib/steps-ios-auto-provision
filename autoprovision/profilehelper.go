@@ -11,45 +11,19 @@ import (
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
 
-// PlatformToProfileTypeByDistribution ...
-var PlatformToProfileTypeByDistribution = map[Platform]map[DistributionType]appstoreconnect.ProfileType{
-	IOS: map[DistributionType]appstoreconnect.ProfileType{
-		Development: appstoreconnect.IOSAppDevelopment,
-		AppStore:    appstoreconnect.IOSAppStore,
-		AdHoc:       appstoreconnect.IOSAppAdHoc,
-		Enterprise:  appstoreconnect.IOSAppInHouse,
-	},
-	TVOS: map[DistributionType]appstoreconnect.ProfileType{
-		Development: appstoreconnect.TvOSAppDevelopment,
-		AppStore:    appstoreconnect.TvOSAppStore,
-		AdHoc:       appstoreconnect.TvOSAppAdHoc,
-		Enterprise:  appstoreconnect.TvOSAppInHouse,
-	},
-}
-
+// Generates profile name: Bitrise <platform> <distribution type> - (<bundle id>)
 func profileName(profileType appstoreconnect.ProfileType, bundleID string) (string, error) {
-	var distr string
-	switch profileType {
-	case appstoreconnect.IOSAppStore:
-		distr = "app-store-ios"
-	case appstoreconnect.TvOSAppStore:
-		distr = "app-store-tvos"
-	case appstoreconnect.IOSAppAdHoc:
-		distr = "ad-hoc-ios"
-	case appstoreconnect.TvOSAppAdHoc:
-		distr = "ad-hoc-tvos"
-	case appstoreconnect.IOSAppInHouse:
-		distr = "enterprise-ios"
-	case appstoreconnect.TvOSAppInHouse:
-		distr = "enterprise-tvos"
-	case appstoreconnect.IOSAppDevelopment:
-		distr = "development-ios"
-	case appstoreconnect.TvOSAppDevelopment:
-		distr = "development-tvos"
-	default:
-		return "", fmt.Errorf("unsupported profileType: %s, supported: IOS_APP_*, TVOS_APP_*", profileType)
+	platform, ok := ProfileTypeToPlatform[profileType]
+	if !ok {
+		return "", fmt.Errorf("unknown profile type: %s", profileType)
 	}
-	return fmt.Sprintf("Bitrise %s - (%s)", distr, bundleID), nil
+
+	distribution, ok := ProfileTypeToDistribution[profileType]
+	if !ok {
+		return "", fmt.Errorf("unknown profile type: %s", profileType)
+	}
+
+	return fmt.Sprintf("Bitrise %s %s - (%s)", platform, distribution, bundleID), nil
 }
 
 // FindProfile ...
