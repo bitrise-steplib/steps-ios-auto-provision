@@ -3,6 +3,9 @@
 set -e
 THIS_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+
+gem install bundler -v 1.17.3
+
 export BUNDLE_GEMFILE="$THIS_SCRIPT_DIR/Gemfile"
 
 set +e
