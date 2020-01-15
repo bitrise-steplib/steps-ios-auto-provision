@@ -6,11 +6,7 @@ THIS_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 gem install bundler -v 1.17.3
 
-bundle -v
-
 export BUNDLE_GEMFILE="$THIS_SCRIPT_DIR/Gemfile"
-
-bundle -v
 
 set +e
 echo '$' "bundle install"
