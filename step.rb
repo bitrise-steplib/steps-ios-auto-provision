@@ -24,6 +24,9 @@ begin
   auth = AuthHelper.new
   auth.login(params.build_url, params.build_api_token, params.team_id)
 
+  Log.print(auth.apple_id)
+  Log.print(auth.test_devices)
+
   Log.success('authenticated')
   ###
 
