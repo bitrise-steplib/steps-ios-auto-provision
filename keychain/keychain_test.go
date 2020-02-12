@@ -1,141 +1,134 @@
 package keychain
 
 import (
-	"io/ioutil"
-	"os"
-	"path/filepath"
+	"fmt"
 	"testing"
-	"time"
 
 	"github.com/bitrise-io/go-steputils/stepconf"
-	"github.com/bitrise-io/go-xcode/certificateutil"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
-func TestCreateKeychain(t *testing.T) {
-	dir, err := ioutil.TempDir("", "test-create-keychain")
-	if err != nil {
-		t.Errorf("setup: create temp dir for keychain: %s", err)
-	}
-	path := filepath.Join(dir, "testkeychain")
-	_, err = createKeychain(path, "randompassword")
-
-	if err != nil {
-		t.Errorf("error creating keychain: %s", err)
-	}
-
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		t.Errorf("keychain not created")
-	}
+type MockCommandFactory struct {
+	mock.Mock
 }
 
-func TestKeychain_importCertificate(t *testing.T) {
-	const (
-		// #nosec: G101  Potential hardcoded credentials (gosec)
-		testPassphrase       = `!&$(){}?<>@ ;'\"/_=+-x\nGG}!Tk3/L'f-w){(}?om$DR&AM887)yowl` + "\t\n"
-		testKeychainPassword = "password"
-	)
+type MockCommand struct {
+	mock.Mock
+}
 
-	// Create test keychain
-	dirTmp, err := ioutil.TempDir("", "test-import-certificate")
-	if err != nil {
-		t.Fatalf("setup: create temp dir for keychain: %s", err)
-	}
-	defer func() {
-		if err := os.RemoveAll(dirTmp); err != nil {
-			t.Fatalf("could not remove temp dir.")
-		}
-	}()
+func (m *MockCommandFactory) New(name string, args ...string) CanRunAndReturnTrimmedCombinedOutput {
+	mockargs := m.Called(name, args)
+	return mockargs.Get(0).(*MockCommand)
+}
 
-	keychainPath := filepath.Join(dirTmp, "testkeychain")
-	_, err = createKeychain(keychainPath, testKeychainPassword)
-	if err != nil {
-		t.Fatalf("error creating keychain: %s", err)
-	}
+func (m *MockCommand) RunAndReturnTrimmedCombinedOutput() (string, error) {
+	args := m.Called()
+	return args.String(0), args.Error(1)
+}
 
-	if _, err := os.Stat(keychainPath); os.IsNotExist(err) {
-		t.Fatalf("keychain not created")
-	}
+func (m *MockCommand) PrintableCommandArgs() string {
+	args := m.Called()
+	return args.String(0)
+}
 
-	kchain := Keychain{Path: keychainPath, Password: testKeychainPassword}
-	if err := kchain.unlock(); err != nil {
-		t.Fatalf("failed to unlock keychain: %s", err)
-	}
+func TestCreateKeychainSucceeds(t *testing.T) {
+	// Arrange
+	testPath := "testPath"
+	testPass := "strongpass"
+	testSecret := stepconf.Secret(testPass)
+	testOutput := "testOutput"
+	mockCommandFactory := new(MockCommandFactory)
+	mockCommand := new(MockCommand)
 
-	// Create test p12 file
-	const teamID = "MYTEAMID"
-	const commonNameIOSDevelopment = "iPhone Developer: test"
-	const teamName = "BITFALL FEJLESZTO KORLATOLT FELELOSSEGU TARSASAG"
-	expiry := time.Now().AddDate(1, 0, 0)
+	mockCommandFactory.On("New", "security", []string{"-v", "create-keychain", "-p", testPass, testPath}).Return(mockCommand)
+	mockCommand.On("RunAndReturnTrimmedCombinedOutput").Return(testOutput, nil)
 
-	cert, privateKey, err := certificateutil.GenerateTestCertificate(int64(1), teamID, teamName, commonNameIOSDevelopment, expiry)
-	if err != nil {
-		t.Fatalf("init: failed to generate certificate: %s", err)
-	}
-	devCert := certificateutil.NewCertificateInfo(*cert, privateKey)
-	t.Logf("Test certificate generated. %s", devCert)
+	// Act
+	keychain, err := createKeychain(mockCommandFactory.New, testPath, testSecret)
 
-	pfxData, err := devCert.EncodeToP12(testPassphrase)
-	if err != nil {
-		t.Fatalf("Setup: failed to encode test certificate to p12, error: %s", err)
-	}
+	// Assert
+	assert.Nil(t, err, "error creating keychain: %s", err)
+	assert.NotNil(t, keychain, "created keychain should not be nil")
+	assert.Equal(t, testPath, keychain.path)
+	assert.Equal(t, testSecret, keychain.password)
+	mockCommandFactory.AssertExpectations(t)
+}
 
-	testcertPath := filepath.Join(dirTmp, "TestCert.p12")
-	if err := ioutil.WriteFile(testcertPath, pfxData, 0600); err != nil {
-		t.Fatalf("Setup: failed to write test p12 file.")
-	}
+func TestCreateKeychainFails(t *testing.T) {
+	// Arrange
+	testPath := "testPath"
+	testPass := "strongpass"
+	testSecret := stepconf.Secret(testPass)
+	testError := fmt.Errorf("testError")
+	mockCommandFactory := new(MockCommandFactory)
+	mockCommand := new(MockCommand)
 
-	type fields struct {
-		Path     string
-		Password stepconf.Secret
+	mockCommandFactory.On("New", "security", []string{"-v", "create-keychain", "-p", testPass, testPath}).Return(mockCommand)
+	mockCommand.On("RunAndReturnTrimmedCombinedOutput").Return("", testError)
+
+	// Act
+	keychain, err := createKeychain(mockCommandFactory.New, testPath, testSecret)
+
+	// Assert
+	assert.NotNil(t, err, "call should fail")
+	assert.Contains(t, err.Error(), testError.Error(), "unexpected error")
+	assert.Nil(t, keychain, "created keychain should not be nil")
+	mockCommandFactory.AssertExpectations(t)
+}
+
+func TestImportCertificateSucceeds(t *testing.T) {
+	// Arrange
+	testPath := "testPath"
+	testPass := "strongpass"
+	testImportPath := "testImportPath"
+	testOutput := "testOutput"
+	testSecret := stepconf.Secret(testPass)
+	mockCommandFactory := new(MockCommandFactory)
+	mockCommand := new(MockCommand)
+
+	mockCommandFactory.On("New", "security", []string{"import", testImportPath, "-k", testPath, "-P", testPass, "-A"}).Return(mockCommand)
+	mockCommand.On("RunAndReturnTrimmedCombinedOutput").Return(testOutput, nil)
+
+	// Act
+	k := Keychain{
+		path:                    testPath,
+		password:                testSecret,
+		commandFactory:          mockCommandFactory.New,
+		normalizedOSTempDirPath: func(s string) (string, error) { return s, nil },
+		writeBytesToFile:        func(pth string, fileCont []byte) error { return nil },
 	}
-	type args struct {
-		path       string
-		passphrase stepconf.Secret
+	err := k.importCertificate(testImportPath, testSecret)
+
+	// Assert
+	assert.Nil(t, err, "error creating keychain: %s", err)
+}
+
+func TestImportCertificateCommandFails(t *testing.T) {
+	// Arrange
+	testPath := "testPath"
+	testPass := "strongpass"
+	testImportPath := "testImportPath"
+	testError := fmt.Errorf("testError")
+	testSecret := stepconf.Secret(testPass)
+	mockCommandFactory := new(MockCommandFactory)
+	mockCommand := new(MockCommand)
+	fakeNormalizedOSTempDirPath := func(s string) (string, error) { return s, nil }
+	fakeWriteBytesToFile := func(pth string, fileCont []byte) error { return nil }
+
+	mockCommandFactory.On("New", "security", []string{"import", testImportPath, "-k", testPath, "-P", testPass, "-A"}).Return(mockCommand)
+	mockCommand.On("RunAndReturnTrimmedCombinedOutput").Return("", testError)
+
+	// Act
+	k := Keychain{
+		path:                    testPath,
+		password:                testSecret,
+		commandFactory:          mockCommandFactory.New,
+		normalizedOSTempDirPath: fakeNormalizedOSTempDirPath,
+		writeBytesToFile:        fakeWriteBytesToFile,
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Good password",
-			fields: fields{
-				Path:     keychainPath,
-				Password: testKeychainPassword,
-			},
-			args: args{
-				path:       testcertPath,
-				passphrase: testPassphrase,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Incorrect password",
-			fields: fields{
-				Path:     keychainPath,
-				Password: testKeychainPassword,
-			},
-			args: args{
-				path:       testcertPath,
-				passphrase: "Incorrect password",
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			k := Keychain{
-				Path:     tt.fields.Path,
-				Password: tt.fields.Password,
-			}
-			err := k.importCertificate(tt.args.path, tt.args.passphrase)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Keychain.importCertificate() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if err != nil {
-				t.Logf("Keychain.importCertificate() error = %v", err)
-			}
-		})
-	}
+	err := k.importCertificate(testImportPath, testSecret)
+
+	// Assert
+	assert.NotNil(t, err, "call should fail")
 }
