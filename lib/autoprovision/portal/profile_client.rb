@@ -78,7 +78,7 @@ module Portal
         Log.debug('failed to validate profiles, retrying in 2 sec ...')
         sleep(2)
         ProfileClient.clear_cache(true, platform)
-        return ProfileClient.ensure_xcode_managed_profile(app.bundle_id, entitlements, distribution_type, certificate, platform, test_devices, min_profile_days_valid, false)
+        return ProfileClient.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, certificate, platform, test_devices, min_profile_days_valid, false)
       end
 
       return profiles.first unless profiles.empty?
@@ -95,7 +95,7 @@ module Portal
       all_profiles = ProfileClient.fetch_profiles(false, platform)
 
       # search for the Bitrise managed profile
-      profile_name = "Bitrise #{distribution_type} - (#{app.bundle_id})"
+      profile_name = "Bitrise #{platform} #{distribution_type} - (#{app.bundle_id})"
       profile = all_profiles.select { |prof| prof.name == profile_name }.first
 
       unless profile.nil?
