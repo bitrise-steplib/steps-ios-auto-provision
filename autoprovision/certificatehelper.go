@@ -169,14 +169,9 @@ func GetValidCertificates(localCertificates []certificateutil.CertificateInfoMod
 
 	log.Debugf("Certificates required for Development: %t; Distribution: %t", requiredCertificateTypes[appstoreconnect.IOSDevelopment], requiredCertificateTypes[appstoreconnect.IOSDistribution])
 
-	for certificateType, requried := range requiredCertificateTypes {
-		if !requried {
-			continue
-		}
-
-		if len(typeToLocalCerts[certificateType]) == 0 {
+	for certificateType, required := range requiredCertificateTypes {
+		if required && len(typeToLocalCerts[certificateType]) == 0 {
 			return map[appstoreconnect.CertificateType][]APICertificate{}, MissingCertificateError{certificateType, teamID}
-
 		}
 	}
 
