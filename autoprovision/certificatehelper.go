@@ -310,15 +310,6 @@ func mapCertsToTeams(certs []certificateutil.CertificateInfoModel) map[string][]
 	return m
 }
 
-func mapCertsToNames(certs []certificateutil.CertificateInfoModel) map[string][]certificateutil.CertificateInfoModel {
-	m := map[string][]certificateutil.CertificateInfoModel{}
-	for _, c := range certs {
-		teamCerts := m[c.CommonName]
-		m[c.CommonName] = append(teamCerts, c)
-	}
-	return m
-}
-
 func isDistributionCertificate(cert certificateutil.CertificateInfoModel) bool {
 	// Apple certificate types: https://help.apple.com/xcode/mac/current/#/dev80c6204ec)
 	return strings.HasPrefix(strings.ToLower(cert.CommonName), strings.ToLower("iPhone Distribution")) ||
