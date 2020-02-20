@@ -228,6 +228,9 @@ func (p *ProjectHelper) TargetBundleID(name, conf string) (string, error) {
 	}
 
 	bundleID, err := settings.String("PRODUCT_BUNDLE_IDENTIFIER")
+	if err != nil && !serialized.IsKeyNotFoundError(err) {
+		return "", fmt.Errorf("failed to parse target (%s) build settings attribute PRODUCT_BUNDLE_IDENTIFIER: %s", name, err)
+	}
 	if bundleID != "" {
 		return bundleID, nil
 	}
