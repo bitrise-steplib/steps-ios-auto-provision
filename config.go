@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"path"
 	"strings"
 	"time"
 
@@ -19,18 +22,28 @@ type CertificateFileURL struct {
 	URL, Passphrase string
 }
 
+// DevPortalData ...
+type DevPortalData struct {
+	KeyID      string `json:"key_id"`
+	IssuerID   string `json:"issuer_id"`
+	PrivateKey string `json:"private_key"`
+	Devices    string `json:"test_devices"`
+}
+
+// DeviceIDs ...
+func (d DevPortalData) DeviceIDs() []string {
+	return split(d.Devices, ",", true)
+}
+
 // Config holds the step inputs
 type Config struct {
-	KeyID         stepconf.Secret `env:"key_id,required"`
-	IssuerID      stepconf.Secret `env:"issuer_id,required"`
-	PrivateKeyURL string          `env:"private_key,required"`
+	BuildURL string `env:"build_url,required"`
 
 	ProjectPath   string `env:"project_path,dir"`
 	Scheme        string `env:"scheme,required"`
 	Configuration string `env:"configuration"`
 
 	Distribution        string `env:"distribution_type,opt[development,app-store,ad-hoc,enterprise]"`
-	Devices             string `env:"devices"`
 	MinProfileDaysValid string `env:"min_profile_days_valid"`
 
 	CertificateURLList        string          `env:"certificate_urls,required"`
@@ -41,23 +54,33 @@ type Config struct {
 	VerboseLog bool `env:"verbose_log,opt[no,yes]"`
 }
 
-// PrivateKey ...
-func (c Config) PrivateKey() ([]byte, error) {
-	if strings.HasPrefix(c.PrivateKeyURL, "file://") {
-		return fileutil.ReadBytesFromFile(strings.TrimPrefix(c.PrivateKeyURL, "file://"))
+// DevPortalData ...
+func (c Config) DevPortalData() (devPortalData DevPortalData, err error) {
+	var data []byte
+
+	if strings.HasPrefix(c.BuildURL, "file://") {
+		data, err = fileutil.ReadBytesFromFile(strings.TrimPrefix(c.BuildURL, "file://"))
+	} else {
+		var u *url.URL
+		u, err = u.Parse(c.BuildURL)
+		if err != nil {
+			return
+		}
+		u.Path = path.Join(u.Path, "apple_developer_portal_data.json")
+		data, err = downloadContent(u.String())
 	}
 
-	return downloadContent(c.PrivateKeyURL)
+	if err != nil {
+		return
+	}
+
+	err = json.Unmarshal(data, &devPortalData)
+	return
 }
 
 // DistributionType ...
 func (c Config) DistributionType() autoprovision.DistributionType {
 	return autoprovision.DistributionType(c.Distribution)
-}
-
-// DeviceIDs ...
-func (c Config) DeviceIDs() []string {
-	return split(c.Devices, ",", true)
 }
 
 // ValidateCertificates validates if the number of certificate URLs matches those of passphrases

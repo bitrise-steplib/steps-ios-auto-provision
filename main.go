@@ -150,12 +150,12 @@ func main() {
 	fmt.Println()
 	log.Infof("Creating AppstoreConnectAPI client")
 
-	privateKey, err := stepConf.PrivateKey()
+	devPortalData, err := stepConf.DevPortalData()
 	if err != nil {
-		failf("Failed get private key: %s", err)
+		failf("Failed get developer portal data: %s", err)
 	}
 
-	client, err := appstoreconnect.NewClient(string(stepConf.KeyID), string(stepConf.IssuerID), privateKey)
+	client, err := appstoreconnect.NewClient(devPortalData.KeyID, devPortalData.IssuerID, []byte(devPortalData.PrivateKey))
 	if err != nil {
 		failf("Failed to create client: %s", err)
 	}
@@ -255,9 +255,9 @@ func main() {
 
 	if needToRegisterDevices(distrTypes) {
 		fmt.Println()
-		log.Infof("Checking if %d Bitrise test device(s) are registered on Developer Portal", len(stepConf.DeviceIDs()))
+		log.Infof("Checking if %d Bitrise test device(s) are registered on Developer Portal", len(devPortalData.DeviceIDs()))
 
-		for _, d := range stepConf.DeviceIDs() {
+		for _, d := range devPortalData.DeviceIDs() {
 			log.Debugf("- %s", d)
 		}
 
@@ -272,7 +272,7 @@ func main() {
 			log.Debugf("- %s (%s)", d.Attributes.Name, d.Attributes.UDID)
 		}
 
-		for _, id := range stepConf.DeviceIDs() {
+		for _, id := range devPortalData.DeviceIDs() {
 			log.Printf("checking if the device (%s) is registered", id)
 
 			found := false
