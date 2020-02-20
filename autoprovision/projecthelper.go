@@ -83,12 +83,12 @@ func (p *ProjectHelper) ArchivableTargetBundleIDToEntitlements() (map[string]ser
 	for _, target := range targets {
 		bundleID, err := p.TargetBundleID(target.Name, p.Configuration)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to get target (%s) bundle id: %s", target.Name, err)
+			return nil, fmt.Errorf("failed to get target (%s) bundle id: %s", target.Name, err)
 		}
 
 		entitlements, err := p.targetEntitlements(target.Name, p.Configuration)
 		if err != nil && !serialized.IsKeyNotFoundError(err) {
-			return nil, fmt.Errorf("Failed to get target (%s) bundle id: %s", target.Name, err)
+			return nil, fmt.Errorf("failed to get target (%s) bundle id: %s", target.Name, err)
 		}
 
 		entitlementsByBundleID[bundleID] = entitlements
