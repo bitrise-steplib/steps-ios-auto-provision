@@ -381,9 +381,11 @@ func main() {
 
 				if profile.Attributes.ProfileState == appstoreconnect.Active {
 					// Check if Bitrise managed Profile is sync with the project
-					if ok, err := autoprovision.CheckProfile(client, *profile, autoprovision.Entitlement(entitlements), deviceIDs, certIDs); err != nil {
+					ok, err := autoprovision.CheckProfile(client, *profile, autoprovision.Entitlement(entitlements), deviceIDs, certIDs)
+					if err != nil {
 						failf("Failed to check if profile is valid: %s", err)
-					} else if ok {
+					}
+					if ok {
 						log.Donef("  profile is in sync with the project requirements")
 						codesignSettings.ProfilesByBundleID[bundleIDIdentifier] = *profile
 						codesignSettingsByDistributionType[distrType] = codesignSettings
@@ -422,9 +424,11 @@ func main() {
 				bundleIDByBundleIDIdentifer[bundleIDIdentifier] = bundleID
 
 				// Check if BundleID is sync with the project
-				if ok, err := autoprovision.CheckBundleIDEntitlements(client, *bundleID, autoprovision.Entitlement(entitlements)); err != nil {
+				ok, err := autoprovision.CheckBundleIDEntitlements(client, *bundleID, autoprovision.Entitlement(entitlements))
+				if err != nil {
 					failf("Failed to validate bundle ID: %s", err)
-				} else if !ok {
+				}
+				if !ok {
 					log.Warnf("  app ID capabilities are not in sync with the project capabilities, synchronizing...")
 					if err := autoprovision.SyncBundleID(client, bundleID.ID, autoprovision.Entitlement(entitlements)); err != nil {
 						failf("Failed to update bundle ID capabilities: %s", err)
