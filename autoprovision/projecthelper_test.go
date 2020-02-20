@@ -9,7 +9,6 @@ import (
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-
 	"github.com/bitrise-io/xcode-project/serialized"
 	"github.com/bitrise-io/xcode-project/xcodeproj"
 )
@@ -103,6 +102,8 @@ func TestNew(t *testing.T) {
 }
 
 func TestProjectHelper_ProjectTeamID(t *testing.T) {
+	log.SetEnableDebugLog(true)
+
 	var err error
 	schemeCases, _, _, projHelpCases, configCases, err = initTestCases()
 	if err != nil {
