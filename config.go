@@ -64,6 +64,7 @@ func (c Config) DevPortalData() (devPortalData DevPortalData, err error) {
 		var u *url.URL
 		u, err = u.Parse(c.BuildURL)
 		if err != nil {
+			log.Infof("Failed to parse URL: %s", c.BuildURL)
 			return
 		}
 		u.Path = path.Join(u.Path, "apple_developer_portal_data.json")
@@ -71,6 +72,7 @@ func (c Config) DevPortalData() (devPortalData DevPortalData, err error) {
 	}
 
 	if err != nil {
+		log.Infof("Failed to download (%s)", c.BuildURL)
 		return
 	}
 
