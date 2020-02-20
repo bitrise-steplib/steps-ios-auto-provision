@@ -37,7 +37,8 @@ func (d DevPortalData) DeviceIDs() []string {
 
 // Config holds the step inputs
 type Config struct {
-	BuildURL string `env:"build_url,required"`
+	BuildAPIToken string `env:"build_api_token,required"`
+	BuildURL      string `env:"build_url,required"`
 
 	ProjectPath   string `env:"project_path,dir"`
 	Scheme        string `env:"scheme,required"`
@@ -68,7 +69,7 @@ func (c Config) DevPortalData() (devPortalData DevPortalData, err error) {
 			return
 		}
 		u.Path = path.Join(u.Path, "apple_developer_portal_data.json")
-		data, err = downloadContent(u.String())
+		data, err = downloadContent(u.String(), c.BuildAPIToken)
 	}
 
 	if err != nil {
@@ -127,10 +128,20 @@ func split(list string, sep string, omitEmpty bool) (items []string) {
 	return
 }
 
-func downloadContent(url string) ([]byte, error) {
+func downloadContent(url string, buildAPIToken string) ([]byte, error) {
 	var contentBytes []byte
 	return contentBytes, retry.Times(2).Wait(time.Duration(3) * time.Second).Try(func(attempt uint) error {
-		resp, err := http.Get(url)
+		req, err := http.NewRequest(http.MethodGet, url, nil)
+		if err != nil {
+			return fmt.Errorf("failed to create request for url %s: %s", url, err)
+		}
+
+		if buildAPIToken != "" {
+			req.Header.Add("BUILD_API_TOKEN", buildAPIToken)
+		}
+
+		client := http.Client{}
+		resp, err := client.Do(req)
 		if err != nil {
 			return fmt.Errorf("failed to download from %s: %s", url, err)
 		}

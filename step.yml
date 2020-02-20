@@ -32,6 +32,12 @@ toolkit:
     package_name: github.com/bitrise-steplib/steps-ios-auto-provision
 
 inputs:
+  - build_api_token: $BITRISE_BUILD_API_TOKEN
+    opts:
+      title: Build URL
+      description: |-
+        URL of the current build or local path URL to your apple_developer_portal_data.json
+      is_required: true
   - build_url: $BITRISE_BUILD_URL
     opts:
       title: Build URL
