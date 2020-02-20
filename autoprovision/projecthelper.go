@@ -55,8 +55,8 @@ func NewProjectHelper(projOrWSPath, schemeName, configurationName string) (*Proj
 		return nil, "", fmt.Errorf("failed to find scheme with name: %s in project: %s: %s", schemeName, projOrWSPath, err)
 	}
 
-	// Check if the archive is availabe for the scheme or not
-	if _, archivable := scheme.AppBuildActionEntry(); archivable != true {
+	// Check if the archive is available for the scheme or not
+	if _, archivable := scheme.AppBuildActionEntry(); !archivable {
 		return nil, "", fmt.Errorf("archive action not defined for scheme: %s", scheme.Name)
 	}
 
