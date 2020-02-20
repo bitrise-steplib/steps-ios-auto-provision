@@ -140,6 +140,10 @@ func downloadContent(url string) ([]byte, error) {
 			}
 		}()
 
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			return fmt.Errorf("request failed with status HTTP%d", resp.StatusCode)
+		}
+
 		contentBytes, err = ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return fmt.Errorf("failed to read received conent: %s", err)
