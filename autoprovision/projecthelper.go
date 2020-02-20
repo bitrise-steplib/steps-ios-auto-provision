@@ -157,22 +157,12 @@ func (p *ProjectHelper) ProjectTeamID(config string) (string, error) {
 
 		if teamID != currentTeamID {
 			log.Warnf("Target (%s) Team ID (%s) does not match to the already registered team ID: %s\nThis causes build issue like: `Embedded binary is not signed with the same certificate as the parent app. Verify the embedded binary target's code sign settings match the parent app's.`", target.Name, currentTeamID, teamID)
-
 			teamID = ""
 			break
 		}
 	}
 
 	return teamID, nil
-
-}
-
-func (p *ProjectHelper) targetCodesignIdentity(targatName, config string) (string, error) {
-	settings, err := p.targetBuildSettings(targatName, config)
-	if err != nil {
-		return "", fmt.Errorf("failed to fetch target (%s) settings: %s", targatName, err)
-	}
-	return settings.String("CODE_SIGN_IDENTITY")
 }
 
 func (p *ProjectHelper) targetTeamID(targatName, config string) (string, error) {
