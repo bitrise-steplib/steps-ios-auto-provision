@@ -124,10 +124,10 @@ func (p *ProjectHelper) ProjectTeamID(config string) (string, error) {
 	for _, target := range p.Targets {
 		currentTeamID, err := p.targetTeamID(target.Name, config)
 		if err != nil {
-			// Do nothing
+			log.Debugf("%", err)
+		} else {
+			log.Debugf("Target (%s) build settings/DEVELOPMENT_TEAM Team ID: %s", target.Name, currentTeamID)
 		}
-
-		log.Debugf("%s target build settings (DEVELOPMENT_TEAM) team id: %s", target.Name, currentTeamID)
 
 		if currentTeamID == "" {
 			targetAttributes, err := p.XcProj.Proj.Attributes.TargetAttributes.Object(target.ID)
@@ -137,13 +137,13 @@ func (p *ProjectHelper) ProjectTeamID(config string) (string, error) {
 
 			targetAttributesTeamID, err := targetAttributes.String("DevelopmentTeam")
 			if err != nil && !serialized.IsKeyNotFoundError(err) {
-				return "", fmt.Errorf("failed to parse development team for target %s: %s", target.ID, err)
+				return "", fmt.Errorf("failed to parse development team for target (%s): %s", target.ID, err)
 			}
 
-			log.Debugf("%s target DevelopmentTeam attribute: %s", target.Name, targetAttributesTeamID)
+			log.Debugf("Target (%s) DevelopmentTeam attribute: %s", target.Name, targetAttributesTeamID)
 
 			if targetAttributesTeamID == "" {
-				log.Debugf("No team id found for %s target", target.Name)
+				log.Debugf("Target (%s): No Team ID found.", target.Name)
 				continue
 			}
 
@@ -156,7 +156,7 @@ func (p *ProjectHelper) ProjectTeamID(config string) (string, error) {
 		}
 
 		if teamID != currentTeamID {
-			log.Warnf("%s target team id: %s does not match to the already registered team id: %s\nThis causes build issue like: `Embedded binary is not signed with the same certificate as the parent app. Verify the embedded binary target's code sign settings match the parent app's.`", target.Name, currentTeamID, teamID)
+			log.Warnf("Target (%s) Team ID (%s) does not match to the already registered team ID: %s\nThis causes build issue like: `Embedded binary is not signed with the same certificate as the parent app. Verify the embedded binary target's code sign settings match the parent app's.`", target.Name, currentTeamID, teamID)
 
 			teamID = ""
 			break
@@ -178,12 +178,12 @@ func (p *ProjectHelper) targetCodesignIdentity(targatName, config string) (strin
 func (p *ProjectHelper) targetTeamID(targatName, config string) (string, error) {
 	settings, err := p.targetBuildSettings(targatName, config)
 	if err != nil {
-		return "", fmt.Errorf("failed to fetch target (%s) settings: %s", targatName, err)
+		return "", fmt.Errorf("failed to fetch Team ID from target settings (%s): %s", targatName, err)
 	}
 
 	devTeam, err := settings.String("DEVELOPMENT_TEAM")
 	if serialized.IsKeyNotFoundError(err) {
-		return devTeam, nil
+		return "", nil
 	}
 	return devTeam, err
 
