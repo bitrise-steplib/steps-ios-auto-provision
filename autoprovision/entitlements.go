@@ -129,6 +129,24 @@ func (e Entitlement) iCloudServices() (iCloudDocuments, iCloudKit, keyValueStora
 	return
 }
 
+// ICloudContainers returns the list of iCloud containers
+func (e Entitlement) ICloudContainers() ([]string, error) {
+	usesDocuments, usesCloudKit, _, err := e.iCloudServices()
+	if err != nil && !serialized.IsKeyNotFoundError(err) {
+		return nil, err
+	}
+
+	if !usesCloudKit && !usesDocuments {
+		return nil, nil
+	}
+
+	containers, err := serialized.Object(e).StringSlice("com.apple.developer.icloud-container-identifiers")
+	if err != nil && !serialized.IsKeyNotFoundError(err) {
+		return nil, err
+	}
+	return containers, nil
+}
+
 // Capability ...
 func (e Entitlement) Capability() (*appstoreconnect.BundleIDCapability, error) {
 	if len(e) == 0 {
