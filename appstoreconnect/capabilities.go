@@ -81,9 +81,7 @@ var ServiceTypeByKey = map[string]CapabilityType{
 	"com.apple.external-accessory.wireless-configuration": WirelessAccessoryConfiguration,
 	"com.apple.developer.default-data-protection":         DataProtection,
 	// does not appear on developer portal
-	"com.apple.developer.icloud-container-identifiers":   Ignored,
-	"com.apple.developer.ubiquity-container-identifiers": Ignored,
-	"com.apple.developer.icloud-services":                Ignored,
+	"com.apple.developer.icloud-container-identifiers": Ignored,
 }
 
 // CapabilitySettingAllowedInstances ...

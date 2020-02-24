@@ -140,7 +140,7 @@ func appIDName(bundleID string) string {
 }
 
 // CreateBundleID ...
-func CreateBundleID(client *appstoreconnect.Client, bundleIDIdentifier string, entitlements Entitlement) (*appstoreconnect.BundleID, error) {
+func CreateBundleID(client *appstoreconnect.Client, bundleIDIdentifier string, _ Entitlement) (*appstoreconnect.BundleID, error) {
 	appIDName := appIDName(bundleIDIdentifier)
 
 	r, err := client.Provisioning.CreateBundleID(
