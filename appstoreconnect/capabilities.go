@@ -79,6 +79,7 @@ var ServiceTypeByKey = map[string]CapabilityType{
 	"com.apple.developer.pass-type-identifiers":           Wallet,
 	"com.apple.external-accessory.wireless-configuration": WirelessAccessoryConfiguration,
 	"com.apple.developer.default-data-protection":         DataProtection,
+	"com.apple.developer.icloud-container-identifiers":    ICloud,
 }
 
 // CapabilitySettingAllowedInstances ...
