@@ -330,6 +330,7 @@ func main() {
 			}
 			log.Warnf("Using: %s", certs[0].Certificate.CommonName)
 		}
+		log.Debugf("Using certificate for distribution type %s (certificate type %s): %s", distrType, certType, certs[0])
 
 		codesignSettings := CodesignSettings{
 			ProfilesByBundleID: map[string]appstoreconnect.Profile{},
