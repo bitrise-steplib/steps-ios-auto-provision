@@ -471,9 +471,9 @@ func main() {
 		fmt.Println()
 		log.Infof("  Target: %s", target.Name)
 
-		codesignSettings, ok := codesignSettingsByDistributionType[autoprovision.Development]
+		codesignSettings, ok := codesignSettingsByDistributionType[stepConf.DistributionType()]
 		if !ok {
-			failf("No development codesign settings ensured")
+			failf("No codesign settings ensured for distribution type %s", stepConf.DistributionType())
 		}
 		teamID = codesignSettings.Certificate.TeamID
 
