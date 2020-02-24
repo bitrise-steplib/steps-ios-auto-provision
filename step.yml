@@ -34,9 +34,9 @@ toolkit:
 inputs:
   - build_api_token: $BITRISE_BUILD_API_TOKEN
     opts:
-      title: Build URL
+      title: Build API token
       description: |-
-        URL of the current build or local path URL to your apple_developer_portal_data.json
+        Bitrise API token
       is_required: true
   - build_url: $BITRISE_BUILD_URL
     opts:
