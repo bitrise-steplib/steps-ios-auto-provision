@@ -445,10 +445,6 @@ func main() {
 					failf("Failed to create bundle ID: %s", err)
 				}
 
-				if err := autoprovision.SyncBundleID(client, bundleID.ID, entitlements); err != nil {
-					failf("Failed to update bundle ID capabilities: %s", err)
-				}
-
 				containers, err := entitlements.ICloudContainers()
 				if err != nil {
 					failf("Failed to get list of iCloud containers: %s", err)
@@ -456,9 +452,25 @@ func main() {
 
 				if len(containers) > 0 {
 					containersByBundleID[bundleIDIdentifier] = containers
+					continue
+				}
+
+				if err := autoprovision.SyncBundleID(client, bundleID.ID, entitlements); err != nil {
+					failf("Failed to update bundle ID capabilities: %s", err)
 				}
 
 				bundleIDByBundleIDIdentifer[bundleIDIdentifier] = bundleID
+			}
+
+			if len(containersByBundleID) > 0 {
+				log.Errorf("Unable to automatically assign iCloud containers to the following bundle IDs:")
+				for bundleID, containers := range containersByBundleID {
+					log.Errorf(" bundle ID: %s, containers:", bundleID)
+					for _, container := range containers {
+						log.Errorf(" - %s", container)
+					}
+				}
+				failf("You have to manually add the listed containers to you bundle ID at: https://developer.apple.com/account/resources/identifiers/list")
 			}
 
 			// Create Bitrise managed Profile
@@ -474,17 +486,6 @@ func main() {
 			codesignSettings.ProfilesByBundleID[bundleIDIdentifier] = *profile
 			codesignSettingsByDistributionType[distrType] = codesignSettings
 		}
-	}
-
-	if len(containersByBundleID) > 0 {
-		log.Errorf("Unable to automatically assign iCloud containers to the following bundle IDs:")
-		for bundleID, containers := range containersByBundleID {
-			log.Errorf(" bundle ID: %s, containers:", bundleID)
-			for _, container := range containers {
-				log.Errorf(" - %s", container)
-			}
-		}
-		failf("You have to manually add the listed containers to you bundle ID at: https://developer.apple.com/account/resources/identifiers/list")
 	}
 
 	// Force Codesign Settings
