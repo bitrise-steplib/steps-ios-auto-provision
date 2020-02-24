@@ -76,8 +76,11 @@ func (e Entitlement) AppearsOnDeveloperPortal() bool {
 	}
 	entKey := serialized.Object(e).Keys()[0]
 
-	_, ok := appstoreconnect.ServiceTypeByKey[entKey]
-	return ok
+	if capType, ok := appstoreconnect.ServiceTypeByKey[entKey]; ok && capType == appstoreconnect.Ignored {
+		return false
+	}
+
+	return true
 }
 
 // Equal ...
@@ -158,6 +161,10 @@ func (e Entitlement) Capability() (*appstoreconnect.BundleIDCapability, error) {
 	capType, ok := appstoreconnect.ServiceTypeByKey[entKey]
 	if !ok {
 		return nil, errors.New("unknown entitlement key: " + entKey)
+	}
+
+	if capType == appstoreconnect.Ignored {
+		return nil, nil
 	}
 
 	capSetts := []appstoreconnect.CapabilitySetting{}

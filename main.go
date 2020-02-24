@@ -452,7 +452,7 @@ func main() {
 
 				if len(containers) > 0 {
 					containersByBundleID[bundleIDIdentifier] = containers
-					log.Errorf("app ID created but couldn't add iCloud containers: %v", containers)
+					log.Errorf("  app ID created but couldn't add iCloud containers: %v", containers)
 					continue
 				}
 
@@ -479,14 +479,15 @@ func main() {
 	}
 
 	if len(containersByBundleID) > 0 {
-		log.Errorf("Unable to automatically assign iCloud containers to the following bundle IDs:")
+		fmt.Println()
+		log.Errorf("Unable to automatically assign iCloud containers to the following app IDs:")
 		for bundleID, containers := range containersByBundleID {
-			log.Errorf(" bundle ID: %s, containers:", bundleID)
+			log.Errorf(" app ID: %s, containers:", bundleID)
 			for _, container := range containers {
 				log.Errorf(" - %s", container)
 			}
 		}
-		failf("You have to manually add the listed containers to you bundle ID at: https://developer.apple.com/account/resources/identifiers/list")
+		failf("You have to manually add the listed containers to your app ID at: https://developer.apple.com/account/resources/identifiers/list")
 	}
 
 	// Force Codesign Settings
