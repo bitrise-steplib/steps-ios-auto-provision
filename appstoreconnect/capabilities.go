@@ -80,6 +80,7 @@ var ServiceTypeByKey = map[string]CapabilityType{
 	"com.apple.external-accessory.wireless-configuration": WirelessAccessoryConfiguration,
 	"com.apple.developer.default-data-protection":         DataProtection,
 	"com.apple.developer.icloud-container-identifiers":    ICloud,
+	"com.apple.developer.icloud-services":                 ICloud,
 }
 
 // CapabilitySettingAllowedInstances ...
