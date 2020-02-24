@@ -255,9 +255,9 @@ func main() {
 
 	if needToRegisterDevices(distrTypes) {
 		fmt.Println()
-		log.Infof("Checking if %d Bitrise test device(s) are registered on Developer Portal", len(devPortalData.DeviceIDs()))
+		log.Infof("Checking if %d Bitrise test device(s) are registered on Developer Portal", len(devPortalData.DeviceIDs))
 
-		for _, d := range devPortalData.DeviceIDs() {
+		for _, d := range devPortalData.DeviceIDs {
 			log.Debugf("- %s", d)
 		}
 
@@ -272,7 +272,7 @@ func main() {
 			log.Debugf("- %s (%s)", d.Attributes.Name, d.Attributes.UDID)
 		}
 
-		for _, id := range devPortalData.DeviceIDs() {
+		for _, id := range devPortalData.DeviceIDs {
 			log.Printf("checking if the device (%s) is registered", id)
 
 			found := false

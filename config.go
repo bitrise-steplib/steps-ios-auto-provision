@@ -25,15 +25,10 @@ type CertificateFileURL struct {
 
 // DevPortalData ...
 type DevPortalData struct {
-	KeyID      string `json:"key_id"`
-	IssuerID   string `json:"issuer_id"`
-	PrivateKey string `json:"private_key"`
-	Devices    string `json:"test_devices"`
-}
-
-// DeviceIDs ...
-func (d DevPortalData) DeviceIDs() []string {
-	return splitAndClean(d.Devices, ",", true)
+	KeyID      string   `json:"key_id"`
+	IssuerID   string   `json:"issuer_id"`
+	PrivateKey string   `json:"private_key"`
+	DeviceIDs  []string `json:"test_devices"`
 }
 
 // Config holds the step inputs
