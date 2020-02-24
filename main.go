@@ -480,12 +480,15 @@ func main() {
 	if len(containersByBundleID) > 0 {
 		fmt.Println()
 		log.Errorf("Unable to automatically assign iCloud containers to the following app IDs:")
+		fmt.Println()
 		for bundleID, containers := range containersByBundleID {
-			log.Errorf(" app ID: %s, containers:", bundleID)
+			log.Errorf(" %s, containers:", bundleID)
 			for _, container := range containers {
 				log.Errorf(" - %s", container)
 			}
+			fmt.Println()
 		}
+		fmt.Println()
 		failf("You have to manually add the listed containers to your app ID at: https://developer.apple.com/account/resources/identifiers/list")
 	}
 
