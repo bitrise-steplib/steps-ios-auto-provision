@@ -96,6 +96,9 @@ func SyncBundleID(client *appstoreconnect.Client, bundleIDID string, entitlement
 		if err != nil {
 			return err
 		}
+		if cap == nil {
+			continue
+		}
 
 		body := appstoreconnect.BundleIDCapabilityCreateRequest{
 			Data: appstoreconnect.BundleIDCapabilityCreateRequestData{
