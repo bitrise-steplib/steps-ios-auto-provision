@@ -29,8 +29,8 @@ type DeviceData struct {
 	UserID     int    `json:"user_id"`
 	DeviceID   string `json:"device_identifier"`
 	Title      string `json:"title"`
-	CreatedAt  int    `json:"created_at"`
-	UpdatedAt  int    `json:"updated_at"`
+	CreatedAt  string `json:"created_at"`
+	UpdatedAt  string `json:"updated_at"`
 	DeviceType string `json:"device_type"`
 }
 
