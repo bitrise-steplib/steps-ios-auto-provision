@@ -22,7 +22,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:66aaf6307c35e7075172d6281cebcb0af104fcad57144328e1052d422aba738d"
+  digest = "1:59c6c7fee1cd1e09d612f9ee665952cc96dba6a769ab40a858fe0162e106bbba"
   name = "github.com/bitrise-io/go-utils"
   packages = [
     "colorstring",
@@ -37,9 +37,10 @@
     "pointers",
     "retry",
     "sliceutil",
+    "stringutil",
   ]
   pruneopts = "UT"
-  revision = "5067a2a682f21030f379f88e853b9e0734a24516"
+  revision = "e212188d99b41373b4ff8b69e7b1f677bc427bde"
 
 [[projects]]
   branch = "master"
@@ -47,11 +48,11 @@
   name = "github.com/bitrise-io/go-xcode"
   packages = ["certificateutil"]
   pruneopts = "UT"
-  revision = "19cbfe6430acc193d779847a13be0b8585d866c1"
+  revision = "95bf1e5fb205f81972e2450d227fa80748a5b322"
 
 [[projects]]
   branch = "master"
-  digest = "1:96dce0e947311f3985d20c3f368e71a4d281c916d3e3b85566f867f4a22980a3"
+  digest = "1:85c502298a8078ffdfee516cfb59bb5272c3adca032d1d26001da41042275851"
   name = "github.com/bitrise-io/xcode-project"
   packages = [
     ".",
@@ -63,7 +64,7 @@
     "xcworkspace",
   ]
   pruneopts = "UT"
-  revision = "a4e01d69cacc7dd9acbe8fb987dba69c9ce01b1c"
+  revision = "389cf29e41c71dc02c83959c6fac72e8d476766a"
 
 [[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
@@ -134,6 +135,7 @@
     "github.com/bitrise-io/go-utils/pathutil",
     "github.com/bitrise-io/go-utils/retry",
     "github.com/bitrise-io/go-utils/sliceutil",
+    "github.com/bitrise-io/go-utils/stringutil",
     "github.com/bitrise-io/go-xcode/certificateutil",
     "github.com/bitrise-io/xcode-project",
     "github.com/bitrise-io/xcode-project/serialized",

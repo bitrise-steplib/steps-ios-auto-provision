@@ -14,6 +14,7 @@ import (
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/retry"
+	"github.com/bitrise-io/go-utils/sliceutil"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/autoprovision"
 )
 
@@ -32,7 +33,7 @@ type DevPortalData struct {
 
 // DeviceIDs ...
 func (d DevPortalData) DeviceIDs() []string {
-	return split(d.Devices, ",", true)
+	return splitAndClean(d.Devices, ",", true)
 }
 
 // Config holds the step inputs
@@ -88,8 +89,8 @@ func (c Config) DistributionType() autoprovision.DistributionType {
 
 // ValidateCertificates validates if the number of certificate URLs matches those of passphrases
 func (c Config) ValidateCertificates() ([]string, []string, error) {
-	pfxURLs := split(c.CertificateURLList, "|", true)
-	passphrases := split(string(c.CertificatePassphraseList), "|", false)
+	pfxURLs := splitAndClean(c.CertificateURLList, "|", true)
+	passphrases := splitAndClean(string(c.CertificatePassphraseList), "|", false)
 
 	if len(pfxURLs) != len(passphrases) {
 		return nil, nil, fmt.Errorf("certificates count (%d) and passphrases count (%d) should match", len(pfxURLs), len(passphrases))
@@ -116,16 +117,9 @@ func (c Config) CertificateFileURLs() ([]CertificateFileURL, error) {
 	return files, nil
 }
 
-func split(list string, sep string, omitEmpty bool) (items []string) {
-	for _, e := range strings.Split(list, sep) {
-		if omitEmpty {
-			e = strings.TrimSpace(e)
-		}
-		if !omitEmpty || len(e) > 0 {
-			items = append(items, e)
-		}
-	}
-	return
+// SplitAndClean ...
+func splitAndClean(list string, sep string, omitEmpty bool) (items []string) {
+	return sliceutil.CleanWhitespace(strings.Split(list, sep), omitEmpty)
 }
 
 func downloadContent(url string, buildAPIToken string) ([]byte, error) {
