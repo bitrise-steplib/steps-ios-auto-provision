@@ -255,9 +255,9 @@ func main() {
 
 	if needToRegisterDevices(distrTypes) {
 		fmt.Println()
-		log.Infof("Checking if %d Bitrise test device(s) are registered on Developer Portal", len(devPortalData.DeviceIDs))
+		log.Infof("Checking if %d Bitrise test device(s) are registered on Developer Portal", len(devPortalData.TestDevices))
 
-		for _, d := range devPortalData.DeviceIDs {
+		for _, d := range devPortalData.TestDevices {
 			log.Debugf("- %s", d)
 		}
 
@@ -272,12 +272,12 @@ func main() {
 			log.Debugf("- %s (%s)", d.Attributes.Name, d.Attributes.UDID)
 		}
 
-		for _, id := range devPortalData.DeviceIDs {
-			log.Printf("checking if the device (%s) is registered", id)
+		for _, testDevice := range devPortalData.TestDevices {
+			log.Printf("checking if the device (%s) is registered", testDevice.DeviceID)
 
 			found := false
 			for _, device := range devices {
-				if device.Attributes.UDID == id {
+				if device.Attributes.UDID == testDevice.DeviceID {
 					found = true
 					break
 				}
@@ -292,7 +292,7 @@ func main() {
 						Attributes: appstoreconnect.DeviceCreateRequestDataAttributes{
 							Name:     "Bitrise test device",
 							Platform: appstoreconnect.IOS,
-							UDID:     id,
+							UDID:     testDevice.DeviceID,
 						},
 						Type: "devices",
 					},

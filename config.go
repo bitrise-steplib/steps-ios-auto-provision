@@ -23,12 +23,23 @@ type CertificateFileURL struct {
 	URL, Passphrase string
 }
 
+// DeviceData ...
+type DeviceData struct {
+	ID         int    `json:"id"`
+	UserID     int    `json:"user_id"`
+	DeviceID   string `json:"device_identifier"`
+	Title      string `json:"title"`
+	CreatedAt  int    `json:"created_at"`
+	UpdatedAt  int    `json:"updated_at"`
+	DeviceType string `json:"device_type"`
+}
+
 // DevPortalData ...
 type DevPortalData struct {
-	KeyID      string   `json:"key_id"`
-	IssuerID   string   `json:"issuer_id"`
-	PrivateKey string   `json:"private_key"`
-	DeviceIDs  []string `json:"test_devices"`
+	KeyID       string       `json:"key_id"`
+	IssuerID    string       `json:"issuer_id"`
+	PrivateKey  string       `json:"private_key"`
+	TestDevices []DeviceData `json:"test_devices"`
 }
 
 // Config holds the step inputs
