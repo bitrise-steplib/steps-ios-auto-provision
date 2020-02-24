@@ -453,7 +453,6 @@ func main() {
 				if len(containers) > 0 {
 					containersByBundleID[bundleIDIdentifier] = containers
 					log.Errorf("  app ID created but couldn't add iCloud containers: %v", containers)
-					continue
 				}
 
 				if err := autoprovision.SyncBundleID(client, bundleID.ID, entitlements); err != nil {
