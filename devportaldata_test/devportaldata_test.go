@@ -1,19 +1,20 @@
-package main
+package devportaldata_test
 
 import (
 	"testing"
 
+	"github.com/bitrise-steplib/steps-ios-auto-provision/devportaldata"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestPrivateKeyWithHeaderAddsHeader(t *testing.T) {
 	// Arrange
 	expectedResult := "-----BEGIN PRIVATE KEY-----\nprivate key without header\n-----END PRIVATE KEY-----"
-	testSubject := DevPortalData{
+	testSubject := devportaldata.DevPortalData{
 		IssuerID:    "",
 		KeyID:       "",
 		PrivateKey:  "private key without header",
-		TestDevices: []DeviceData{},
+		TestDevices: []devportaldata.DeviceData{},
 	}
 
 	// Act
@@ -26,11 +27,11 @@ func TestPrivateKeyWithHeaderAddsHeader(t *testing.T) {
 func TestPrivateKeyWithHeaderSkipsAddingHeader(t *testing.T) {
 	// Arrange
 	expectedResult := "-----BEGIN PRIVATE KEY-----\nprivate key without header\n-----END PRIVATE KEY-----"
-	testSubject := DevPortalData{
+	testSubject := devportaldata.DevPortalData{
 		IssuerID:    "",
 		KeyID:       "",
 		PrivateKey:  expectedResult,
-		TestDevices: []DeviceData{},
+		TestDevices: []devportaldata.DeviceData{},
 	}
 
 	// Act

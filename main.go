@@ -19,6 +19,7 @@ import (
 	"github.com/bitrise-io/xcode-project/xcodeproj"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/autoprovision"
+	"github.com/bitrise-steplib/steps-ios-auto-provision/devportaldata"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/keychain"
 )
 
@@ -150,7 +151,8 @@ func main() {
 	fmt.Println()
 	log.Infof("Creating AppstoreConnectAPI client")
 
-	devPortalData, err := stepConf.DevPortalData()
+	devPortalDataDownloader := devportaldata.NewDownloader(stepConf.BuildURL, stepConf.BuildAPIToken)
+	devPortalData, err := devPortalDataDownloader.GetDevPortalData()
 	if err != nil {
 		failf("Failed get developer portal data: %s", err)
 	}
