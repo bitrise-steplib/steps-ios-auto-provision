@@ -42,6 +42,19 @@ type DevPortalData struct {
 	TestDevices []DeviceData `json:"test_devices"`
 }
 
+// PrivateKeyWithHeader adds header and footer if needed
+func (d DevPortalData) PrivateKeyWithHeader() string {
+	if strings.HasPrefix(d.PrivateKey, "-----BEGIN PRIVATE KEY----") {
+		return d.PrivateKey
+	}
+
+	return fmt.Sprint(
+		"-----BEGIN PRIVATE KEY-----\n",
+		d.PrivateKey,
+		"\n-----END PRIVATE KEY-----",
+	)
+}
+
 // Config holds the step inputs
 type Config struct {
 	BuildAPIToken string `env:"build_api_token,required"`

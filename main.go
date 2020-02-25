@@ -155,7 +155,7 @@ func main() {
 		failf("Failed get developer portal data: %s", err)
 	}
 
-	client, err := appstoreconnect.NewClient(devPortalData.KeyID, devPortalData.IssuerID, []byte(devPortalData.PrivateKey))
+	client, err := appstoreconnect.NewClient(devPortalData.KeyID, devPortalData.IssuerID, []byte(devPortalData.PrivateKeyWithHeader()))
 	if err != nil {
 		failf("Failed to create client: %s", err)
 	}
