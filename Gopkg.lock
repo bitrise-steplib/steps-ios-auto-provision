@@ -22,7 +22,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:59c6c7fee1cd1e09d612f9ee665952cc96dba6a769ab40a858fe0162e106bbba"
+  digest = "1:83c16d4a9923aeba249410b220cc4bce408a048ee621644b0027c3690d2b4ca5"
   name = "github.com/bitrise-io/go-utils"
   packages = [
     "colorstring",
@@ -37,7 +37,6 @@
     "pointers",
     "retry",
     "sliceutil",
-    "stringutil",
   ]
   pruneopts = "UT"
   revision = "e212188d99b41373b4ff8b69e7b1f677bc427bde"
@@ -65,6 +64,14 @@
   ]
   pruneopts = "UT"
   revision = "389cf29e41c71dc02c83959c6fac72e8d476766a"
+
+[[projects]]
+  digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  pruneopts = "UT"
+  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
+  version = "v1.1.1"
 
 [[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
@@ -99,6 +106,33 @@
   version = "v0.8.1"
 
 [[projects]]
+  digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  pruneopts = "UT"
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
+
+[[projects]]
+  digest = "1:23472f69a3ee7225de2f104aa48c6456959d1c155e45035c9845806d83109190"
+  name = "github.com/stretchr/objx"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ea4fe68685ee0d3cee7032121851b57e7494e8ea"
+  version = "v0.2.0"
+
+[[projects]]
+  digest = "1:d43ea99f6c448b0660a10e93a259ed2988893d2ffa4eb4684014bf4fc4b64e04"
+  name = "github.com/stretchr/testify"
+  packages = [
+    "assert",
+    "mock",
+  ]
+  pruneopts = "UT"
+  revision = "3ebf1ddaeb260c4b1ae502a01c7844fa8c1fa0e9"
+  version = "v1.5.1"
+
+[[projects]]
   digest = "1:1093f2eb4b344996604f7d8b29a16c5b22ab9e1b25652140d3fede39f640d5cd"
   name = "golang.org/x/text"
   packages = [
@@ -114,12 +148,20 @@
   version = "v0.3.2"
 
 [[projects]]
+  digest = "1:55b110c99c5fdc4f14930747326acce56b52cfce60b24b1c03ef686ac0e46bb1"
+  name = "gopkg.in/yaml.v2"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "53403b58ad1b561927d19068c655246f2db79d48"
+  version = "v2.2.8"
+
+[[projects]]
   branch = "master"
-  digest = "1:c10265d5a71326618d37e97169eddb3582f78e8ac7dcf87403b4cf619efd519a"
+  digest = "1:bc88f8258129a6b4eaf52d8095b3f0bcf68e065aca273aaf6ee7d3c7e464c510"
   name = "howett.net/plist"
   packages = ["."]
   pruneopts = "UT"
-  revision = "591f970eefbbeb04d7b37f334a0c4c3256e32876"
+  revision = "77e249a2e2ba6362794925035a31bea61b902a1e"
 
 [solve-meta]
   analyzer-name = "dep"
@@ -135,7 +177,6 @@
     "github.com/bitrise-io/go-utils/pathutil",
     "github.com/bitrise-io/go-utils/retry",
     "github.com/bitrise-io/go-utils/sliceutil",
-    "github.com/bitrise-io/go-utils/stringutil",
     "github.com/bitrise-io/go-xcode/certificateutil",
     "github.com/bitrise-io/xcode-project",
     "github.com/bitrise-io/xcode-project/serialized",
@@ -144,6 +185,8 @@
     "github.com/dgrijalva/jwt-go",
     "github.com/google/go-querystring/query",
     "github.com/hashicorp/go-version",
+    "github.com/stretchr/testify/assert",
+    "github.com/stretchr/testify/mock",
     "howett.net/plist",
   ]
   solver-name = "gps-cdcl"
