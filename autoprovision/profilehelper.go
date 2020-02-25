@@ -8,6 +8,7 @@ import (
 	"path"
 
 	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-io/go-xcode/profileutil"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
 
@@ -52,12 +53,32 @@ func FindProfile(client *appstoreconnect.Client, profileType appstoreconnect.Pro
 	return &r.Data[0], nil
 }
 
-func checkProfileEntitlements(client *appstoreconnect.Client, prof appstoreconnect.Profile, entitlements Entitlement) (bool, error) {
-	bundleIDresp, err := client.Provisioning.BundleID(prof.Relationships.BundleID.Links.Related)
+func checkProfileEntitlements(client *appstoreconnect.Client, prof appstoreconnect.Profile, projectEntitlements Entitlement) (bool, error) {
+	// bundleIDresp, err := client.Provisioning.BundleID(prof.Relationships.BundleID.Links.Related)
+	// if err != nil {
+	// 	return false, err
+	// }
+	// return CheckBundleIDEntitlements(client, bundleIDresp.Data, entitlements)
+	b, err := base64.StdEncoding.DecodeString(prof.Attributes.ProfileContent)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to decode profile content: %s", err)
 	}
-	return CheckBundleIDEntitlements(client, bundleIDresp.Data, entitlements)
+
+	pkcs, err := profileutil.ProvisioningProfileFromContent(b)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse pkcs7 from profile content: %s", err)
+	}
+
+	profile, err := profileutil.NewProvisioningProfileInfo(*pkcs)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse profile info from pkcs7 content: %s", err)
+	}
+
+	profileEntitlements := Entitlement(profile.Entitlements)
+
+	fmt.Println("ENTS:", profileEntitlements, projectEntitlements)
+
+	return true, nil
 }
 
 func checkProfileCertificates(client *appstoreconnect.Client, prof appstoreconnect.Profile, certificateIDs []string) (bool, error) {

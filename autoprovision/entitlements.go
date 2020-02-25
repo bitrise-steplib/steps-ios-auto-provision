@@ -2,7 +2,6 @@ package autoprovision
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/bitrise-io/go-utils/sliceutil"
 	"github.com/bitrise-io/xcode-project/serialized"
@@ -86,8 +85,6 @@ func (e Entitlement) Equal(cap appstoreconnect.BundleIDCapability) (bool, error)
 	if len(e) == 0 {
 		return false, nil
 	}
-
-	fmt.Println("DEBUG", "e:", e, "cap:", cap)
 
 	entKey := serialized.Object(e).Keys()[0]
 
