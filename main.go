@@ -19,6 +19,7 @@ import (
 	"github.com/bitrise-io/xcode-project/xcodeproj"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/autoprovision"
+	"github.com/bitrise-steplib/steps-ios-auto-provision/devportaldata"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/keychain"
 )
 
@@ -150,12 +151,13 @@ func main() {
 	fmt.Println()
 	log.Infof("Creating AppstoreConnectAPI client")
 
-	privateKey, err := stepConf.PrivateKey()
+	devPortalDataDownloader := devportaldata.NewDownloader(stepConf.BuildURL, stepConf.BuildAPIToken)
+	devPortalData, err := devPortalDataDownloader.GetDevPortalData()
 	if err != nil {
-		failf("Failed get private key: %s", err)
+		failf("Failed get developer portal data: %s", err)
 	}
 
-	client, err := appstoreconnect.NewClient(string(stepConf.KeyID), string(stepConf.IssuerID), privateKey)
+	client, err := appstoreconnect.NewClient(devPortalData.KeyID, devPortalData.IssuerID, []byte(devPortalData.PrivateKeyWithHeader()))
 	if err != nil {
 		failf("Failed to create client: %s", err)
 	}
@@ -255,9 +257,9 @@ func main() {
 
 	if needToRegisterDevices(distrTypes) {
 		fmt.Println()
-		log.Infof("Checking if %d Bitrise test device(s) are registered on Developer Portal", len(stepConf.DeviceIDs()))
+		log.Infof("Checking if %d Bitrise test device(s) are registered on Developer Portal", len(devPortalData.TestDevices))
 
-		for _, d := range stepConf.DeviceIDs() {
+		for _, d := range devPortalData.TestDevices {
 			log.Debugf("- %s", d)
 		}
 
@@ -272,12 +274,12 @@ func main() {
 			log.Debugf("- %s (%s)", d.Attributes.Name, d.Attributes.UDID)
 		}
 
-		for _, id := range stepConf.DeviceIDs() {
-			log.Printf("checking if the device (%s) is registered", id)
+		for _, testDevice := range devPortalData.TestDevices {
+			log.Printf("checking if the device (%s) is registered", testDevice.DeviceID)
 
 			found := false
 			for _, device := range devices {
-				if device.Attributes.UDID == id {
+				if device.Attributes.UDID == testDevice.DeviceID {
 					found = true
 					break
 				}
@@ -292,7 +294,7 @@ func main() {
 						Attributes: appstoreconnect.DeviceCreateRequestDataAttributes{
 							Name:     "Bitrise test device",
 							Platform: appstoreconnect.IOS,
-							UDID:     id,
+							UDID:     testDevice.DeviceID,
 						},
 						Type: "devices",
 					},

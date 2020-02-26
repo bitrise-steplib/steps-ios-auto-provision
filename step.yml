@@ -32,31 +32,18 @@ toolkit:
     package_name: github.com/bitrise-steplib/steps-ios-auto-provision
 
 inputs:
-  - key_id:
+  - build_api_token: $BITRISE_BUILD_API_TOKEN
     opts:
-      title: Key id
-      description: "Your private key ID from App Store Connect (Ex: 2X9R4HXF34)."
-      is_required: true
-      is_sensitive: true
-  - issuer_id:
-    opts:
-      title: Issuer ID
-      description: "Your issuer ID from the API Keys page in App Store Connect (Ex: 57246542-96fe-1a63-e053-0824d011072a)."
-      is_required: true
-      is_sensitive: true
-  - private_key:
-    opts:
-      title: Private Key URL
+      title: Build API token
       description: |-
-        URL of the API Key for App Store Connect API.
-
-        For remote API Key provide remote URL (ex: `https://URL/TO/AuthKey_ASDF.p8`).  
-        For local API Key provide local file path URL (ex: `file://PATH/TO/AuthKey_ASDF.p8`).
+        Bitrise API token
       is_required: true
-  - devices:
+  - build_url: $BITRISE_BUILD_URL
     opts:
-      title: Devices
-      description: Comma separated list of iOS device UDIDs to be included in the managed Profiles.
+      title: Build URL
+      description: |-
+        URL of the current build or local path URL to your apple_developer_portal_data.json
+      is_required: true
   - distribution_type: development
     opts:
       title: Distribution type
@@ -67,10 +54,6 @@ inputs:
         - "ad-hoc"
         - "enterprise"
       is_required: true
-  - devices:
-    opts:
-      title: Devices
-      description: Comma separated list of iOS device UDIDs to be included in the managed Profiles.
   - project_path: $BITRISE_PROJECT_PATH
     opts:
       title: Xcode Project (or Workspace) path
