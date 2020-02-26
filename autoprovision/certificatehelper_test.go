@@ -113,7 +113,7 @@ func TestGetValidCertificates(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "no local; no API; dev+dist requried",
+			name: "no local; no API; dev+dist required",
 			args: args{
 				localCertificates:        []certificateutil.CertificateInfoModel{},
 				client:                   mockAPIClient(map[appstoreconnect.CertificateType][]APICertificate{}),

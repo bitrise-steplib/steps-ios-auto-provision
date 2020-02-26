@@ -9,7 +9,6 @@ import (
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-
 	"github.com/bitrise-io/xcode-project/serialized"
 	"github.com/bitrise-io/xcode-project/xcodeproj"
 )
@@ -103,6 +102,8 @@ func TestNew(t *testing.T) {
 }
 
 func TestProjectHelper_ProjectTeamID(t *testing.T) {
+	log.SetEnableDebugLog(true)
+
 	var err error
 	schemeCases, _, _, projHelpCases, configCases, err = initTestCases()
 	if err != nil {
@@ -217,6 +218,7 @@ func Test_codesignIdentitesMatch(t *testing.T) {
 }
 
 func Test_resolveBundleID(t *testing.T) {
+	const productName = "Sample"
 	tests := []struct {
 		name          string
 		bundleID      string
@@ -229,10 +231,10 @@ func Test_resolveBundleID(t *testing.T) {
 			bundleID: "Bitrise.$(PRODUCT_NAME:rfc1034identifier)",
 			buildSettings: func() map[string]interface{} {
 				m := make(map[string]interface{})
-				m["PRODUCT_NAME"] = "Sample"
+				m["PRODUCT_NAME"] = productName
 				return m
 			}(),
-			want:    "Bitrise.Sample",
+			want:    fmt.Sprintf("Bitrise.%s", productName),
 			wantErr: false,
 		},
 		{
@@ -240,11 +242,11 @@ func Test_resolveBundleID(t *testing.T) {
 			bundleID: "Bitrise.$(PRODUCT_NAME:rfc1034identifier)",
 			buildSettings: func() map[string]interface{} {
 				m := make(map[string]interface{})
-				m["PRODUCT_NAME"] = "Sample"
-				m["a"] = "Sample"
+				m["PRODUCT_NAME"] = productName
+				m["a"] = productName
 				return m
 			}(),
-			want:    "Bitrise.Sample",
+			want:    fmt.Sprintf("Bitrise.%s", productName),
 			wantErr: false,
 		},
 		{
@@ -252,11 +254,11 @@ func Test_resolveBundleID(t *testing.T) {
 			bundleID: "Bitrise.Test.$(PRODUCT_NAME:rfc1034identifier).Suffix",
 			buildSettings: func() map[string]interface{} {
 				m := make(map[string]interface{})
-				m["PRODUCT_NAME"] = "Sample"
-				m["a"] = "Sample"
+				m["PRODUCT_NAME"] = productName
+				m["a"] = productName
 				return m
 			}(),
-			want:    "Bitrise.Test.Sample.Suffix",
+			want:    fmt.Sprintf("Bitrise.Test.%s.Suffix", productName),
 			wantErr: false,
 		},
 	}
