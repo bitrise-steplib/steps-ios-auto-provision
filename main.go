@@ -332,6 +332,7 @@ func main() {
 			}
 			log.Warnf("Using: %s", certs[0].Certificate.CommonName)
 		}
+		log.Debugf("Using certificate for distribution type %s (certificate type %s): %s", distrType, certType, certs[0])
 
 		codesignSettings := CodesignSettings{
 			ProfilesByBundleID: map[string]appstoreconnect.Profile{},
@@ -383,9 +384,11 @@ func main() {
 
 				if profile.Attributes.ProfileState == appstoreconnect.Active {
 					// Check if Bitrise managed Profile is sync with the project
-					if ok, err := autoprovision.CheckProfile(client, *profile, autoprovision.Entitlement(entitlements), deviceIDs, certIDs); err != nil {
+					ok, err := autoprovision.CheckProfile(client, *profile, autoprovision.Entitlement(entitlements), deviceIDs, certIDs)
+					if err != nil {
 						failf("Failed to check if profile is valid: %s", err)
-					} else if ok {
+					}
+					if ok {
 						log.Donef("  profile is in sync with the project requirements")
 						codesignSettings.ProfilesByBundleID[bundleIDIdentifier] = *profile
 						codesignSettingsByDistributionType[distrType] = codesignSettings
@@ -424,9 +427,11 @@ func main() {
 				bundleIDByBundleIDIdentifer[bundleIDIdentifier] = bundleID
 
 				// Check if BundleID is sync with the project
-				if ok, err := autoprovision.CheckBundleIDEntitlements(client, *bundleID, autoprovision.Entitlement(entitlements)); err != nil {
+				ok, err := autoprovision.CheckBundleIDEntitlements(client, *bundleID, autoprovision.Entitlement(entitlements))
+				if err != nil {
 					failf("Failed to validate bundle ID: %s", err)
-				} else if !ok {
+				}
+				if !ok {
 					log.Warnf("  app ID capabilities are not in sync with the project capabilities, synchronizing...")
 					if err := autoprovision.SyncBundleID(client, bundleID.ID, autoprovision.Entitlement(entitlements)); err != nil {
 						failf("Failed to update bundle ID capabilities: %s", err)
@@ -473,9 +478,14 @@ func main() {
 		fmt.Println()
 		log.Infof("  Target: %s", target.Name)
 
-		codesignSettings, ok := codesignSettingsByDistributionType[autoprovision.Development]
+		forceCodesignDistribution := stepConf.DistributionType()
+		if _, isDevelopmentAvailable := codesignSettingsByDistributionType[autoprovision.Development]; isDevelopmentAvailable {
+			forceCodesignDistribution = autoprovision.Development
+		}
+
+		codesignSettings, ok := codesignSettingsByDistributionType[forceCodesignDistribution]
 		if !ok {
-			failf("No development codesign settings ensured")
+			failf("No codesign settings ensured for distribution type %s", stepConf.DistributionType())
 		}
 		teamID = codesignSettings.Certificate.TeamID
 

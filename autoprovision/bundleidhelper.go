@@ -88,8 +88,6 @@ func CheckBundleIDEntitlements(client *appstoreconnect.Client, bundleID appstore
 
 // SyncBundleID ...
 func SyncBundleID(client *appstoreconnect.Client, bundleIDID string, entitlements Entitlement) error {
-	var caps []appstoreconnect.BundleIDCapability
-
 	for key, value := range entitlements {
 		ent := Entitlement{key: value}
 		cap, err := ent.Capability()
@@ -114,18 +112,10 @@ func SyncBundleID(client *appstoreconnect.Client, bundleIDID string, entitlement
 				Type: "bundleIdCapabilities",
 			},
 		}
-		r, err := client.Provisioning.EnableCapability(body)
+		_, err = client.Provisioning.EnableCapability(body)
 		if err != nil {
 			return err
 		}
-
-		caps = append(caps, appstoreconnect.BundleIDCapability{
-			Attributes: appstoreconnect.BundleIDCapabilityAttributes{
-				CapabilityType: r.Data.Attributes.CapabilityType,
-				Settings:       r.Data.Attributes.Settings,
-			},
-		})
-
 	}
 
 	return nil
