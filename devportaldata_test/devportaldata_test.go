@@ -9,7 +9,6 @@ import (
 
 func TestPrivateKeyWithHeader(t *testing.T) {
 	// Arrange
-	expectedResult := "-----BEGIN PRIVATE KEY-----\nprivate key without header\n-----END PRIVATE KEY-----"
 	tests := []struct {
 		name       string
 		privateKey string
@@ -18,12 +17,12 @@ func TestPrivateKeyWithHeader(t *testing.T) {
 		{
 			name:       "adds header",
 			privateKey: "private key without header",
-			want:       expectedResult,
+			want:       "-----BEGIN PRIVATE KEY-----\nprivate key without header\n-----END PRIVATE KEY-----",
 		},
 		{
 			name:       "skips adding header",
-			privateKey: expectedResult,
-			want:       expectedResult,
+			privateKey: "-----BEGIN PRIVATE KEY-----\nprivate key with header\n-----END PRIVATE KEY-----",
+			want:       "-----BEGIN PRIVATE KEY-----\nprivate key with header\n-----END PRIVATE KEY-----",
 		},
 	}
 
@@ -32,7 +31,7 @@ func TestPrivateKeyWithHeader(t *testing.T) {
 			testSubject := devportaldata.DevPortalData{
 				IssuerID:    "",
 				KeyID:       "",
-				PrivateKey:  "private key without header",
+				PrivateKey:  tt.privateKey,
 				TestDevices: []devportaldata.DeviceData{},
 			}
 
@@ -40,7 +39,7 @@ func TestPrivateKeyWithHeader(t *testing.T) {
 			result := testSubject.PrivateKeyWithHeader()
 
 			// Assert
-			assert.Equal(t, expectedResult, result, "private key should be equal to the expected one containing header and footer")
+			assert.Equal(t, tt.want, result, "private key should be equal to the expected one containing header and footer")
 		})
 	}
 }
