@@ -7,36 +7,40 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPrivateKeyWithHeaderAddsHeader(t *testing.T) {
+func TestPrivateKeyWithHeader(t *testing.T) {
 	// Arrange
 	expectedResult := "-----BEGIN PRIVATE KEY-----\nprivate key without header\n-----END PRIVATE KEY-----"
-	testSubject := devportaldata.DevPortalData{
-		IssuerID:    "",
-		KeyID:       "",
-		PrivateKey:  "private key without header",
-		TestDevices: []devportaldata.DeviceData{},
+	tests := []struct {
+		name       string
+		privateKey string
+		want       string
+	}{
+		{
+			name:       "adds header",
+			privateKey: "private key without header",
+			want:       expectedResult,
+		},
+		{
+			name:       "skips adding header",
+			privateKey: expectedResult,
+			want:       expectedResult,
+		},
 	}
 
-	// Act
-	result := testSubject.PrivateKeyWithHeader()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			testSubject := devportaldata.DevPortalData{
+				IssuerID:    "",
+				KeyID:       "",
+				PrivateKey:  "private key without header",
+				TestDevices: []devportaldata.DeviceData{},
+			}
 
-	// Assert
-	assert.Equal(t, expectedResult, result, "private key should be equal to the expected one containing header and footer")
-}
+			// Act
+			result := testSubject.PrivateKeyWithHeader()
 
-func TestPrivateKeyWithHeaderSkipsAddingHeader(t *testing.T) {
-	// Arrange
-	expectedResult := "-----BEGIN PRIVATE KEY-----\nprivate key without header\n-----END PRIVATE KEY-----"
-	testSubject := devportaldata.DevPortalData{
-		IssuerID:    "",
-		KeyID:       "",
-		PrivateKey:  expectedResult,
-		TestDevices: []devportaldata.DeviceData{},
+			// Assert
+			assert.Equal(t, expectedResult, result, "private key should be equal to the expected one containing header and footer")
+		})
 	}
-
-	// Act
-	result := testSubject.PrivateKeyWithHeader()
-
-	// Assert
-	assert.Equal(t, expectedResult, result, "private key should be equal to the expected one containing header and footer")
 }

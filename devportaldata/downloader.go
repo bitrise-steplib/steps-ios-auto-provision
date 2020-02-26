@@ -15,7 +15,7 @@ import (
 	"github.com/bitrise-io/go-utils/retry"
 )
 
-// Downloader downloads the
+// Downloader downloads/reads the developer portal json
 type Downloader struct {
 	BuildAPIToken string
 	BuildURL      string
@@ -24,7 +24,7 @@ type Downloader struct {
 	DownloadContent   func(url string, buildAPIToken string) ([]byte, error)
 }
 
-// NewDownloader creates a new DevPortalDataDownloader instance
+// NewDownloader creates a new Downloader instance
 func NewDownloader(buildURL string, buildAPIToken string) *Downloader {
 	return &Downloader{
 		BuildAPIToken:     buildAPIToken,

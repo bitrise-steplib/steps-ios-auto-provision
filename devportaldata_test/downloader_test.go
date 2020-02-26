@@ -58,8 +58,8 @@ func TestGetDevPortalDataGetsDataFromDisk(t *testing.T) {
 func TestGetDevPortalDataGetsDataFromNetwork(t *testing.T) {
 	// Arrange
 	testToken := "testToken"
-	testURL := "https:///test"
-	expectedFullURL := "https:///test/apple_developer_portal_data.json"
+	testURL := "https://test.com"
+	expectedFullURL := "https://test.com/apple_developer_portal_data.json"
 	mockIOUtils := new(MockIOUtils)
 	mockIOUtils.On("DownloadContent", expectedFullURL, testToken).Return([]byte(testJSON), nil)
 
