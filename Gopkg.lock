@@ -129,7 +129,6 @@
   version = "v1.0.0"
 
 [[projects]]
-
   digest = "1:23472f69a3ee7225de2f104aa48c6456959d1c155e45035c9845806d83109190"
   name = "github.com/stretchr/objx"
   packages = ["."]
@@ -138,13 +137,12 @@
   version = "v0.2.0"
 
 [[projects]]
-  digest = "1:d43ea99f6c448b0660a10e93a259ed2988893d2ffa4eb4684014bf4fc4b64e04"
+  digest = "1:3a437a60a940e6d8193c3ce847ed98aa7f156ca5aa80e7a283bb9b3ca160c7ce"
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
     "mock",
     "require",
-  ]
   ]
   pruneopts = "UT"
   revision = "3ebf1ddaeb260c4b1ae502a01c7844fa8c1fa0e9"
