@@ -107,6 +107,18 @@ func Test_findMissingContainers(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "equal with container",
+			projectEnts: serialized.Object(map[string]interface{}{
+				"com.apple.developer.icloud-container-identifiers": []interface{}{"container1"},
+			}),
+			profileEnts: serialized.Object(map[string]interface{}{
+				"com.apple.developer.icloud-container-identifiers": []interface{}{"container1"},
+			}),
+
+			want:    nil,
+			wantErr: false,
+		},
+		{
 			name: "profile has more containers than project",
 			projectEnts: serialized.Object(map[string]interface{}{
 				"com.apple.developer.icloud-container-identifiers": []interface{}{},
@@ -141,6 +153,15 @@ func Test_findMissingContainers(t *testing.T) {
 
 			want:    []string{"container1"},
 			wantErr: false,
+		},
+		{
+			name: "error check",
+			projectEnts: serialized.Object(map[string]interface{}{
+				"com.apple.developer.icloud-container-identifiers": "break",
+			}),
+
+			want:    nil,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
