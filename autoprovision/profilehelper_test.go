@@ -3,6 +3,9 @@ package autoprovision
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
+	"github.com/bitrise-io/xcode-project/serialized"
 	"github.com/bitrise-steplib/steps-ios-auto-provision/appstoreconnect"
 )
 
@@ -79,6 +82,76 @@ func Test_profileName(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("profileName() = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func Test_findMissingContainers(t *testing.T) {
+	tests := []struct {
+		name        string
+		projectEnts serialized.Object
+		profileEnts serialized.Object
+		want        []string
+		wantErr     bool
+	}{
+		{
+			name: "equal without container",
+			projectEnts: serialized.Object(map[string]interface{}{
+				"com.apple.developer.icloud-container-identifiers": []interface{}{},
+			}),
+			profileEnts: serialized.Object(map[string]interface{}{
+				"com.apple.developer.icloud-container-identifiers": []interface{}{},
+			}),
+
+			want:    nil,
+			wantErr: false,
+		},
+		{
+			name: "profile has more containers than project",
+			projectEnts: serialized.Object(map[string]interface{}{
+				"com.apple.developer.icloud-container-identifiers": []interface{}{},
+			}),
+			profileEnts: serialized.Object(map[string]interface{}{
+				"com.apple.developer.icloud-container-identifiers": []interface{}{"container1"},
+			}),
+
+			want:    nil,
+			wantErr: false,
+		},
+		{
+			name: "project has more containers than profile",
+			projectEnts: serialized.Object(map[string]interface{}{
+				"com.apple.developer.icloud-container-identifiers": []interface{}{"container1"},
+			}),
+			profileEnts: serialized.Object(map[string]interface{}{
+				"com.apple.developer.icloud-container-identifiers": []interface{}{},
+			}),
+
+			want:    []string{"container1"},
+			wantErr: false,
+		},
+		{
+			name: "project has containers but profile doesn't",
+			projectEnts: serialized.Object(map[string]interface{}{
+				"com.apple.developer.icloud-container-identifiers": []interface{}{"container1"},
+			}),
+			profileEnts: serialized.Object(map[string]interface{}{
+				"otherentitlement": "",
+			}),
+
+			want:    []string{"container1"},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := findMissingContainers(tt.projectEnts, tt.profileEnts)
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			require.Equal(t, got, tt.want)
 		})
 	}
 }

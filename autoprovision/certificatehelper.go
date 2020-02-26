@@ -2,7 +2,6 @@ package autoprovision
 
 import (
 	"crypto/x509"
-	"encoding/base64"
 	"fmt"
 	"math/big"
 	"strings"
@@ -116,12 +115,7 @@ func parseCertificatesResponse(response []appstoreconnect.Certificate) ([]APICer
 	var certifacteInfos []APICertificate
 	for _, resp := range response {
 		if resp.Type == "certificates" {
-			certificateData, err := base64.StdEncoding.DecodeString(resp.Attributes.CertificateContent)
-			if err != nil {
-				return nil, fmt.Errorf("failed to decode certificate content: %s", err)
-			}
-
-			cert, err := x509.ParseCertificate(certificateData)
+			cert, err := x509.ParseCertificate(resp.Attributes.CertificateContent)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse certificate: %s", err)
 			}

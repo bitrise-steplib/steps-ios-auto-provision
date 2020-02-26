@@ -440,7 +440,7 @@ func main() {
 
 				entitlements := autoprovision.Entitlement(entitlements)
 
-				bundleID, err = autoprovision.CreateBundleID(client, bundleIDIdentifier, entitlements)
+				bundleID, err = autoprovision.CreateBundleID(client, bundleIDIdentifier)
 				if err != nil {
 					failf("Failed to create bundle ID: %s", err)
 				}

@@ -79,7 +79,7 @@ func (t ProfileType) ReadableString() string {
 type ProfileAttributes struct {
 	Name           string           `json:"name"`
 	Platform       BundleIDPlatform `json:"platform"`
-	ProfileContent string           `json:"profileContent"`
+	ProfileContent []byte           `json:"profileContent"`
 	UUID           string           `json:"uuid"`
 	CreatedDate    string           `json:"createdDate"`
 	ProfileState   ProfileState     `json:"profileState"`

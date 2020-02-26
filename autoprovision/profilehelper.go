@@ -1,7 +1,6 @@
 package autoprovision
 
 import (
-	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -79,12 +78,7 @@ func checkProfileEntitlements(client *appstoreconnect.Client, prof appstoreconne
 }
 
 func parseRawProfileEntitlements(prof appstoreconnect.Profile) (serialized.Object, error) {
-	b, err := base64.StdEncoding.DecodeString(prof.Attributes.ProfileContent)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode profile content: %s", err)
-	}
-
-	pkcs, err := profileutil.ProvisioningProfileFromContent(b)
+	pkcs, err := profileutil.ProvisioningProfileFromContent(prof.Attributes.ProfileContent)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse pkcs7 from profile content: %s", err)
 	}
@@ -110,7 +104,7 @@ func findMissingContainers(projectEnts, profileEnts serialized.Object) ([]string
 	profContainerIDs, err := serialized.Object(profileEnts).StringSlice("com.apple.developer.icloud-container-identifiers")
 	if err != nil {
 		if serialized.IsKeyNotFoundError(err) {
-			return nil, fmt.Errorf("profile doesn't have any containers while the project expecting to have")
+			return projContainerIDs, nil
 		}
 		return nil, err
 	}
@@ -269,12 +263,8 @@ func WriteProfile(profile appstoreconnect.Profile) error {
 		return fmt.Errorf("failed to write profile to file, unsupported platform: (%s). Supported platforms: %s, %s", profile.Attributes.Platform, appstoreconnect.IOS, appstoreconnect.MacOS)
 	}
 
-	b, err := base64.StdEncoding.DecodeString(profile.Attributes.ProfileContent)
-	if err != nil {
-		return fmt.Errorf("failed to decode profile content: %s", err)
-	}
 	name := path.Join(profilesDir, profile.Attributes.UUID+ext)
-	if err := ioutil.WriteFile(name, b, 0600); err != nil {
+	if err := ioutil.WriteFile(name, profile.Attributes.ProfileContent, 0600); err != nil {
 		return fmt.Errorf("failed to write profile to file: %s", err)
 	}
 	return nil

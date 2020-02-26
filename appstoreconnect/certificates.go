@@ -32,7 +32,7 @@ const (
 
 // CertificateAttributes ...
 type CertificateAttributes struct {
-	CertificateContent string           `json:"certificateContent"`
+	CertificateContent []byte           `json:"certificateContent"`
 	DisplayName        string           `json:"displayName"`
 	ExpirationDate     string           `json:"expirationDate"`
 	Name               string           `json:"name"`
