@@ -94,6 +94,9 @@ func SyncBundleID(client *appstoreconnect.Client, bundleIDID string, entitlement
 		if err != nil {
 			return err
 		}
+		if cap == nil {
+			continue
+		}
 
 		body := appstoreconnect.BundleIDCapabilityCreateRequest{
 			Data: appstoreconnect.BundleIDCapabilityCreateRequestData{
@@ -127,7 +130,7 @@ func appIDName(bundleID string) string {
 }
 
 // CreateBundleID ...
-func CreateBundleID(client *appstoreconnect.Client, bundleIDIdentifier string, entitlements Entitlement) (*appstoreconnect.BundleID, error) {
+func CreateBundleID(client *appstoreconnect.Client, bundleIDIdentifier string) (*appstoreconnect.BundleID, error) {
 	appIDName := appIDName(bundleIDIdentifier)
 
 	r, err := client.Provisioning.CreateBundleID(

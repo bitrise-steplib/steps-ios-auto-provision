@@ -317,6 +317,8 @@ func main() {
 
 	bundleIDByBundleIDIdentifer := map[string]*appstoreconnect.BundleID{}
 
+	containersByBundleID := map[string][]string{}
+
 	for _, distrType := range distrTypes {
 		fmt.Println()
 		log.Infof("Checking %s provisioning profiles for %d bundle id(s)", distrType, len(entitlementsByBundleID))
@@ -442,12 +444,25 @@ func main() {
 			} else {
 				// Create BundleID
 				log.Warnf("  app ID not found, generating...")
-				bundleID, err = autoprovision.CreateBundleID(client, bundleIDIdentifier, autoprovision.Entitlement(entitlements))
+
+				entitlements := autoprovision.Entitlement(entitlements)
+
+				bundleID, err = autoprovision.CreateBundleID(client, bundleIDIdentifier)
 				if err != nil {
 					failf("Failed to create bundle ID: %s", err)
 				}
 
-				if err := autoprovision.SyncBundleID(client, bundleID.ID, autoprovision.Entitlement(entitlements)); err != nil {
+				containers, err := entitlements.ICloudContainers()
+				if err != nil {
+					failf("Failed to get list of iCloud containers: %s", err)
+				}
+
+				if len(containers) > 0 {
+					containersByBundleID[bundleIDIdentifier] = containers
+					log.Errorf("  app ID created but couldn't add iCloud containers: %v", containers)
+				}
+
+				if err := autoprovision.SyncBundleID(client, bundleID.ID, entitlements); err != nil {
 					failf("Failed to update bundle ID capabilities: %s", err)
 				}
 
@@ -467,6 +482,20 @@ func main() {
 			codesignSettings.ProfilesByBundleID[bundleIDIdentifier] = *profile
 			codesignSettingsByDistributionType[distrType] = codesignSettings
 		}
+	}
+
+	if len(containersByBundleID) > 0 {
+		fmt.Println()
+		log.Errorf("Unable to automatically assign iCloud containers to the following app IDs:")
+		fmt.Println()
+		for bundleID, containers := range containersByBundleID {
+			log.Warnf("%s, containers:", bundleID)
+			for _, container := range containers {
+				log.Warnf("- %s", container)
+			}
+			fmt.Println()
+		}
+		failf("You have to manually add the listed containers to your app ID at: https://developer.apple.com/account/resources/identifiers/list")
 	}
 
 	// Force Codesign Settings

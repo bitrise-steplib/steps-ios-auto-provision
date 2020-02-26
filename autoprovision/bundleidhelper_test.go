@@ -18,9 +18,10 @@ func Test_checkBundleIDEntitlements(t *testing.T) {
 			name:                 "Check known entitlements, which does not need to be registered on the Developer Portal",
 			bundleIDEntitlements: []appstoreconnect.BundleIDCapability{},
 			projectEntitlements: Entitlement(map[string]interface{}{
-				"keychain-access-groups":                           "",
-				"com.apple.developer.ubiquity-kvstore-identifier":  "",
-				"com.apple.developer.icloud-container-identifiers": "",
+				"keychain-access-groups":                             "",
+				"com.apple.developer.ubiquity-kvstore-identifier":    "",
+				"com.apple.developer.icloud-container-identifiers":   "",
+				"com.apple.developer.ubiquity-container-identifiers": "",
 			}),
 			want:    true,
 			wantErr: false,

@@ -76,8 +76,8 @@ func (e Entitlement) AppearsOnDeveloperPortal() bool {
 	}
 	entKey := serialized.Object(e).Keys()[0]
 
-	_, ok := appstoreconnect.ServiceTypeByKey[entKey]
-	return ok
+	capType, ok := appstoreconnect.ServiceTypeByKey[entKey]
+	return ok && capType != appstoreconnect.Ignored
 }
 
 // Equal ...
@@ -129,6 +129,24 @@ func (e Entitlement) iCloudServices() (iCloudDocuments, iCloudKit, keyValueStora
 	return
 }
 
+// ICloudContainers returns the list of iCloud containers
+func (e Entitlement) ICloudContainers() ([]string, error) {
+	usesDocuments, usesCloudKit, _, err := e.iCloudServices()
+	if err != nil && !serialized.IsKeyNotFoundError(err) {
+		return nil, err
+	}
+
+	if !usesCloudKit && !usesDocuments {
+		return nil, nil
+	}
+
+	containers, err := serialized.Object(e).StringSlice("com.apple.developer.icloud-container-identifiers")
+	if err != nil && !serialized.IsKeyNotFoundError(err) {
+		return nil, err
+	}
+	return containers, nil
+}
+
 // Capability ...
 func (e Entitlement) Capability() (*appstoreconnect.BundleIDCapability, error) {
 	if len(e) == 0 {
@@ -140,6 +158,10 @@ func (e Entitlement) Capability() (*appstoreconnect.BundleIDCapability, error) {
 	capType, ok := appstoreconnect.ServiceTypeByKey[entKey]
 	if !ok {
 		return nil, errors.New("unknown entitlement key: " + entKey)
+	}
+
+	if capType == appstoreconnect.Ignored {
+		return nil, nil
 	}
 
 	capSetts := []appstoreconnect.CapabilitySetting{}

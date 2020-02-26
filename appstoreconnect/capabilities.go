@@ -13,6 +13,7 @@ type CapabilityType string
 
 // CapabilityTypes ...
 const (
+	Ignored                        CapabilityType = "-ignored-"
 	ICloud                         CapabilityType = "ICLOUD"
 	InAppPurchase                  CapabilityType = "IN_APP_PURCHASE"
 	GameCenter                     CapabilityType = "GAME_CENTER"
@@ -79,6 +80,10 @@ var ServiceTypeByKey = map[string]CapabilityType{
 	"com.apple.developer.pass-type-identifiers":           Wallet,
 	"com.apple.external-accessory.wireless-configuration": WirelessAccessoryConfiguration,
 	"com.apple.developer.default-data-protection":         DataProtection,
+	"com.apple.developer.icloud-services":                 ICloud,
+	// does not appear on developer portal
+	"com.apple.developer.icloud-container-identifiers":   Ignored,
+	"com.apple.developer.ubiquity-container-identifiers": Ignored,
 }
 
 // CapabilitySettingAllowedInstances ...

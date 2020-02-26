@@ -43,9 +43,16 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0da8d1e78f162f482a17edc5a5ed1c97130eef9e584773dd01f32984d15c9de5"
+  digest = "1:25536a1adb812e180ba9cb88809206b2339b7e8a324f1e9bc41c1eb9a7c88cd1"
   name = "github.com/bitrise-io/go-xcode"
-  packages = ["certificateutil"]
+  packages = [
+    "certificateutil",
+    "exportoptions",
+    "models",
+    "plistutil",
+    "profileutil",
+    "utility",
+  ]
   pruneopts = "UT"
   revision = "95bf1e5fb205f81972e2450d227fa80748a5b322"
 
@@ -80,6 +87,14 @@
   pruneopts = "UT"
   revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
   version = "v3.2.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:0bd05495dbd0567480e48eac9e6602d87875a8747b13c3c0fcb7c83c7c921776"
+  name = "github.com/fullsailor/pkcs7"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "d7302db945fa6ea264fb79d8e13e931ea514a602"
 
 [[projects]]
   digest = "1:a63cff6b5d8b95638bfe300385d93b2a6d9d687734b863da8e09dc834510a690"
@@ -122,11 +137,12 @@
   version = "v0.2.0"
 
 [[projects]]
-  digest = "1:d43ea99f6c448b0660a10e93a259ed2988893d2ffa4eb4684014bf4fc4b64e04"
+  digest = "1:3a437a60a940e6d8193c3ce847ed98aa7f156ca5aa80e7a283bb9b3ca160c7ce"
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
     "mock",
+    "require",
   ]
   pruneopts = "UT"
   revision = "3ebf1ddaeb260c4b1ae502a01c7844fa8c1fa0e9"
@@ -178,6 +194,7 @@
     "github.com/bitrise-io/go-utils/retry",
     "github.com/bitrise-io/go-utils/sliceutil",
     "github.com/bitrise-io/go-xcode/certificateutil",
+    "github.com/bitrise-io/go-xcode/profileutil",
     "github.com/bitrise-io/xcode-project",
     "github.com/bitrise-io/xcode-project/serialized",
     "github.com/bitrise-io/xcode-project/xcodeproj",
@@ -187,6 +204,7 @@
     "github.com/hashicorp/go-version",
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/mock",
+    "github.com/stretchr/testify/require",
     "howett.net/plist",
   ]
   solver-name = "gps-cdcl"
