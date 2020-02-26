@@ -22,7 +22,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:66aaf6307c35e7075172d6281cebcb0af104fcad57144328e1052d422aba738d"
+  digest = "1:83c16d4a9923aeba249410b220cc4bce408a048ee621644b0027c3690d2b4ca5"
   name = "github.com/bitrise-io/go-utils"
   packages = [
     "colorstring",
@@ -39,11 +39,11 @@
     "sliceutil",
   ]
   pruneopts = "UT"
-  revision = "5067a2a682f21030f379f88e853b9e0734a24516"
+  revision = "e212188d99b41373b4ff8b69e7b1f677bc427bde"
 
 [[projects]]
   branch = "master"
-  digest = "1:3edb163285b778c93709d67703c668fa2a67a79c5f82cc194732311e8c368a4d"
+  digest = "1:25536a1adb812e180ba9cb88809206b2339b7e8a324f1e9bc41c1eb9a7c88cd1"
   name = "github.com/bitrise-io/go-xcode"
   packages = [
     "certificateutil",
@@ -54,11 +54,11 @@
     "utility",
   ]
   pruneopts = "UT"
-  revision = "19cbfe6430acc193d779847a13be0b8585d866c1"
+  revision = "95bf1e5fb205f81972e2450d227fa80748a5b322"
 
 [[projects]]
   branch = "master"
-  digest = "1:96dce0e947311f3985d20c3f368e71a4d281c916d3e3b85566f867f4a22980a3"
+  digest = "1:85c502298a8078ffdfee516cfb59bb5272c3adca032d1d26001da41042275851"
   name = "github.com/bitrise-io/xcode-project"
   packages = [
     ".",
@@ -70,7 +70,7 @@
     "xcworkspace",
   ]
   pruneopts = "UT"
-  revision = "a4e01d69cacc7dd9acbe8fb987dba69c9ce01b1c"
+  revision = "389cf29e41c71dc02c83959c6fac72e8d476766a"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -164,11 +164,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c10265d5a71326618d37e97169eddb3582f78e8ac7dcf87403b4cf619efd519a"
+  digest = "1:bc88f8258129a6b4eaf52d8095b3f0bcf68e065aca273aaf6ee7d3c7e464c510"
   name = "howett.net/plist"
   packages = ["."]
   pruneopts = "UT"
-  revision = "591f970eefbbeb04d7b37f334a0c4c3256e32876"
+  revision = "77e249a2e2ba6362794925035a31bea61b902a1e"
 
 [solve-meta]
   analyzer-name = "dep"
