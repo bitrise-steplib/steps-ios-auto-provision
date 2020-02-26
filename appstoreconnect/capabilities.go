@@ -13,7 +13,7 @@ type CapabilityType string
 
 // CapabilityTypes ...
 const (
-	Ignored                        CapabilityType = ""
+	Ignored                        CapabilityType = "-ignored-"
 	ICloud                         CapabilityType = "ICLOUD"
 	InAppPurchase                  CapabilityType = "IN_APP_PURCHASE"
 	GameCenter                     CapabilityType = "GAME_CENTER"
