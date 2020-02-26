@@ -55,22 +55,11 @@ func FindProfile(client *appstoreconnect.Client, profileType appstoreconnect.Pro
 }
 
 func checkProfileEntitlements(client *appstoreconnect.Client, prof appstoreconnect.Profile, projectEntitlements Entitlement) (bool, error) {
-	b, err := base64.StdEncoding.DecodeString(prof.Attributes.ProfileContent)
+	profileEnts, err := parseRawProfileEntitlements(prof)
 	if err != nil {
-		return false, fmt.Errorf("failed to decode profile content: %s", err)
+		return false, err
 	}
 
-	pkcs, err := profileutil.ProvisioningProfileFromContent(b)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse pkcs7 from profile content: %s", err)
-	}
-
-	profile, err := profileutil.NewProvisioningProfileInfo(*pkcs)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse profile info from pkcs7 content: %s", err)
-	}
-
-	profileEnts := serialized.Object(profile.Entitlements)
 	projectEnts := serialized.Object(projectEntitlements)
 
 	missingContainers, err := findMissingContainers(projectEnts, profileEnts)
@@ -86,8 +75,25 @@ func checkProfileEntitlements(client *appstoreconnect.Client, prof appstoreconne
 	if err != nil {
 		return false, err
 	}
-
 	return CheckBundleIDEntitlements(client, bundleIDresp.Data, projectEntitlements)
+}
+
+func parseRawProfileEntitlements(prof appstoreconnect.Profile) (serialized.Object, error) {
+	b, err := base64.StdEncoding.DecodeString(prof.Attributes.ProfileContent)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode profile content: %s", err)
+	}
+
+	pkcs, err := profileutil.ProvisioningProfileFromContent(b)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse pkcs7 from profile content: %s", err)
+	}
+
+	profile, err := profileutil.NewProvisioningProfileInfo(*pkcs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse profile info from pkcs7 content: %s", err)
+	}
+	return serialized.Object(profile.Entitlements), nil
 }
 
 func findMissingContainers(projectEnts, profileEnts serialized.Object) ([]string, error) {
