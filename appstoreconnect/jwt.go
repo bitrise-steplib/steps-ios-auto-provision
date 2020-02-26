@@ -13,6 +13,9 @@ import (
 // signToken signs the JWT token with the given .p8 private key content
 func signToken(token *jwt.Token, privateKeyContent []byte) (string, error) {
 	block, _ := pem.Decode(privateKeyContent)
+	if block == nil {
+		return "", errors.New("failed to parse private key as a PEM format")
+	}
 	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
 		return "", err

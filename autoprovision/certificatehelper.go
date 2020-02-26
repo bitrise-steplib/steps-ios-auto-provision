@@ -163,14 +163,9 @@ func GetValidCertificates(localCertificates []certificateutil.CertificateInfoMod
 
 	log.Debugf("Certificates required for Development: %t; Distribution: %t", requiredCertificateTypes[appstoreconnect.IOSDevelopment], requiredCertificateTypes[appstoreconnect.IOSDistribution])
 
-	for certificateType, requried := range requiredCertificateTypes {
-		if !requried {
-			continue
-		}
-
-		if len(typeToLocalCerts[certificateType]) == 0 {
+	for certificateType, required := range requiredCertificateTypes {
+		if required && len(typeToLocalCerts[certificateType]) == 0 {
 			return map[appstoreconnect.CertificateType][]APICertificate{}, MissingCertificateError{certificateType, teamID}
-
 		}
 	}
 
@@ -305,15 +300,6 @@ func mapCertsToTeams(certs []certificateutil.CertificateInfoModel) map[string][]
 	for _, c := range certs {
 		teamCerts := m[c.TeamID]
 		m[c.TeamID] = append(teamCerts, c)
-	}
-	return m
-}
-
-func mapCertsToNames(certs []certificateutil.CertificateInfoModel) map[string][]certificateutil.CertificateInfoModel {
-	m := map[string][]certificateutil.CertificateInfoModel{}
-	for _, c := range certs {
-		teamCerts := m[c.CommonName]
-		m[c.CommonName] = append(teamCerts, c)
 	}
 	return m
 }
