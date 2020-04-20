@@ -214,8 +214,30 @@ module Portal
           
           app = app.associate_cloud_containers(icloud_containers)
         end
-        
-        
+      end
+      
+      in_app_payment_identifiers = entitlements['com.apple.developer.in-app-payments']
+
+      unless in_app_payment_identifiers.to_a.empty?
+        Log.print('In App Payments: setting identifiers')
+        in_app_payment_merchants = []
+
+        in_app_payment_identifiers.to_a.each do |identifier|
+           identifier = identifier.gsub("$(CFBundleIdentifier)", app.bundle_id)
+           merchant = Spaceship::Portal.merchant.find(identifier)
+
+           if !merchant
+             merchant = Spaceship::Portal.merchant.create!(
+               bundle_id: identifier,
+               name: "Bitrise - " + identifier,
+               mac: false
+             )
+           end
+
+           in_app_payment_merchants.push(merchant)            
+        end
+
+        app = app.associate_merchants(in_app_payment_merchants)
       end
 
       app
