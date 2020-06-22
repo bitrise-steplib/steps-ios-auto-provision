@@ -218,7 +218,7 @@ module Portal
       Log.debug("Profile (#{profile.name}) does not contain certificate (#{certificate.name}) with details: #{certificate}")
       Log.debug("Profile (#{profile.name}) includes certificates:")
       profile.certificates.each do |portal_certificate|
-        Log.debug("#{portal_certificate}")
+        Log.debug(portal_certificate.to_s)
       end
       false
     end
