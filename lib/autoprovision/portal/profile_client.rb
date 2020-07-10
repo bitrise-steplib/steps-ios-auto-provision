@@ -85,7 +85,7 @@ module Portal
 
       raise [
         "Failed to find #{distribution_type} Xcode managed provisioning profile for bundle id: #{bundle_id}.",
-        'Please open your project in your local Xcode and generate and ipa file',
+        'Please open your project in your local Xcode and generate an ipa file',
         'with the desired distribution type and by using Xcode managed codesigning.',
         'This will create / refresh the desired managed profiles.'
       ].join("\n")
