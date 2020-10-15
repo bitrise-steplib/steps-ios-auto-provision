@@ -43,7 +43,7 @@ class ProjectHelper
         raise "build configuration (#{configuration_name}) not defined for target: #{@main_target.name}" unless configuration
       end
 
-      Log.warn("Using defined build configuration: #{configuration_name} instead of the scheme's default one: #{default_configuration_name}")
+      Log.warn("Using defined build configuration: #{configuration_name} instead of the scheme's default one (#{default_configuration_name})")
       @configuration_name = configuration_name
     end
 
