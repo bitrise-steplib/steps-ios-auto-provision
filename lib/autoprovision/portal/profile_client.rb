@@ -85,7 +85,7 @@ module Portal
 
       raise [
         "Failed to find #{distribution_type} Xcode managed provisioning profile for bundle id: #{bundle_id}.",
-        'Please open your project in your local Xcode and generate and ipa file',
+        'Please open your project in your local Xcode and generate an ipa file',
         'with the desired distribution type and by using Xcode managed codesigning.',
         'This will create / refresh the desired managed profiles.'
       ].join("\n")
@@ -215,7 +215,11 @@ module Portal
       profile.certificates.each do |portal_certificate|
         return true if portal_certificate.id == certificate.id
       end
-      Log.debug("Profile (#{profile.name}) does not contain certificate: #{certificate.name}")
+      Log.debug("Profile (#{profile.name}) does not contain certificate (#{certificate.name}) with details: #{certificate}")
+      Log.debug("Profile (#{profile.name}) includes certificates:")
+      profile.certificates.each do |portal_certificate|
+        Log.debug(portal_certificate.to_s)
+      end
       false
     end
 
