@@ -183,7 +183,7 @@ workflows:
   test_tvos_managed:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
-    - BRANCH: master
+    - BRANCH: xcode_managed
     - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
     - BITRISE_SCHEME: NPO Live
     - BITRISE_CONFIGURATION: 
@@ -196,7 +196,7 @@ workflows:
   test_tvos_development_managed:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
-    - BRANCH: master
+    - BRANCH: xcode_managed
     - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
     - BITRISE_SCHEME: NPO Live
     - BITRISE_CONFIGURATION: 
