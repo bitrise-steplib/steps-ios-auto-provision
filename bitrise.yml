@@ -184,6 +184,8 @@ workflows:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
     - BRANCH: xcode_managed
+    - BITRISE_CERTIFICATE_PASSPHRASE: $TVOS_MANAGED_DIST_PASSPHRASE
+    - BITRISE_CERTIFICATE_URL: $TVOS_MANAGED_DIST_CERT
     - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
     - BITRISE_SCHEME: NPO Live
     - BITRISE_CONFIGURATION: 
