@@ -72,8 +72,8 @@ workflows:
     - test_workspace
     - test_tvos
     - test_tvos_development
-    - test_tvos_managed
-    - test_tvos_development_managed
+    # - test_tvos_managed
+    # - test_tvos_development_managed
 
   test_new_certificates:
     title: Test new Apple Development and Distribution certificates
@@ -88,7 +88,7 @@ workflows:
     - BITRISE_CONFIGURATION: Release
     - DISTRIBUTION_TYPE: app-store
     - GENERATE_PROFILES: "yes"
-    - BITRISE_CERTIFICATE_PASSPHRASE: |
+    - BITRISE_CERTIFICATE_PASSPHRASE: $BITRISE_CERTIFICATE_PASSPHRASE
     - BITRISE_CERTIFICATE_URL: $BITRISEIO_DEVELOPMENT_AND_DISTRIBUTION_CERTIFICATES_URL
     after_run:
     - _common
@@ -183,7 +183,7 @@ workflows:
   test_tvos_managed:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
-    - BRANCH: master
+    - BRANCH: xcode_managed
     - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
     - BITRISE_SCHEME: NPO Live
     - BITRISE_CONFIGURATION: 
@@ -196,7 +196,7 @@ workflows:
   test_tvos_development_managed:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
-    - BRANCH: master
+    - BRANCH: xcode_managed
     - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
     - BITRISE_SCHEME: NPO Live
     - BITRISE_CONFIGURATION: 
