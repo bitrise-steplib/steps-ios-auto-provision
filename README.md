@@ -9,7 +9,7 @@ just `git clone` this repository, `cd` into it's folder in your Terminal/Command
 and call `bitrise run test`.
 
 *Check the `bitrise.yml` file for required inputs which have to be
-added to your `.bitrise.secrets.yml` file!*
+added to your `.bitrise.secrets.yml` file!*asdjasldlasdk
 
 Step by step:
 
