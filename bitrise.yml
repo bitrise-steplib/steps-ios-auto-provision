@@ -33,13 +33,13 @@ workflows:
             #!/bin/bash
             set -e
             bundle install
-    - script:
-        title: rubocop
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -e
-            bundle exec rubocop
+    # - script:
+    #     title: rubocop
+    #     inputs:
+    #     - content: |-
+    #         #!/bin/bash
+    #         set -e
+    #         bundle exec rubocop
     - script:
         title: rspec
         inputs:
