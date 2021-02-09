@@ -5,6 +5,7 @@ module Portal
   class AuthClient
     def self.login(username, password, two_factor_session = nil, team_id = nil)
       ENV['FASTLANE_SESSION'] = two_factor_session unless two_factor_session.to_s.empty?
+      ENV['SPACESHIP_SKIP_2FA_UPGRADE'] = '1'
 
       client = Spaceship::Portal.login(username, password)
 

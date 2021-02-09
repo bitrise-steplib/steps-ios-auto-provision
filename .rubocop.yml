@@ -3,3 +3,10 @@ inherit_from: .rubocop_todo.yml
 AllCops:
   Exclude:
     - '_tmp/**/*'
+
+Style/FrozenStringLiteralComment:
+  Enabled: False
+
+Style/NumericPredicate:
+  Exclude:
+    - 'lib/autoprovision/portal/profile_client.rb'
