@@ -26,6 +26,7 @@ module Portal
       portal_devices = fetch_devices(device_client)
 
       new_device_registered = false
+      valid_devices = []
       test_devices.each do |test_device|
         registered_test_device = nil
 
@@ -46,17 +47,19 @@ module Portal
             raise ex unless message
             raise message
           rescue
-            raise "Failed to register device with name: #{test_device.name} udid: #{test_device.udid}"
+            Log.warn("Failed to register device with name (udid invalid or Mac device): #{test_device.name} udid: #{test_device.udid}")
+            next
           end
 
           Log.success("registering test device #{registered_test_device.name} (#{registered_test_device.udid})")
         end
 
+        valid_devices = valid_devices.append(test_device)
         raise 'failed to find or create device' unless registered_test_device
       end
 
       Log.success("every test devices (#{test_devices.length}) registered on bitrise are registered on developer portal")
-      [new_device_registered, portal_devices]
+      valid_devices
     end
 
     def self.fetch_devices(device_client = Spaceship::Portal.device)
