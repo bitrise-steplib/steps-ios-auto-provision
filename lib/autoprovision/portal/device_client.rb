@@ -44,10 +44,10 @@ module Portal
             registered_test_device = device_client.create!(name: test_device.name, udid: test_device.udid)
           rescue Spaceship::Client::UnexpectedResponse => ex
             message = result_string(ex)
-            raise ex unless message
-            raise message
+            Log.warn("Failed to register device with name: #{test_device.name} udid: #{test_device.udid} error: #{message}")
+            next
           rescue
-            Log.warn("Failed to register device with name (udid invalid or Mac device): #{test_device.name} udid: #{test_device.udid}")
+            Log.warn("Failed to register device with name: #{test_device.name} udid: #{test_device.udid}")
             next
           end
 
