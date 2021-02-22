@@ -58,8 +58,8 @@ module Portal
         raise 'failed to find or create device' unless registered_test_device
       end
 
-      Log.success("every test devices (#{test_devices.length}) registered on bitrise are registered on developer portal")
-      valid_devices
+      Log.success("(#{valid_devices.length}) test devices registered on Bitrise are registered on developer portal")
+      valid_devices 
     end
 
     def self.fetch_devices(device_client = Spaceship::Portal.device)
