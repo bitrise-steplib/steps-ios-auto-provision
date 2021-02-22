@@ -59,7 +59,7 @@ module Portal
       end
 
       Log.success("(#{valid_devices.length}) test devices registered on Bitrise are registered on developer portal")
-      valid_devices 
+      valid_devices
     end
 
     def self.fetch_devices(device_client = Spaceship::Portal.device)
