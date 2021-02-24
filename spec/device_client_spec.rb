@@ -3,6 +3,15 @@ require_relative '../lib/autoprovision/device'
 require_relative '../log/log'
 
 RSpec.describe '.ensure_test_devices' do
+  it 'returns empty array for empty input' do
+    fake_portal_client = double
+    allow(fake_portal_client).to receive(:all).and_return(nil)
+
+    valid_devices = Portal::DeviceClient.ensure_test_devices([], fake_portal_client)
+
+    expect(valid_devices).to eq([])
+  end
+
   it 'it registers new device' do
     device = Device.new(
       'device_identifier' => '123456',
@@ -22,7 +31,7 @@ RSpec.describe '.ensure_test_devices' do
     expect(valid_devices).to eq([device])
   end
 
-  it 'supresses error due to invalid od mac device UDID' do
+  it 'supresses error due to invalid or mac device UDID' do
     existing_device = Device.new(
       'device_identifier' => '123456',
       'title' => 'Existing Device'

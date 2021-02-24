@@ -6,9 +6,11 @@ module Portal
   # DeviceClient ...
   class DeviceClient
     def self.ensure_test_devices(test_devices, device_client = Spaceship::Portal.device)
+      valid_devices = []
       if test_devices.to_a.empty?
         Log.success('No test devices registered on Bitrise.')
-        return
+
+        valid_devices
       end
 
       # Log the duplicated devices (by udid)
@@ -26,7 +28,6 @@ module Portal
       portal_devices = fetch_devices(device_client)
 
       new_device_registered = false
-      valid_devices = []
       test_devices.each do |test_device|
         registered_test_device = nil
 
