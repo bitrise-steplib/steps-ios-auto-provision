@@ -7,7 +7,7 @@ module Portal
   class DeviceClient
     def self.ensure_test_devices(test_devices, device_client = Spaceship::Portal.device)
       if test_devices.to_a.empty?
-        Log.success('no test devices registered on bitrise')
+        Log.success('No test devices registered on Bitrise.')
         return
       end
 
@@ -58,7 +58,7 @@ module Portal
         raise 'failed to find or create device' unless registered_test_device
       end
 
-      Log.success("(#{valid_devices.length}) test devices registered on Bitrise are registered on developer portal")
+      Log.success("#{valid_devices.length} Bitrise test devices are present on Apple Developer Portal.")
       valid_devices
     end
 
