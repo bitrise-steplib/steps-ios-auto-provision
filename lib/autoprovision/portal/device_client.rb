@@ -6,9 +6,11 @@ module Portal
   # DeviceClient ...
   class DeviceClient
     def self.ensure_test_devices(test_devices, device_client = Spaceship::Portal.device)
+      valid_devices = []
       if test_devices.to_a.empty?
-        Log.success('no test devices registered on bitrise')
-        return
+        Log.success('No test devices registered on Bitrise.')
+
+        valid_devices
       end
 
       # Log the duplicated devices (by udid)
@@ -43,20 +45,22 @@ module Portal
             registered_test_device = device_client.create!(name: test_device.name, udid: test_device.udid)
           rescue Spaceship::Client::UnexpectedResponse => ex
             message = result_string(ex)
-            raise ex unless message
-            raise message
+            Log.warn("Failed to register device with name: #{test_device.name} udid: #{test_device.udid} error: #{message}")
+            next
           rescue
-            raise "Failed to register device with name: #{test_device.name} udid: #{test_device.udid}"
+            Log.warn("Failed to register device with name: #{test_device.name} udid: #{test_device.udid}")
+            next
           end
 
           Log.success("registering test device #{registered_test_device.name} (#{registered_test_device.udid})")
         end
 
+        valid_devices = valid_devices.append(test_device)
         raise 'failed to find or create device' unless registered_test_device
       end
 
-      Log.success("every test devices (#{test_devices.length}) registered on bitrise are registered on developer portal")
-      [new_device_registered, portal_devices]
+      Log.success("#{valid_devices.length} Bitrise test devices are present on Apple Developer Portal.")
+      valid_devices
     end
 
     def self.fetch_devices(device_client = Spaceship::Portal.device)
