@@ -81,7 +81,7 @@ workflows:
     - TEST_APP_BRANCH: master
     - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
     - BITRISE_SCHEME: ios-simple-objc
-    - IPA_EXPORT_METHOD: development
+    - IPA_EXPORT_METHOD: ad-hoc
     - GENERATE_PROFILES: "no"
     - TEAM_ID: $TEAM_ID
     - BITRISE_CERTIFICATE_URL: $BITRISE_CERTIFICATE_URL
@@ -112,5 +112,6 @@ workflows:
         - scheme: $BITRISE_SCHEME
         - verbose_log: "yes"
         - generate_profiles: $GENERATE_PROFILES
+        - configuration: Release
         # - keychain_path: $BITRISE_KEYCHAIN_PATH
         # - keychain_password: $BITRISE_KEYCHAIN_PASSWORD
