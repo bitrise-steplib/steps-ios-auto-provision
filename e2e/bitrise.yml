@@ -215,7 +215,7 @@ workflows:
           title: Xcode archive
           inputs:
             - export_method: $DISTRIBUTION_TYPE
-            - project_path: $BITRISE_PROJECT_PATH
+            - project_path: ./_tmp/$BITRISE_PROJECT_PATH
             - scheme: $BITRISE_SCHEME
             - configuration: $BITRISE_CONFIGURATION
             - output_tool: xcodebuild
