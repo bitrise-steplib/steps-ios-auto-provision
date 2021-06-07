@@ -82,7 +82,7 @@ workflows:
     - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
     - BITRISE_SCHEME: ios-simple-objc
     - IPA_EXPORT_METHOD: development
-    - GENERATE_PROFILES: "yes"
+    - GENERATE_PROFILES: "no"
     - TEAM_ID: $TEAM_ID
     - BITRISE_CERTIFICATE_URL: $BITRISE_CERTIFICATE_URL
     - BITRISE_CERTIFICATE_PASSPHRASE: $BITRISE_CERTIFICATE_PASSPHRASE
