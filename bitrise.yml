@@ -33,30 +33,30 @@ workflows:
 
   e2e_tests:
     steps:
-    # - script:
-    #     inputs:
-    #     - content: bitrise run test_new_certificates --config ./e2e/bitrise.yml
-    # - script:
-    #     inputs:
-    #     - content: bitrise run test_bundle_id --config ./e2e/bitrise.yml
-    # - script:
-    #     inputs:
-    #     - content: bitrise run test_xcode_managed --config ./e2e/bitrise.yml
-    # - script:
-    #     inputs:
-    #     - content: bitrise run test_xcode_managed_generate_enabled --config ./e2e/bitrise.yml
-    # - script:
-    #     inputs:
-    #     - content: bitrise run test_entitlements --config ./e2e/bitrise.yml
-    # - script:
-    #     inputs:
-    #     - content: bitrise run test_workspace --config ./e2e/bitrise.yml
-    # - script:
-    #     inputs:
-    #     - content: bitrise run test_tvos --config ./e2e/bitrise.yml
-    # - script:
-    #     inputs:
-    #     - content: bitrise run test_tvos_development --config ./e2e/bitrise.yml
+    - script:
+        inputs:
+        - content: bitrise run test_new_certificates --config ./e2e/bitrise.yml
+    - script:
+        inputs:
+        - content: bitrise run test_bundle_id --config ./e2e/bitrise.yml
+    - script:
+        inputs:
+        - content: bitrise run test_xcode_managed --config ./e2e/bitrise.yml
+    - script:
+        inputs:
+        - content: bitrise run test_xcode_managed_generate_enabled --config ./e2e/bitrise.yml
+    - script:
+        inputs:
+        - content: bitrise run test_entitlements --config ./e2e/bitrise.yml
+    - script:
+        inputs:
+        - content: bitrise run test_workspace --config ./e2e/bitrise.yml
+    - script:
+        inputs:
+        - content: bitrise run test_tvos --config ./e2e/bitrise.yml
+    - script:
+        inputs:
+        - content: bitrise run test_tvos_development --config ./e2e/bitrise.yml
     - script:
         inputs:
         - content: bitrise run test_tvos_managed --config ./e2e/bitrise.yml
@@ -76,8 +76,6 @@ workflows:
     - TEAM_ID: $TEAM_ID
     - BITRISE_CERTIFICATE_URL: $BITRISE_CERTIFICATE_URL
     - BITRISE_CERTIFICATE_PASSPHRASE: $BITRISE_CERTIFICATE_PASSPHRASE
-    # - BITRISE_KEYCHAIN_PATH: $BITRISE_KEYCHAIN_PATH
-    # - BITRISE_KEYCHAIN_PASSWORD: $BITRISE_KEYCHAIN_PASSWORD
     steps:
     - script:
         inputs:
@@ -102,5 +100,3 @@ workflows:
         - scheme: $BITRISE_SCHEME
         - verbose_log: "yes"
         - generate_profiles: $GENERATE_PROFILES
-        # - keychain_path: $BITRISE_KEYCHAIN_PATH
-        # - keychain_password: $BITRISE_KEYCHAIN_PASSWORD
