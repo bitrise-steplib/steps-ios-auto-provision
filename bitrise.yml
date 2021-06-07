@@ -33,39 +33,40 @@ workflows:
 
   e2e_tests:
     steps:
-    - test_new_certificates:
+    - bitrise-run:
         run_if: '{{enveq "BITRISEIO_STACK_ID" "osx-xcode-11.7.x"}}'
         inputs:
-        - workflow_id: test_app_clip
+        - workflow_id: test_new_certificates
         - bitrise_config_path: ./e2e/bitrise.yml
-    - bitrise-run:
-        inputs:
-        - workflow_id: test_bundle_id
-        - bitrise_config_path: ./e2e/bitrise.yml
-    - bitrise-run:
-        inputs:
-        - workflow_id: test_xcode_managed
-        - bitrise_config_path: ./e2e/bitrise.yml
-    - bitrise-run:
-        inputs:
-        - workflow_id: test_xcode_managed_generate_enabled
-        - bitrise_config_path: ./e2e/bitrise.yml
-    - bitrise-run:
-        inputs:
-        - workflow_id: test_entitlements
-        - bitrise_config_path: ./e2e/bitrise.yml
-    - bitrise-run:
-        inputs:
-        - workflow_id: test_workspace
-        - bitrise_config_path: ./e2e/bitrise.yml
-    - bitrise-run:
-        inputs:
-        - workflow_id: test_tvos
-        - bitrise_config_path: ./e2e/bitrise.yml
-    - bitrise-run:
-        inputs:
-        - workflow_id: test_tvos_development
-        - bitrise_config_path: ./e2e/bitrise.yml
+    # - bitrise-run:
+    #     inputs:
+    #     - workflow_id: test_bundle_id
+    #     - bitrise_config_path: ./e2e/bitrise.yml
+    # - bitrise-run:
+    #     inputs:
+    #     - workflow_id: test_xcode_managed
+    #     - bitrise_config_path: ./e2e/bitrise.yml
+    # - bitrise-run:
+    #     inputs:
+    #     - workflow_id: test_xcode_managed_generate_enabled
+    #     - bitrise_config_path: ./e2e/bitrise.yml
+    # - bitrise-run:
+    #     inputs:
+    #     - workflow_id: test_entitlements
+    #     - bitrise_config_path: ./e2e/bitrise.yml
+    # - bitrise-run:
+    #     inputs:
+    #     - workflow_id: test_workspace
+    #     - bitrise_config_path: ./e2e/bitrise.yml
+    # - bitrise-run:
+    #     inputs:
+    #     - workflow_id: test_tvos
+    #     - bitrise_config_path: ./e2e/bitrise.yml
+    # - bitrise-run:
+    #     inputs:
+    #     - workflow_id: test_tvos_development
+    #     - bitrise_config_path: ./e2e/bitrise.yml
+
     # - bitrise-run:
     #     inputs:
     #     - workflow_id: test_tvos_managed
