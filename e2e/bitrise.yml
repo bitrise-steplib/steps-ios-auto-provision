@@ -21,30 +21,29 @@ workflows:
     envs:
     - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
     - TEST_APP_BRANCH: new-certificates
-    - BITRISE_PROJECT_PATH: ./_tmp/ios-simple-objc/ios-simple-objc.xcodeproj
+    - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
     - BITRISE_SCHEME: ios-simple-objc
     - BITRISE_CONFIGURATION: Release
     - DISTRIBUTION_TYPE: app-store
     - GENERATE_PROFILES: "yes"
-    - BITRISE_CERTIFICATE_PASSPHRASE: $BITRISE_CERTIFICATE_PASSPHRASE
     after_run:
     - _run
     - _check_outputs
     - _check_xcode_archive
 
-  # test_bundle_id:
-  #   envs:
-  #   - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
-  #   - BRANCH: bundle_id
-  #   - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
-  #   - BITRISE_SCHEME: ios-simple-objc
-  #   - BITRISE_CONFIGURATION: Release
-  #   - DISTRIBUTION_TYPE: ad-hoc
-  #   - GENERATE_PROFILES: "yes"
-  #   after_run:
-  #   - _run
-  #   - _check_outputs
-  #   - _check_xcode_archive
+  test_bundle_id:
+    envs:
+    - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
+    - TEST_APP_BRANCH: bundle_id
+    - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
+    - BITRISE_SCHEME: ios-simple-objc
+    - BITRISE_CONFIGURATION: Release
+    - DISTRIBUTION_TYPE: ad-hoc
+    - GENERATE_PROFILES: "yes"
+    after_run:
+    - _run
+    - _check_outputs
+    - _check_xcode_archive
 
   # test_xcode_managed:
   #   envs:
@@ -183,13 +182,13 @@ workflows:
         title: Step Test
         run_if: true
         inputs:
-        # - build_url: $BITRISE_BUILD_URL
-        # - build_api_token: $BITRISE_BUILD_API_TOKEN
-        - certificate_urls: $BITRISE_CERTIFICATE_URL
-        - passphrases: $BITRISE_CERTIFICATE_PASSPHRASE
+        - build_url: $BITRISE_BUILD_URL
+        - build_api_token: $BITRISE_BUILD_API_TOKEN
+        - certificate_urls: $BITRISE_CERTIFICATE_URL_LIST
+        - passphrases: $BITRISE_CERTIFICATE_PASSPHRASE_LIST
         - team_id: $TEAM_ID
         - distribution_type: $DISTRIBUTION_TYPE
-        - project_path: $BITRISE_PROJECT_PATH
+        - project_path: ./_tmp/$BITRISE_PROJECT_PATH
         - scheme: $BITRISE_SCHEME
         - configuration: $BITRISE_CONFIGURATION
         - generate_profiles: $GENERATE_PROFILES
