@@ -21,7 +21,7 @@ workflows:
     envs:
     - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
     - TEST_APP_BRANCH: new-certificates
-    - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
+    - BITRISE_PROJECT_PATH: ./_tmp/ios-simple-objc/ios-simple-objc.xcodeproj
     - BITRISE_SCHEME: ios-simple-objc
     - BITRISE_CONFIGURATION: Release
     - DISTRIBUTION_TYPE: app-store
@@ -183,8 +183,8 @@ workflows:
         title: Step Test
         run_if: true
         inputs:
-        - build_url: $BITRISE_BUILD_URL
-        - build_api_token: $BITRISE_BUILD_API_TOKEN
+        # - build_url: $BITRISE_BUILD_URL
+        # - build_api_token: $BITRISE_BUILD_API_TOKEN
         - certificate_urls: $BITRISE_CERTIFICATE_URL
         - passphrases: $BITRISE_CERTIFICATE_PASSPHRASE
         - team_id: $TEAM_ID
