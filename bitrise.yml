@@ -33,11 +33,9 @@ workflows:
 
   e2e_tests:
     steps:
-    - bitrise-run:
-        run_if: '{{enveq "BITRISEIO_STACK_ID" "osx-xcode-11.7.x"}}'
+    - script:
         inputs:
-        - workflow_id: test_new_certificates
-        - bitrise_config_path: ./e2e/bitrise.yml
+        - content: bitrise run test_new_certificates --config ./e2e/bitrise.yml
     # - bitrise-run:
     #     inputs:
     #     - workflow_id: test_bundle_id
