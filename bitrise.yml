@@ -1,30 +1,13 @@
-format_version: 9
+format_version: 11
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
-app:
-  envs:
-  # If you want to share this step into a StepLib
-  - BITRISE_STEP_ID: ios-auto-provision
-  - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/steps-ios-auto-provision.git
-  - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
-
-  # An example secret param, define it (A_SECRET_PARAM) in .bitrise.secrets.yml
-  - BITRISE_BUILD_URL: $BITRISE_BUILD_URL
-  - BITRISE_BUILD_API_TOKEN: $BITRISE_BUILD_API_TOKEN
-  - BITRISE_CERTIFICATE_URL: $BITRISE_CERTIFICATE_URL
-  - BITRISE_CERTIFICATE_PASSPHRASE: $BITRISE_CERTIFICATE_PASSPHRASE
-  - TEAM_ID: $TEAM_ID
-  - BITRISE_KEYCHAIN_PASSWORD: $BITRISE_KEYCHAIN_PASSWORD
-
-  - API_TOKEN: $API_TOKEN
-  - APP_SLUG: $APP_SLUG
-
-  - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
-
 workflows:
-  test:
-    before_run:
-    - audit-this-step
+  ci:
+    after_run:
+    - check
+    - e2e_tests
+
+  check:
     steps:
     - script:
         title: bundle install
@@ -47,291 +30,87 @@ workflows:
             #!/bin/bash
             set -e
             bundle exec rspec
-    - trigger-bitrise-workflow:
-        run_if: .IsCI
-        inputs:
-        - api_token: "$API_TOKEN"
-        - app_slug: "$APP_SLUG"
-        - workflow_id: test_entitlements
-    - trigger-bitrise-workflow:
-        run_if: .IsCI
-        inputs:
-        - api_token: "$API_TOKEN"
-        - app_slug: "$APP_SLUG"
-        - workflow_id: test_entitlements
-    - trigger-bitrise-workflow:
-        run_if: .IsCI
-        inputs:
-        - api_token: "$API_TOKEN"
-        - app_slug: "$APP_SLUG"
-        - workflow_id: test_entitlements
-    after_run:
-    - test_bundle_id
-    - test_xcode_managed
-    - test_xcode_managed_generate_enabled
-    - test_workspace
-    - test_tvos
-    - test_tvos_development
-    # - test_tvos_managed
-    # - test_tvos_development_managed
 
-  test_new_certificates:
-    title: Test new Apple Development and Distribution certificates
-    description: |-
-      Test only wired in on Bitrise.io, since this workflow needs to run on new Xcode 11 stack,  
-      while previous tests are running on stacks with lower Xcode version.
+  e2e_tests:
+    steps:
+    - test_new_certificates:
+        run_if: '{{enveq "BITRISEIO_STACK_ID" "osx-xcode-11.7.x"}}'
+        inputs:
+        - workflow_id: test_app_clip
+        - bitrise_config_path: ./e2e/bitrise.yml
+    - bitrise-run:
+        inputs:
+        - workflow_id: test_bundle_id
+        - bitrise_config_path: ./e2e/bitrise.yml
+    - bitrise-run:
+        inputs:
+        - workflow_id: test_xcode_managed
+        - bitrise_config_path: ./e2e/bitrise.yml
+    - bitrise-run:
+        inputs:
+        - workflow_id: test_xcode_managed_generate_enabled
+        - bitrise_config_path: ./e2e/bitrise.yml
+    - bitrise-run:
+        inputs:
+        - workflow_id: test_entitlements
+        - bitrise_config_path: ./e2e/bitrise.yml
+    - bitrise-run:
+        inputs:
+        - workflow_id: test_workspace
+        - bitrise_config_path: ./e2e/bitrise.yml
+    - bitrise-run:
+        inputs:
+        - workflow_id: test_tvos
+        - bitrise_config_path: ./e2e/bitrise.yml
+    - bitrise-run:
+        inputs:
+        - workflow_id: test_tvos_development
+        - bitrise_config_path: ./e2e/bitrise.yml
+    # - bitrise-run:
+    #     inputs:
+    #     - workflow_id: test_tvos_managed
+    #     - bitrise_config_path: ./e2e/bitrise.yml
+    # - bitrise-run:
+    #     inputs:
+    #     - workflow_id: test_tvos_development_managed
+    #     - bitrise_config_path: ./e2e/bitrise.yml
+
+  sample:
     envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
-    - BRANCH: new-certificates
+    - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
+    - TEST_APP_BRANCH: master
     - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
     - BITRISE_SCHEME: ios-simple-objc
-    - BITRISE_CONFIGURATION: Release
-    - DISTRIBUTION_TYPE: app-store
-    - GENERATE_PROFILES: "yes"
+    - IPA_EXPORT_METHOD: development
+    - TEAM_ID: $TEAM_ID
+    - GENERATE_PROFILES: $GENERATE_PROFILES
+    - BITRISE_CERTIFICATE_URL: $BITRISE_CERTIFICATE_URL
     - BITRISE_CERTIFICATE_PASSPHRASE: $BITRISE_CERTIFICATE_PASSPHRASE
-    - BITRISE_CERTIFICATE_URL: $BITRISEIO_DEVELOPMENT_AND_DISTRIBUTION_CERTIFICATES_URL
-    after_run:
-    - _common
-
-  test_bundle_id:
-    envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
-    - BRANCH: bundle_id
-    - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
-    - BITRISE_SCHEME: ios-simple-objc
-    - BITRISE_CONFIGURATION: Release
-    - DISTRIBUTION_TYPE: ad-hoc
-    - GENERATE_PROFILES: "yes"
-    after_run:
-    - _common
-
-  test_xcode_managed:
-    envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-ios-multi-target.git
-    - BRANCH: automatic
-    - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
-    - BITRISE_SCHEME: code-sign-test
-    - BITRISE_CONFIGURATION:
-    - DISTRIBUTION_TYPE: app-store
-    - GENERATE_PROFILES: "no"
-    after_run:
-    - _common
-
-  test_xcode_managed_generate_enabled:
-    envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-ios-multi-target.git
-    - BRANCH: automatic
-    - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
-    - BITRISE_SCHEME: code-sign-test
-    - BITRISE_CONFIGURATION: 
-    - DISTRIBUTION_TYPE: app-store
-    - GENERATE_PROFILES: "yes"
-    after_run:
-    - _common
-
-  test_entitlements:
-    envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-ios-multi-target.git
-    - BRANCH: entitlements
-    - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
-    - BITRISE_SCHEME: code-sign-test
-    - BITRISE_CONFIGURATION: 
-    - DISTRIBUTION_TYPE: app-store
-    - GENERATE_PROFILES: "yes"
-    after_run:
-    - _common
-
-  test_workspace:
-    envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-io/ios-cocoapods-minimal-sample.git
-    - BRANCH: master
-    - BITRISE_PROJECT_PATH: iOSMinimalCocoaPodsSample/iOSMinimalCocoaPodsSample.xcworkspace
-    - BITRISE_SCHEME: iOSMinimalCocoaPodsSample
-    - BITRISE_CONFIGURATION: 
-    - INSTALL_PODS: "true"
-    - DISTRIBUTION_TYPE: app-store
-    - GENERATE_PROFILES: "yes"
-    after_run:
-    - _common
-
-  test_tvos:
-    envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
-    - BRANCH: master
-    - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
-    - BITRISE_SCHEME: NPO Live
-    - BITRISE_CONFIGURATION: 
-    - INSTALL_PODS: "false"
-    - DISTRIBUTION_TYPE: app-store
-    - GENERATE_PROFILES: "yes"
-    after_run:
-    - _common
-
-  test_tvos_development:
-    envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
-    - BRANCH: master
-    - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
-    - BITRISE_SCHEME: NPO Live
-    - BITRISE_CONFIGURATION: 
-    - INSTALL_PODS: "false"
-    - DISTRIBUTION_TYPE: development
-    - GENERATE_PROFILES: "yes"
-    after_run:
-    - _common
-
-  test_tvos_managed:
-    envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
-    - BRANCH: xcode_managed
-    - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
-    - BITRISE_SCHEME: NPO Live
-    - BITRISE_CONFIGURATION: 
-    - INSTALL_PODS: "false"
-    - DISTRIBUTION_TYPE: app-store
-    - GENERATE_PROFILES: "no"
-    after_run:
-    - _common
-
-  test_tvos_development_managed:
-    envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
-    - BRANCH: xcode_managed
-    - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
-    - BITRISE_SCHEME: NPO Live
-    - BITRISE_CONFIGURATION: 
-    - INSTALL_PODS: "false"
-    - DISTRIBUTION_TYPE: development
-    - GENERATE_PROFILES: "no"
-    after_run:
-    - _common
-
-  _common:
+    - BITRISE_KEYCHAIN_PATH: $BITRISE_KEYCHAIN_PATH
+    - BITRISE_KEYCHAIN_PASSWORD: $BITRISE_KEYCHAIN_PASSWORD
     steps:
     - script:
-        title: Cleanup _tmp dir
         inputs:
         - content: |-
-            #!/bin/bash
-            set -ev
-            rm -rf "$ORIG_BITRISE_SOURCE_DIR/_tmp"
-            mkdir -p "$ORIG_BITRISE_SOURCE_DIR/_tmp"
-    - change-workdir:
-        title: Switch working dir to _tmp
+            #!/bin/env bash
+            set -ex
+            rm -rf ./_tmp
+    - git::https://github.com/bitrise-steplib/bitrise-step-simple-git-clone.git@master:
         inputs:
-        - path: $ORIG_BITRISE_SOURCE_DIR/_tmp
-        - is_create_path: "true"
-    - script:
-        title: Cleanup _tmp dir
-        inputs:
-        - content: |-
-            #!/bin/bash
-            git clone -b $BRANCH $SAMPLE_APP_URL .
-    - cocoapods-install:
-        run_if: '{{enveq "INSTALL_PODS" "true"}}'
-        title: CocoaPods install
+          - repository_url: $TEST_APP_URL
+          - branch: $TEST_APP_BRANCH
+          - clone_into_dir: ./_tmp
     - path::./:
         title: Step Test
         run_if: true
         inputs:
-        - build_url: $BITRISE_BUILD_URL
-        - build_api_token: $BITRISE_BUILD_API_TOKEN
         - certificate_urls: $BITRISE_CERTIFICATE_URL
         - passphrases: $BITRISE_CERTIFICATE_PASSPHRASE
         - team_id: $TEAM_ID
-        - distribution_type: $DISTRIBUTION_TYPE
-        - project_path: $BITRISE_PROJECT_PATH
+        - distribution_type: $IPA_EXPORT_METHOD
+        - project_path: ./_tmp/$BITRISE_PROJECT_PATH
         - scheme: $BITRISE_SCHEME
-        - configuration: $BITRISE_CONFIGURATION
         - verbose_log: "yes"
         - generate_profiles: $GENERATE_PROFILES
-    - script:
-        title: Output test
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -e
-            echo "BITRISE_EXPORT_METHOD: $BITRISE_EXPORT_METHOD"
-            echo "BITRISE_DEVELOPER_TEAM: $BITRISE_DEVELOPER_TEAM"
-            echo "BITRISE_DEVELOPMENT_CODESIGN_IDENTITY: $BITRISE_DEVELOPMENT_CODESIGN_IDENTITY"
-            echo "BITRISE_DEVELOPMENT_PROFILE: $BITRISE_DEVELOPMENT_PROFILE"
-            echo "BITRISE_PRODUCTION_CODESIGN_IDENTITY: $BITRISE_PRODUCTION_CODESIGN_IDENTITY"
-            echo "BITRISE_PRODUCTION_PROFILE: $BITRISE_PRODUCTION_PROFILE"
-
-            if [ "$BITRISE_EXPORT_METHOD" != "$DISTRIBUTION_TYPE" ]; then exit 1; fi
-    - xcode-archive:
-        title: Xcode archive
-        inputs:
-        - export_method: $DISTRIBUTION_TYPE
-        - project_path: $BITRISE_PROJECT_PATH
-        - scheme: $BITRISE_SCHEME
-        - configuration: $BITRISE_CONFIGURATION
-        - output_tool: xcodebuild
-    - deploy-to-bitrise-io:
-        inputs:
-        - notify_user_groups: none
-
-  # ----------------------------------------------------------------
-  # --- workflows to create Release
-  create-release:
-    steps:
-    - script:
-        title:
-        inputs:
-        - content: |
-            #!/bin/bash
-            set -ex
-            go get -u github.com/bitrise-tools/releaseman
-            export CI=true
-            releaseman create --version $BITRISE_STEP_VERSION
-    
-  # ----------------------------------------------------------------
-  # --- workflows to Share this step into a Step Library
-  audit-this-step:
-    steps:
-    - script:
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-            stepman audit --step-yml ./step.yml
-
-  share-this-step:
-    envs:
-      # if you want to share this step into a StepLib
-      - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
-      - BITRISE_STEP_ID: $BITRISE_STEP_ID
-      - BITRISE_STEP_VERSION: $BITRISE_STEP_VERSION
-      - BITRISE_STEP_GIT_CLONE_URL: $BITRISE_STEP_GIT_CLONE_URL
-    description: |-
-      If this is the first time you try to share a Step you should
-      first call: $ bitrise share
-
-      This will print you a guide, and information about how Step sharing
-      works. Please read it at least once!
-
-      As noted in the Step sharing guide you'll have to fork the
-      StepLib you want to share this step into. Once you're done with forking
-      the repository you should set your own fork's git clone URL
-      in the `.bitrise.secrets.yml` file, or here in the `envs` section,
-      as the value of the `MY_STEPLIB_REPO_FORK_GIT_URL` environment.
-
-      You're now ready to share this Step, just make sure that
-      the `BITRISE_STEP_ID` and `BITRISE_STEP_VERSION`
-      environments are set to the desired values!
-
-      To share this Step into a StepLib you can just run: $ bitrise run share-this-step
-
-      Once it finishes the only thing left is to actually create a Pull Request,
-      the way described in the guide printed at the end of the process.
-    before_run:
-    - audit-this-step
-    steps:
-    - script:
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-            bitrise share start -c "${MY_STEPLIB_REPO_FORK_GIT_URL}"
-            bitrise share create --stepid "${BITRISE_STEP_ID}" --tag "${BITRISE_STEP_VERSION}" --git "${BITRISE_STEP_GIT_CLONE_URL}"
-            bitrise share finish
+        - keychain_path: $BITRISE_KEYCHAIN_PATH
+        - keychain_password: $BITRISE_KEYCHAIN_PASSWORD
