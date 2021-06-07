@@ -3,14 +3,9 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
   envs:
-  # Shared test configs
-  # - TEAM_ID: $TEAM_ID
-
   # Shared test secrets
-  - BITRISE_KEYCHAIN_PASSWORD: $BITRISE_KEYCHAIN_PASSWORD
   - BITRISE_CERTIFICATE_URL_LIST: $BITRISE_CERTIFICATE_URL
   - BITRISE_CERTIFICATE_PASSPHRASE_LIST: $BITRISE_CERTIFICATE_PASSPHRASE
-  - BITRISE_PROVISIONING_PROFILE_URL_LIST: $BITRISE_PROVISIONING_PROFILE_URL
 
 workflows:
   test_new_certificates:

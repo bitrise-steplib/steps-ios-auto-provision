@@ -33,12 +33,12 @@ workflows:
 
   e2e_tests:
     steps:
-    # - script:
-    #     inputs:
-    #     - content: bitrise run test_new_certificates --config ./e2e/bitrise.yml
-    # - script:
-    #     inputs:
-    #     - content: bitrise run test_bundle_id --config ./e2e/bitrise.yml
+    - script:
+        inputs:
+        - content: bitrise run test_new_certificates --config ./e2e/bitrise.yml
+    - script:
+        inputs:
+        - content: bitrise run test_bundle_id --config ./e2e/bitrise.yml
     - script:
         inputs:
         - content: bitrise run test_xcode_managed --config ./e2e/bitrise.yml
