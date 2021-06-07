@@ -80,7 +80,7 @@ workflows:
     - TEST_APP_BRANCH: master
     - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
     - BITRISE_SCHEME: ios-simple-objc
-    - IPA_EXPORT_METHOD: development
+    - DISTRIBUTION_TYPE: development
     - GENERATE_PROFILES: "no"
     - TEAM_ID: $TEAM_ID
     - BITRISE_CERTIFICATE_URL: $BITRISE_CERTIFICATE_URL
@@ -106,7 +106,7 @@ workflows:
         - certificate_urls: $BITRISE_CERTIFICATE_URL
         - passphrases: $BITRISE_CERTIFICATE_PASSPHRASE
         - team_id: $TEAM_ID
-        - distribution_type: $IPA_EXPORT_METHOD
+        - distribution_type: $DISTRIBUTION_TYPE
         - project_path: ./_tmp/$BITRISE_PROJECT_PATH
         - scheme: $BITRISE_SCHEME
         - verbose_log: "yes"
