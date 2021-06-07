@@ -36,18 +36,34 @@ workflows:
     # - script:
     #     inputs:
     #     - content: bitrise run test_new_certificates --config ./e2e/bitrise.yml
+    # - script:
+    #     inputs:
+    #     - content: bitrise run test_bundle_id --config ./e2e/bitrise.yml
     - script:
         inputs:
-        - content: bitrise run test_bundle_id --config ./e2e/bitrise.yml
+        - content: bitrise run test_xcode_managed --config ./e2e/bitrise.yml
+    - script:
+        inputs:
+        - content: bitrise run test_xcode_managed_generate_enabled --config ./e2e/bitrise.yml
+    - script:
+        inputs:
+        - content: bitrise run test_entitlements --config ./e2e/bitrise.yml
+    - script:
+        inputs:
+        - content: bitrise run test_workspace --config ./e2e/bitrise.yml
+    - script:
+        inputs:
+        - content: bitrise run test_tvos --config ./e2e/bitrise.yml
+    - script:
+        inputs:
+        - content: bitrise run test_tvos_development --config ./e2e/bitrise.yml
+    - script:
+        inputs:
+        - content: bitrise run test_tvos_managed --config ./e2e/bitrise.yml
+    - script:
+        inputs:
+        - content: bitrise run test_tvos_development_managed --config ./e2e/bitrise.yml
 
-    # - bitrise-run:
-    #     inputs:
-    #     - workflow_id: test_tvos_managed
-    #     - bitrise_config_path: ./e2e/bitrise.yml
-    # - bitrise-run:
-    #     inputs:
-    #     - workflow_id: test_tvos_development_managed
-    #     - bitrise_config_path: ./e2e/bitrise.yml
 
   sample:
     envs:
