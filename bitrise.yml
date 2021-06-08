@@ -31,7 +31,11 @@ workflows:
             set -e
             bundle exec rspec
 
-  e2e_tests:
+  e2e:
+    steps:
+    - git::https://github.com/bitrise-steplib/steps-check.git:
+        inputs:
+        - workflow: e2e
     steps:
     - script:
         inputs:
