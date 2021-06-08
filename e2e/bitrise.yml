@@ -204,6 +204,7 @@ workflows:
                 echo "BITRISE_PRODUCTION_CODESIGN_IDENTITY: $BITRISE_PRODUCTION_CODESIGN_IDENTITY"
                 echo "BITRISE_PRODUCTION_PROFILE: $BITRISE_PRODUCTION_PROFILE"
                 if [ "$BITRISE_EXPORT_METHOD" != "$DISTRIBUTION_TYPE" ]; then exit 1; fi
+
   _check_xcode_archive:
     steps:
       - xcode-archive:
