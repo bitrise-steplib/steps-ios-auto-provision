@@ -9,6 +9,14 @@ app:
 
 workflows:
   test_new_certificates:
+    steps:
+    - bitrise-run:
+        run_if: '{{enveq "BITRISEIO_STACK_ID" "osx-xcode-11.7.x"}}'
+        inputs:
+        - workflow_id: utility_test_new_certificates
+        - bitrise_config_path: ./e2e/bitrise.yml
+
+  utility_test_new_certificates:
     title: Test new Apple Development and Distribution certificates
     description: |-
       This workflow requires Xcode 11 stack or above to run.
