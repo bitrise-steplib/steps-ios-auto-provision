@@ -6,7 +6,7 @@ app:
   # Shared test secrets
   - BITRISE_CERTIFICATE_URL_LIST: $BITRISE_CERTIFICATE_URL_LIST
   - BITRISE_CERTIFICATE_PASSPHRASE_LIST: $BITRISE_CERTIFICATE_PASSPHRASE_LIST
-  - TEAM_ID_BITFALL: $TEAM_ID_BITFALL
+  - BITFALL_APPLE_TEAM_ID: $BITFALL_APPLE_TEAM_ID
 
 workflows:
   test_new_certificates:
@@ -189,7 +189,7 @@ workflows:
         - build_api_token: $BITRISE_BUILD_API_TOKEN
         - certificate_urls: $BITRISE_CERTIFICATE_URL_LIST
         - passphrases: $BITRISE_CERTIFICATE_PASSPHRASE_LIST
-        - team_id: $TEAM_ID_BITFALL
+        - team_id: $BITFALL_APPLE_TEAM_ID
         - distribution_type: $DISTRIBUTION_TYPE
         - project_path: ./_tmp/$BITRISE_PROJECT_PATH
         - scheme: $BITRISE_SCHEME
