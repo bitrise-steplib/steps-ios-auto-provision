@@ -168,6 +168,13 @@ workflows:
   _run:
     steps:
     - script:
+        run_if: '{{enveq "BITRISEIO_STACK_ID" "osx-xcode-10.3.x"}}'
+        inputs:
+        - content: |-
+            #!/bin/env bash
+            set -ex
+            rbenv global 2.4
+    - script:
         inputs:
         - content: |-
             #!/bin/env bash
