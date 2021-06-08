@@ -11,8 +11,7 @@ workflows:
   test_new_certificates:
     title: Test new Apple Development and Distribution certificates
     description: |-
-      Test only wired in on Bitrise.io, since this workflow needs to run on new Xcode 11 stack,  
-      while previous tests are running on stacks with lower Xcode version.
+      This workflow requires Xcode 11 stack or above to run.
     envs:
     - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
     - TEST_APP_BRANCH: new-certificates
