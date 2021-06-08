@@ -173,8 +173,10 @@ workflows:
         - content: |-
             #!/bin/env bash
             set -ex
+            ruby -v
             rbenv install 2.4.0
             rbenv global 2.4.0
+            ruby -v
     - script:
         inputs:
         - content: |-
