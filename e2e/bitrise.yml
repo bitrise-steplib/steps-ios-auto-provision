@@ -4,8 +4,8 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 app:
   envs:
   # Shared test secrets
-  - BITRISE_CERTIFICATE_URL_LIST: $BITRISE_CERTIFICATE_URL_LIST
-  - BITRISE_CERTIFICATE_PASSPHRASE_LIST: $BITRISE_CERTIFICATE_PASSPHRASE_LIST
+  - IOS_APPLE_CERTIFICATE_URL_LIST: $IOS_APPLE_CERTIFICATE_URL_LIST
+  - IOS_APPLE_CERTIFICATE_PASSHRASE: $IOS_APPLE_CERTIFICATE_PASSHRASE
   - BITFALL_APPLE_TEAM_ID: $BITFALL_APPLE_TEAM_ID
 
 workflows:
@@ -167,16 +167,16 @@ workflows:
 
   _run:
     steps:
-    - script:
-        run_if: '{{enveq "BITRISEIO_STACK_ID" "osx-xcode-10.3.x"}}'
-        inputs:
-        - content: |-
-            #!/bin/env bash
-            set -ex
-            ruby -v
-            rbenv versions
-            rbenv global 2.4.5
-            ruby -v
+    # - script:
+    #     run_if: '{{enveq "BITRISEIO_STACK_ID" "osx-xcode-10.3.x"}}'
+    #     inputs:
+    #     - content: |-
+    #         #!/bin/env bash
+    #         set -ex
+    #         ruby -v
+    #         rbenv versions
+    #         rbenv global 2.4.5
+    #         ruby -v
     - script:
         inputs:
         - content: |-
@@ -197,8 +197,8 @@ workflows:
         inputs:
         - build_url: $BITRISE_BUILD_URL
         - build_api_token: $BITRISE_BUILD_API_TOKEN
-        - certificate_urls: $BITRISE_CERTIFICATE_URL_LIST
-        - passphrases: $BITRISE_CERTIFICATE_PASSPHRASE_LIST
+        - certificate_urls: $IOS_APPLE_CERTIFICATE_URL_LIST
+        - passphrases: $IOS_APPLE_CERTIFICATE_PASSHRASE
         - team_id: $BITFALL_APPLE_TEAM_ID
         - distribution_type: $DISTRIBUTION_TYPE
         - project_path: ./_tmp/$BITRISE_PROJECT_PATH
