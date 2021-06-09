@@ -143,48 +143,8 @@ workflows:
     - _check_outputs
     - _check_xcode_archive
 
-  test_tvos_managed:
-    envs:
-    - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
-    - TEST_APP_BRANCH: master
-    - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
-    - BITRISE_SCHEME: NPO Live
-    - BITRISE_CONFIGURATION: 
-    - INSTALL_PODS: "false"
-    - DISTRIBUTION_TYPE: app-store
-    - GENERATE_PROFILES: "no"
-    after_run:
-    - _run
-    - _check_outputs
-    - _check_xcode_archive
-
-  test_tvos_development_managed:
-    envs:
-    - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
-    - TEST_APP_BRANCH: master
-    - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
-    - BITRISE_SCHEME: NPO Live
-    - BITRISE_CONFIGURATION: 
-    - INSTALL_PODS: "false"
-    - DISTRIBUTION_TYPE: development
-    - GENERATE_PROFILES: "no"
-    after_run:
-    - _run
-    - _check_outputs
-    - _check_xcode_archive
-
   _run:
     steps:
-    # - script:
-    #     run_if: '{{enveq "BITRISEIO_STACK_ID" "osx-xcode-10.3.x"}}'
-    #     inputs:
-    #     - content: |-
-    #         #!/bin/env bash
-    #         set -ex
-    #         ruby -v
-    #         rbenv versions
-    #         rbenv global 2.4.5
-    #         ruby -v
     - script:
         inputs:
         - content: |-
