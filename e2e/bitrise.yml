@@ -91,6 +91,14 @@ workflows:
     - _check_xcode_archive
 
   test_workspace:
+    steps:
+    - bitrise-run:
+        run_if: '{{getenv "BITRISEIO_STACK_ID" | ne "osx-xcode-10.3.x"}}'
+        inputs:
+        - workflow_id: utility_test_workspace
+        - bitrise_config_path: ./e2e/bitrise.yml
+
+  utility_test_workspace:
     envs:
     - TEST_APP_URL: https://github.com/bitrise-io/ios-cocoapods-minimal-sample.git
     - TEST_APP_BRANCH: master
