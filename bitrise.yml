@@ -32,6 +32,7 @@ workflows:
             bundle exec rspec
 
   e2e:
+    run_if: '{{getenv "BITRISEIO_STACK_ID" | ne "osx-xcode-10.3.x"}}'
     steps:
     - git::https://github.com/bitrise-steplib/steps-check.git:
         inputs:
