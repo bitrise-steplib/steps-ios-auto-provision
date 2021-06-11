@@ -3,6 +3,7 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
   envs:
+  #test
   # Shared test configs
   - BITRISE_KEYCHAIN_PATH: $HOME/Library/Keychains/login.keychain
   # Shared test secrets
