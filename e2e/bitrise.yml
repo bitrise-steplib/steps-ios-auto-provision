@@ -16,7 +16,7 @@ workflows:
   test_new_certificates:
     steps:
     - bitrise-run:
-        run_if: '{{enveq "BITRISEIO_STACK_ID" "osx-xcode-11.7.x"}}'
+        run_if: '{{enveq "BITRISEIO_STACK_ID" "osx-xcode-12.5.x"}}'
         inputs:
         - workflow_id: utility_test_new_certificates
         - bitrise_config_path: ./e2e/bitrise.yml
@@ -118,6 +118,14 @@ workflows:
     - _check_xcode_archive
 
   test_tvos:
+    steps:
+    - bitrise-run:
+        run_if: '{{getenv "BITRISEIO_STACK_ID" | ne "osx-xcode-13.0.x"}}'
+        inputs:
+        - workflow_id: utility_test_tvos
+        - bitrise_config_path: ./e2e/bitrise.yml
+
+  utility_test_tvos:
     envs:
     - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
     - TEST_APP_BRANCH: master
@@ -133,6 +141,14 @@ workflows:
     - _check_xcode_archive
 
   test_tvos_development:
+    steps:
+    - bitrise-run:
+        run_if: '{{getenv "BITRISEIO_STACK_ID" | ne "osx-xcode-13.0.x"}}'
+        inputs:
+        - workflow_id: utility_test_tvos_development
+        - bitrise_config_path: ./e2e/bitrise.yml
+
+  utility_test_tvos_development:
     envs:
     - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
     - TEST_APP_BRANCH: master
@@ -142,36 +158,6 @@ workflows:
     - INSTALL_PODS: "false"
     - DISTRIBUTION_TYPE: development
     - GENERATE_PROFILES: "yes"
-    after_run:
-    - _run
-    - _check_outputs
-    - _check_xcode_archive
-
-  test_tvos_managed:
-    envs:
-    - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
-    - TEST_APP_BRANCH: master
-    - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
-    - BITRISE_SCHEME: NPO Live
-    - BITRISE_CONFIGURATION: 
-    - INSTALL_PODS: "false"
-    - DISTRIBUTION_TYPE: app-store
-    - GENERATE_PROFILES: "no"
-    after_run:
-    - _run
-    - _check_outputs
-    - _check_xcode_archive
-
-  test_tvos_development_managed:
-    envs:
-    - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
-    - TEST_APP_BRANCH: master
-    - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
-    - BITRISE_SCHEME: NPO Live
-    - BITRISE_CONFIGURATION: 
-    - INSTALL_PODS: "false"
-    - DISTRIBUTION_TYPE: development
-    - GENERATE_PROFILES: "no"
     after_run:
     - _run
     - _check_outputs
