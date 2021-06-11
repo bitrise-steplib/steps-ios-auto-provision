@@ -13,44 +13,44 @@ app:
   - BITFALL_APPLE_TEAM_ID: $BITFALL_APPLE_TEAM_ID
 
 workflows:
-  test_new_certificates:
-    steps:
-    - bitrise-run:
-        run_if: '{{enveq "BITRISEIO_STACK_ID" "osx-xcode-12.5.x"}}'
-        inputs:
-        - workflow_id: utility_test_new_certificates
-        - bitrise_config_path: ./e2e/bitrise.yml
+  # test_new_certificates:
+  #   steps:
+  #   - bitrise-run:
+  #       run_if: '{{enveq "BITRISEIO_STACK_ID" "osx-xcode-12.5.x"}}'
+  #       inputs:
+  #       - workflow_id: utility_test_new_certificates
+  #       - bitrise_config_path: ./e2e/bitrise.yml
 
-  utility_test_new_certificates:
-    title: Test new Apple Development and Distribution certificates
-    description: |-
-      This workflow requires Xcode 11 stack or above to run.
-    envs:
-    - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
-    - TEST_APP_BRANCH: new-certificates
-    - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
-    - BITRISE_SCHEME: ios-simple-objc
-    - BITRISE_CONFIGURATION: Release
-    - DISTRIBUTION_TYPE: app-store
-    - GENERATE_PROFILES: "yes"
-    after_run:
-    - _run
-    - _check_outputs
-    - _check_xcode_archive
+  # utility_test_new_certificates:
+  #   title: Test new Apple Development and Distribution certificates
+  #   description: |-
+  #     This workflow requires Xcode 11 stack or above to run.
+  #   envs:
+  #   - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
+  #   - TEST_APP_BRANCH: new-certificates
+  #   - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
+  #   - BITRISE_SCHEME: ios-simple-objc
+  #   - BITRISE_CONFIGURATION: Release
+  #   - DISTRIBUTION_TYPE: app-store
+  #   - GENERATE_PROFILES: "yes"
+  #   after_run:
+  #   - _run
+  #   - _check_outputs
+  #   - _check_xcode_archive
 
-  test_bundle_id:
-    envs:
-    - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
-    - TEST_APP_BRANCH: bundle_id
-    - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
-    - BITRISE_SCHEME: ios-simple-objc
-    - BITRISE_CONFIGURATION: Release
-    - DISTRIBUTION_TYPE: ad-hoc
-    - GENERATE_PROFILES: "yes"
-    after_run:
-    - _run
-    - _check_outputs
-    - _check_xcode_archive
+  # test_bundle_id:
+  #   envs:
+  #   - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
+  #   - TEST_APP_BRANCH: bundle_id
+  #   - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
+  #   - BITRISE_SCHEME: ios-simple-objc
+  #   - BITRISE_CONFIGURATION: Release
+  #   - DISTRIBUTION_TYPE: ad-hoc
+  #   - GENERATE_PROFILES: "yes"
+  #   after_run:
+  #   - _run
+  #   - _check_outputs
+  #   - _check_xcode_archive
 
   test_xcode_managed:
     envs:
@@ -66,102 +66,102 @@ workflows:
     - _check_outputs
     - _check_xcode_archive
 
-  test_xcode_managed_generate_enabled:
-    envs:
-    - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-multi-target.git
-    - TEST_APP_BRANCH: automatic
-    - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
-    - BITRISE_SCHEME: code-sign-test
-    - BITRISE_CONFIGURATION: 
-    - DISTRIBUTION_TYPE: app-store
-    - GENERATE_PROFILES: "yes"
-    after_run:
-    - _run
-    - _check_outputs
-    - _check_xcode_archive
+  # test_xcode_managed_generate_enabled:
+  #   envs:
+  #   - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-multi-target.git
+  #   - TEST_APP_BRANCH: automatic
+  #   - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
+  #   - BITRISE_SCHEME: code-sign-test
+  #   - BITRISE_CONFIGURATION: 
+  #   - DISTRIBUTION_TYPE: app-store
+  #   - GENERATE_PROFILES: "yes"
+  #   after_run:
+  #   - _run
+  #   - _check_outputs
+  #   - _check_xcode_archive
 
-  test_entitlements:
-    envs:
-    - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-multi-target.git
-    - TEST_APP_BRANCH: entitlements
-    - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
-    - BITRISE_SCHEME: code-sign-test
-    - BITRISE_CONFIGURATION: 
-    - DISTRIBUTION_TYPE: app-store
-    - GENERATE_PROFILES: "yes"
-    after_run:
-    - _run
-    - _check_outputs
-    - _check_xcode_archive
+  # test_entitlements:
+  #   envs:
+  #   - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-multi-target.git
+  #   - TEST_APP_BRANCH: entitlements
+  #   - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
+  #   - BITRISE_SCHEME: code-sign-test
+  #   - BITRISE_CONFIGURATION: 
+  #   - DISTRIBUTION_TYPE: app-store
+  #   - GENERATE_PROFILES: "yes"
+  #   after_run:
+  #   - _run
+  #   - _check_outputs
+  #   - _check_xcode_archive
 
-  test_workspace:
-    steps:
-    - bitrise-run:
-        run_if: '{{getenv "BITRISEIO_STACK_ID" | ne "osx-xcode-10.3.x"}}'
-        inputs:
-        - workflow_id: utility_test_workspace
-        - bitrise_config_path: ./e2e/bitrise.yml
+  # test_workspace:
+  #   steps:
+  #   - bitrise-run:
+  #       run_if: '{{getenv "BITRISEIO_STACK_ID" | ne "osx-xcode-10.3.x"}}'
+  #       inputs:
+  #       - workflow_id: utility_test_workspace
+  #       - bitrise_config_path: ./e2e/bitrise.yml
 
-  utility_test_workspace:
-    envs:
-    - TEST_APP_URL: https://github.com/bitrise-io/ios-cocoapods-minimal-sample.git
-    - TEST_APP_BRANCH: master
-    - BITRISE_PROJECT_PATH: iOSMinimalCocoaPodsSample/iOSMinimalCocoaPodsSample.xcworkspace
-    - BITRISE_SCHEME: iOSMinimalCocoaPodsSample
-    - BITRISE_CONFIGURATION: 
-    - INSTALL_PODS: "true"
-    - DISTRIBUTION_TYPE: app-store
-    - GENERATE_PROFILES: "yes"
-    after_run:
-    - _run
-    - _check_outputs
-    - _check_xcode_archive
+  # utility_test_workspace:
+  #   envs:
+  #   - TEST_APP_URL: https://github.com/bitrise-io/ios-cocoapods-minimal-sample.git
+  #   - TEST_APP_BRANCH: master
+  #   - BITRISE_PROJECT_PATH: iOSMinimalCocoaPodsSample/iOSMinimalCocoaPodsSample.xcworkspace
+  #   - BITRISE_SCHEME: iOSMinimalCocoaPodsSample
+  #   - BITRISE_CONFIGURATION: 
+  #   - INSTALL_PODS: "true"
+  #   - DISTRIBUTION_TYPE: app-store
+  #   - GENERATE_PROFILES: "yes"
+  #   after_run:
+  #   - _run
+  #   - _check_outputs
+  #   - _check_xcode_archive
 
-  test_tvos:
-    steps:
-    - bitrise-run:
-        run_if: '{{getenv "BITRISEIO_STACK_ID" | ne "osx-xcode-13.0.x"}}'
-        inputs:
-        - workflow_id: utility_test_tvos
-        - bitrise_config_path: ./e2e/bitrise.yml
+  # test_tvos:
+  #   steps:
+  #   - bitrise-run:
+  #       run_if: '{{getenv "BITRISEIO_STACK_ID" | ne "osx-xcode-13.0.x"}}'
+  #       inputs:
+  #       - workflow_id: utility_test_tvos
+  #       - bitrise_config_path: ./e2e/bitrise.yml
 
-  utility_test_tvos:
-    envs:
-    - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
-    - TEST_APP_BRANCH: master
-    - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
-    - BITRISE_SCHEME: NPO Live
-    - BITRISE_CONFIGURATION: 
-    - INSTALL_PODS: "false"
-    - DISTRIBUTION_TYPE: app-store
-    - GENERATE_PROFILES: "yes"
-    after_run:
-    - _run
-    - _check_outputs
-    - _check_xcode_archive
+  # utility_test_tvos:
+  #   envs:
+  #   - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
+  #   - TEST_APP_BRANCH: master
+  #   - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
+  #   - BITRISE_SCHEME: NPO Live
+  #   - BITRISE_CONFIGURATION: 
+  #   - INSTALL_PODS: "false"
+  #   - DISTRIBUTION_TYPE: app-store
+  #   - GENERATE_PROFILES: "yes"
+  #   after_run:
+  #   - _run
+  #   - _check_outputs
+  #   - _check_xcode_archive
 
-  test_tvos_development:
-    steps:
-    - bitrise-run:
-        run_if: '{{getenv "BITRISEIO_STACK_ID" | ne "osx-xcode-13.0.x"}}'
-        inputs:
-        - workflow_id: utility_test_tvos_development
-        - bitrise_config_path: ./e2e/bitrise.yml
+  # test_tvos_development:
+  #   steps:
+  #   - bitrise-run:
+  #       run_if: '{{getenv "BITRISEIO_STACK_ID" | ne "osx-xcode-13.0.x"}}'
+  #       inputs:
+  #       - workflow_id: utility_test_tvos_development
+  #       - bitrise_config_path: ./e2e/bitrise.yml
 
-  utility_test_tvos_development:
-    envs:
-    - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
-    - TEST_APP_BRANCH: master
-    - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
-    - BITRISE_SCHEME: NPO Live
-    - BITRISE_CONFIGURATION: 
-    - INSTALL_PODS: "false"
-    - DISTRIBUTION_TYPE: development
-    - GENERATE_PROFILES: "yes"
-    after_run:
-    - _run
-    - _check_outputs
-    - _check_xcode_archive
+  # utility_test_tvos_development:
+  #   envs:
+  #   - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-tvos-swift.git
+  #   - TEST_APP_BRANCH: master
+  #   - BITRISE_PROJECT_PATH: NPO Live.xcworkspace
+  #   - BITRISE_SCHEME: NPO Live
+  #   - BITRISE_CONFIGURATION: 
+  #   - INSTALL_PODS: "false"
+  #   - DISTRIBUTION_TYPE: development
+  #   - GENERATE_PROFILES: "yes"
+  #   after_run:
+  #   - _run
+  #   - _check_outputs
+  #   - _check_xcode_archive
 
   _run:
     steps:
