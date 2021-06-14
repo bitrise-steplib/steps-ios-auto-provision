@@ -9,7 +9,6 @@ app:
   - BITRISE_KEYCHAIN_PASSWORD: $BITRISE_KEYCHAIN_PASSWORD
   - IOS_APPLE_CERTIFICATE_URL_LIST: $IOS_APPLE_CERTIFICATE_URL_LIST
   - IOS_APPLE_CERTIFICATE_PASSHRASE: $IOS_APPLE_CERTIFICATE_PASSHRASE
-  - APPLE_PROVISIONING_PROFILE_URL_LIST: $APPLE_PROVISIONING_PROFILE_URL_LIST
   - BITFALL_APPLE_TEAM_ID: $BITFALL_APPLE_TEAM_ID
 
 workflows:
@@ -179,14 +178,6 @@ workflows:
     - cocoapods-install:
         run_if: '{{enveq "INSTALL_PODS" "true"}}'
         title: CocoaPods install
-    - certificate-and-profile-installer:
-        inputs:
-          - certificate_url: $IOS_APPLE_CERTIFICATE_URL_LIST
-          - certificate_passphrase: $IOS_APPLE_CERTIFICATE_PASSHRASE
-          - provisioning_profile_url: $APPLE_PROVISIONING_PROFILE_URL_LIST
-          - install_defaults: "no"
-          - keychain_path: $BITRISE_KEYCHAIN_PATH
-          - keychain_password: $BITRISE_KEYCHAIN_PASSWORD
     - path::./:
         title: Step Test
         run_if: true
