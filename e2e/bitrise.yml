@@ -63,29 +63,29 @@ workflows:
     - DISTRIBUTION_TYPE: app-store
     - GENERATE_PROFILES: "no"
     - EXPORT_OPTIONS: |-
-      <?xml version="1.0" encoding="UTF-8"?>
-      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-      <plist version="1.0">
-        <dict>
-          <key>method</key>
-          <string>app-store</string>
-          <key>provisioningProfiles</key>
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
           <dict>
-            <key>com.bitrise.code-sign-test</key>
-            <string>iOS Team Store Provisioning Profile: com.bitrise.code-sign-test</string>
-            <key>com.bitrise.code-sign-test.share-extension</key>
-            <string>iOS Team Store Provisioning Profile: com.bitrise.code-sign-test.share-extension</string>
-            <key>com.bitrise.code-sign-test.watchkitapp</key>
-            <string>iOS Team Store Provisioning Profile: com.bitrise.code-sign-test.watchkitapp</string>
-            <key>com.bitrise.code-sign-test.watchkitapp.watchkitextension</key>
-            <string>iOS Team Store Provisioning Profile: com.bitrise.code-sign-test.watchkitapp.watchkitextension</string>
+            <key>method</key>
+            <string>app-store</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.bitrise.code-sign-test</key>
+              <string>iOS Team Store Provisioning Profile: com.bitrise.code-sign-test</string>
+              <key>com.bitrise.code-sign-test.share-extension</key>
+              <string>iOS Team Store Provisioning Profile: com.bitrise.code-sign-test.share-extension</string>
+              <key>com.bitrise.code-sign-test.watchkitapp</key>
+              <string>iOS Team Store Provisioning Profile: com.bitrise.code-sign-test.watchkitapp</string>
+              <key>com.bitrise.code-sign-test.watchkitapp.watchkitextension</key>
+              <string>iOS Team Store Provisioning Profile: com.bitrise.code-sign-test.watchkitapp.watchkitextension</string>
+            </dict>
+            <key>signingCertificate</key>
+            <string>iPhone Distribution: BITFALL FEJLESZTO KORLATOLT FELELOSSEGU TARSASAG ([REDACTED])</string>
+            <key>teamID</key>
+            <string>[REDACTED]</string>
           </dict>
-          <key>signingCertificate</key>
-          <string>iPhone Distribution: BITFALL FEJLESZTO KORLATOLT FELELOSSEGU TARSASAG ([REDACTED])</string>
-          <key>teamID</key>
-          <string>[REDACTED]</string>
-        </dict>
-      </plist>
+        </plist>
     after_run:
     - _run
     - _check_outputs
