@@ -32,6 +32,7 @@ workflows:
     - BITRISE_CONFIGURATION: Release
     - DISTRIBUTION_TYPE: app-store
     - GENERATE_PROFILES: "yes"
+    - EXPORT_OPTIONS:
     after_run:
     - _run
     - _check_outputs
@@ -46,6 +47,7 @@ workflows:
     - BITRISE_CONFIGURATION: Release
     - DISTRIBUTION_TYPE: ad-hoc
     - GENERATE_PROFILES: "yes"
+    - EXPORT_OPTIONS:
     after_run:
     - _run
     - _check_outputs
@@ -60,6 +62,30 @@ workflows:
     - BITRISE_CONFIGURATION:
     - DISTRIBUTION_TYPE: app-store
     - GENERATE_PROFILES: "no"
+    - EXPORT_OPTIONS: |-
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+        <dict>
+          <key>method</key>
+          <string>app-store</string>
+          <key>provisioningProfiles</key>
+          <dict>
+            <key>com.bitrise.code-sign-test</key>
+            <string>iOS Team Store Provisioning Profile: com.bitrise.code-sign-test</string>
+            <key>com.bitrise.code-sign-test.share-extension</key>
+            <string>iOS Team Store Provisioning Profile: com.bitrise.code-sign-test.share-extension</string>
+            <key>com.bitrise.code-sign-test.watchkitapp</key>
+            <string>iOS Team Store Provisioning Profile: com.bitrise.code-sign-test.watchkitapp</string>
+            <key>com.bitrise.code-sign-test.watchkitapp.watchkitextension</key>
+            <string>iOS Team Store Provisioning Profile: com.bitrise.code-sign-test.watchkitapp.watchkitextension</string>
+          </dict>
+          <key>signingCertificate</key>
+          <string>iPhone Distribution: BITFALL FEJLESZTO KORLATOLT FELELOSSEGU TARSASAG ([REDACTED])</string>
+          <key>teamID</key>
+          <string>[REDACTED]</string>
+        </dict>
+      </plist>
     after_run:
     - _run
     - _check_outputs
@@ -74,6 +100,7 @@ workflows:
     - BITRISE_CONFIGURATION: 
     - DISTRIBUTION_TYPE: app-store
     - GENERATE_PROFILES: "yes"
+    - EXPORT_OPTIONS:
     after_run:
     - _run
     - _check_outputs
@@ -88,6 +115,7 @@ workflows:
     - BITRISE_CONFIGURATION: 
     - DISTRIBUTION_TYPE: app-store
     - GENERATE_PROFILES: "yes"
+    - EXPORT_OPTIONS:
     after_run:
     - _run
     - _check_outputs
@@ -111,6 +139,7 @@ workflows:
     - INSTALL_PODS: "true"
     - DISTRIBUTION_TYPE: app-store
     - GENERATE_PROFILES: "yes"
+    - EXPORT_OPTIONS:
     after_run:
     - _run
     - _check_outputs
@@ -134,6 +163,7 @@ workflows:
     - INSTALL_PODS: "false"
     - DISTRIBUTION_TYPE: app-store
     - GENERATE_PROFILES: "yes"
+    - EXPORT_OPTIONS:
     after_run:
     - _run
     - _check_outputs
@@ -157,6 +187,7 @@ workflows:
     - INSTALL_PODS: "false"
     - DISTRIBUTION_TYPE: development
     - GENERATE_PROFILES: "yes"
+    - EXPORT_OPTIONS:
     after_run:
     - _run
     - _check_outputs
@@ -220,6 +251,7 @@ workflows:
             - scheme: $BITRISE_SCHEME
             - configuration: $BITRISE_CONFIGURATION
             - output_tool: xcodebuild
+            - custom_export_options_plist_content: $EXPORT_OPTIONS
       - deploy-to-bitrise-io:
           inputs:
             - notify_user_groups: none
