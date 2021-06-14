@@ -252,6 +252,8 @@ workflows:
             - configuration: $BITRISE_CONFIGURATION
             - output_tool: xcodebuild
             - custom_export_options_plist_content: $EXPORT_OPTIONS
+            - team_id: $BITFALL_APPLE_TEAM_ID
+            - force_team_id: $BITFALL_APPLE_TEAM_ID
       - deploy-to-bitrise-io:
           inputs:
             - notify_user_groups: none
