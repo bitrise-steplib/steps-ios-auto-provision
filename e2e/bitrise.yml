@@ -1,0 +1,211 @@
+format_version: 11
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+
+app:
+  envs:
+  # Shared test configs
+  - BITRISE_KEYCHAIN_PATH: $HOME/Library/Keychains/login.keychain
+  # Shared test secrets
+  - BITRISE_KEYCHAIN_PASSWORD: $BITRISE_KEYCHAIN_PASSWORD
+  - IOS_APPLE_CERTIFICATE_URL_LIST: $IOS_APPLE_CERTIFICATE_URL_LIST
+  - IOS_APPLE_CERTIFICATE_PASSHRASE: $IOS_APPLE_CERTIFICATE_PASSHRASE
+  - BITFALL_APPLE_TEAM_ID: $BITFALL_APPLE_TEAM_ID
+
+workflows:
+  test_new_certificates:
+    steps:
+    - bitrise-run:
+        run_if: '{{enveq "BITRISEIO_STACK_ID" "osx-xcode-12.5.x"}}'
+        inputs:
+        - workflow_id: utility_test_new_certificates
+        - bitrise_config_path: ./e2e/bitrise.yml
+
+  utility_test_new_certificates:
+    title: Test new Apple Development and Distribution certificates
+    description: |-
+      This workflow requires Xcode 11 stack or above to run.
+    envs:
+    - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
+    - TEST_APP_BRANCH: new-certificates
+    - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
+    - BITRISE_SCHEME: ios-simple-objc
+    - BITRISE_CONFIGURATION: Release
+    - DISTRIBUTION_TYPE: app-store
+    - GENERATE_PROFILES: "yes"
+    - EXPORT_OPTIONS:
+    after_run:
+    - _run
+    - _check_outputs
+    - _check_xcode_archive
+
+  test_bundle_id:
+    envs:
+    - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
+    - TEST_APP_BRANCH: bundle_id
+    - BITRISE_PROJECT_PATH: ios-simple-objc/ios-simple-objc.xcodeproj
+    - BITRISE_SCHEME: ios-simple-objc
+    - BITRISE_CONFIGURATION: Release
+    - DISTRIBUTION_TYPE: ad-hoc
+    - GENERATE_PROFILES: "yes"
+    - EXPORT_OPTIONS:
+    after_run:
+    - _run
+    - _check_outputs
+    - _check_xcode_archive
+
+  test_xcode_managed:
+    envs:
+    - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-multi-target.git
+    - TEST_APP_BRANCH: automatic
+    - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
+    - BITRISE_SCHEME: code-sign-test
+    - BITRISE_CONFIGURATION:
+    - DISTRIBUTION_TYPE: app-store
+    - GENERATE_PROFILES: "no"
+    - EXPORT_OPTIONS: |-
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+            <dict>
+                <key>method</key>
+                <string>app-store</string>
+                <key>provisioningProfiles</key>
+                <dict>
+                    <key>com.bitrise.code-sign-test</key>
+                    <string>iOS Team Store Provisioning Profile: com.bitrise.code-sign-test</string>
+                    <key>com.bitrise.code-sign-test.share-extension</key>
+                    <string>iOS Team Store Provisioning Profile: com.bitrise.code-sign-test.share-extension</string>
+                    <key>com.bitrise.code-sign-test.watchkitapp</key>
+                    <string>iOS Team Store Provisioning Profile: com.bitrise.code-sign-test.watchkitapp</string>
+                    <key>com.bitrise.code-sign-test.watchkitapp.watchkitextension</key>
+                    <string>iOS Team Store Provisioning Profile: com.bitrise.code-sign-test.watchkitapp.watchkitextension</string>
+                </dict>
+                <key>signingCertificate</key>
+                <string>iPhone Distribution: BITFALL FEJLESZTO KORLATOLT FELELOSSEGU TARSASAG (72SA8V3WYL)</string>
+                <key>teamID</key>
+                <string>72SA8V3WYL</string>
+            </dict>
+        </plist>
+    after_run:
+    - _run
+    - _check_outputs
+    - _check_xcode_archive
+
+  test_xcode_managed_generate_enabled:
+    envs:
+    - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-multi-target.git
+    - TEST_APP_BRANCH: automatic
+    - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
+    - BITRISE_SCHEME: code-sign-test
+    - BITRISE_CONFIGURATION: 
+    - DISTRIBUTION_TYPE: app-store
+    - GENERATE_PROFILES: "yes"
+    - EXPORT_OPTIONS:
+    after_run:
+    - _run
+    - _check_outputs
+    - _check_xcode_archive
+
+  test_entitlements:
+    envs:
+    - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-multi-target.git
+    - TEST_APP_BRANCH: entitlements
+    - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
+    - BITRISE_SCHEME: code-sign-test
+    - BITRISE_CONFIGURATION: 
+    - DISTRIBUTION_TYPE: app-store
+    - GENERATE_PROFILES: "yes"
+    - EXPORT_OPTIONS:
+    after_run:
+    - _run
+    - _check_outputs
+    - _check_xcode_archive
+
+  test_workspace:
+    steps:
+    - bitrise-run:
+        run_if: '{{getenv "BITRISEIO_STACK_ID" | ne "osx-xcode-10.3.x"}}'
+        inputs:
+        - workflow_id: utility_test_workspace
+        - bitrise_config_path: ./e2e/bitrise.yml
+
+  utility_test_workspace:
+    envs:
+    - TEST_APP_URL: https://github.com/bitrise-io/ios-cocoapods-minimal-sample.git
+    - TEST_APP_BRANCH: master
+    - BITRISE_PROJECT_PATH: iOSMinimalCocoaPodsSample/iOSMinimalCocoaPodsSample.xcworkspace
+    - BITRISE_SCHEME: iOSMinimalCocoaPodsSample
+    - BITRISE_CONFIGURATION: 
+    - INSTALL_PODS: "true"
+    - DISTRIBUTION_TYPE: app-store
+    - GENERATE_PROFILES: "yes"
+    - EXPORT_OPTIONS:
+    after_run:
+    - _run
+    - _check_outputs
+    - _check_xcode_archive
+
+  _run:
+    steps:
+    - script:
+        inputs:
+        - content: |-
+            #!/bin/env bash
+            set -ex
+            rm -rf ./_tmp
+    - git::https://github.com/bitrise-steplib/bitrise-step-simple-git-clone.git:
+        inputs:
+          - repository_url: $TEST_APP_URL
+          - branch: $TEST_APP_BRANCH
+          - clone_into_dir: ./_tmp
+    - cocoapods-install:
+        run_if: '{{enveq "INSTALL_PODS" "true"}}'
+        title: CocoaPods install
+    - path::./:
+        title: Step Test
+        run_if: true
+        inputs:
+        - build_url: $BITRISE_BUILD_URL
+        - build_api_token: $BITRISE_BUILD_API_TOKEN
+        - certificate_urls: $IOS_APPLE_CERTIFICATE_URL_LIST
+        - passphrases: $IOS_APPLE_CERTIFICATE_PASSHRASE
+        - team_id: $BITFALL_APPLE_TEAM_ID
+        - distribution_type: $DISTRIBUTION_TYPE
+        - project_path: ./_tmp/$BITRISE_PROJECT_PATH
+        - scheme: $BITRISE_SCHEME
+        - configuration: $BITRISE_CONFIGURATION
+        - generate_profiles: $GENERATE_PROFILES
+        - verbose_log: "yes"
+
+  _check_outputs:
+    steps:
+      - script:
+          title: Output test
+          inputs:
+            - content: |-
+                #!/bin/bash
+                set -e
+                echo "BITRISE_EXPORT_METHOD: $BITRISE_EXPORT_METHOD"
+                echo "BITRISE_DEVELOPER_TEAM: $BITRISE_DEVELOPER_TEAM"
+                echo "BITRISE_DEVELOPMENT_CODESIGN_IDENTITY: $BITRISE_DEVELOPMENT_CODESIGN_IDENTITY"
+                echo "BITRISE_DEVELOPMENT_PROFILE: $BITRISE_DEVELOPMENT_PROFILE"
+                echo "BITRISE_PRODUCTION_CODESIGN_IDENTITY: $BITRISE_PRODUCTION_CODESIGN_IDENTITY"
+                echo "BITRISE_PRODUCTION_PROFILE: $BITRISE_PRODUCTION_PROFILE"
+                if [ "$BITRISE_EXPORT_METHOD" != "$DISTRIBUTION_TYPE" ]; then exit 1; fi
+
+  _check_xcode_archive:
+    steps:
+      - xcode-archive:
+          title: Xcode archive
+          inputs:
+            - export_method: $DISTRIBUTION_TYPE
+            - project_path: ./_tmp/$BITRISE_PROJECT_PATH
+            - scheme: $BITRISE_SCHEME
+            - configuration: $BITRISE_CONFIGURATION
+            - output_tool: xcodebuild
+            - custom_export_options_plist_content: $EXPORT_OPTIONS
+            - team_id: $BITFALL_APPLE_TEAM_ID
+            - force_team_id: $BITFALL_APPLE_TEAM_ID
+      - deploy-to-bitrise-io:
+          inputs:
+            - notify_user_groups: none
