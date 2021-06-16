@@ -9,7 +9,7 @@ app:
   - BITRISE_KEYCHAIN_PASSWORD: $BITRISE_KEYCHAIN_PASSWORD
   - IOS_APPLE_CERTIFICATE_URL_LIST: $IOS_APPLE_CERTIFICATE_URL_LIST
   - IOS_APPLE_CERTIFICATE_PASSHRASE: $IOS_APPLE_CERTIFICATE_PASSHRASE
-  - BITFALL_APPLE_TEAM_ID: $BITFALL_APPLE_TEAM_ID
+  - BITRISE_APPLE_TEAM_ID: $BITRISE_APPLE_TEAM_ID
 
 workflows:
   test_new_certificates:
@@ -169,7 +169,7 @@ workflows:
         - build_api_token: $BITRISE_BUILD_API_TOKEN
         - certificate_urls: $IOS_APPLE_CERTIFICATE_URL_LIST
         - passphrases: $IOS_APPLE_CERTIFICATE_PASSHRASE
-        - team_id: $BITFALL_APPLE_TEAM_ID
+        - team_id: $BITRISE_APPLE_TEAM_ID
         - distribution_type: $DISTRIBUTION_TYPE
         - project_path: ./_tmp/$BITRISE_PROJECT_PATH
         - scheme: $BITRISE_SCHEME
@@ -204,8 +204,8 @@ workflows:
             - configuration: $BITRISE_CONFIGURATION
             - output_tool: xcodebuild
             - custom_export_options_plist_content: $EXPORT_OPTIONS
-            - team_id: $BITFALL_APPLE_TEAM_ID
-            - force_team_id: $BITFALL_APPLE_TEAM_ID
+            - team_id: $BITRISE_APPLE_TEAM_ID
+            - force_team_id: $BITRISE_APPLE_TEAM_ID
       - deploy-to-bitrise-io:
           inputs:
             - notify_user_groups: none
