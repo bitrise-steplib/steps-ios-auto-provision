@@ -70,7 +70,7 @@ module Portal
       Log.debug("registering app: #{name} with bundle id: (#{bundle_id})")
 
       app = nil
-      run_and_handle_portal_function { app = Spaceship::Portal.app.create!(bundle_id: bundle_id, name: name) }
+      run_or_raise_preferred_error_message { app = Spaceship::Portal.app.create!(bundle_id: bundle_id, name: name) }
 
       raise "failed to create app with bundle id: #{bundle_id}" unless app
       app

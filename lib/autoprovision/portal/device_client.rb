@@ -42,7 +42,7 @@ module Portal
           begin
             registered_device = device_client.create!(name: test_device.name, udid: test_device.udid)
           rescue Spaceship::Client::UnexpectedResponse => ex
-            message = result_string(ex)
+            message = preferred_error_message(ex)
             Log.warn("Failed to register device with name: #{test_device.name} udid: #{test_device.udid} error: #{message}")
             next
           rescue
@@ -66,7 +66,7 @@ module Portal
 
     def self.fetch_registered_devices(device_client = Spaceship::Portal.device)
       devices = nil
-      run_and_handle_portal_function { devices = device_client.all(mac: false, include_disabled: true) || [] }
+      run_or_raise_preferred_error_message { devices = device_client.all(mac: false, include_disabled: true) || [] }
       devices
     end
   end

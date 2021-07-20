@@ -1,11 +1,11 @@
 require 'spaceship'
 
-def result_string(ex)
+def preferred_error_message(ex)
   ex.preferred_error_info&.join(' ') || ex.to_s
 end
 
-def run_and_handle_portal_function
+def run_or_raise_preferred_error_message
   yield
 rescue Spaceship::Client::UnexpectedResponse => ex
-  raise result_string(ex)
+  raise preferred_error_message(ex)
 end
