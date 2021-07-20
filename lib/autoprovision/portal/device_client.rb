@@ -54,7 +54,7 @@ module Portal
         end
 
         if %i[ios watchos].include?(platform)
-          valid_devices = valid_devices.append(test_device) if registered_device.device_type != 'tvOS'
+          valid_devices = valid_devices.append(test_device) if %w[watch ipad iphone ipod].include?(registered_device.device_type)
         elsif platform == :tvos
           valid_devices = valid_devices.append(test_device) if registered_device.device_type == 'tvOS'
         end
