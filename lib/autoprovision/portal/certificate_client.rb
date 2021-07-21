@@ -7,8 +7,8 @@ module Portal
   class CertificateClient
     def self.download_development_certificates
       development_certificates = []
-      run_and_handle_portal_function { development_certificates = Spaceship::Portal.certificate.development.all }
-      run_and_handle_portal_function { development_certificates.concat(Spaceship::Portal.certificate.apple_development.all) }
+      run_or_raise_preferred_error_message { development_certificates = Spaceship::Portal.certificate.development.all }
+      run_or_raise_preferred_error_message { development_certificates.concat(Spaceship::Portal.certificate.apple_development.all) }
 
       certificates = []
       development_certificates.each do |cert|
@@ -24,8 +24,8 @@ module Portal
 
     def self.download_production_certificates
       production_certificates = []
-      run_and_handle_portal_function { production_certificates = Spaceship::Portal.certificate.production.all }
-      run_and_handle_portal_function { production_certificates.concat(Spaceship::Portal.certificate.apple_distribution.all) }
+      run_or_raise_preferred_error_message { production_certificates = Spaceship::Portal.certificate.production.all }
+      run_or_raise_preferred_error_message { production_certificates.concat(Spaceship::Portal.certificate.apple_distribution.all) }
 
       certificates = []
       production_certificates.each do |cert|
@@ -37,7 +37,7 @@ module Portal
       end
 
       if production_certificates.to_a.empty?
-        run_and_handle_portal_function { production_certificates = Spaceship::Portal.certificate.in_house.all }
+        run_or_raise_preferred_error_message { production_certificates = Spaceship::Portal.certificate.in_house.all }
 
         production_certificates.each do |cert|
           if cert.can_download

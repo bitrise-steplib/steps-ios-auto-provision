@@ -126,7 +126,7 @@ module Portal
       begin
         Log.debug("generating profile: #{profile_name}")
         profile_class = portal_profile_class(distribution_type)
-        run_and_handle_portal_function { profile = profile_class.create!(bundle_id: app.bundle_id, certificate: certificate, name: profile_name, sub_platform: platform == :tvos ? 'tvOS' : nil) }
+        run_or_raise_preferred_error_message { profile = profile_class.create!(bundle_id: app.bundle_id, certificate: certificate, name: profile_name, sub_platform: platform == :tvos ? 'tvOS' : nil) }
       rescue => ex
         raise ex unless allow_retry
         raise ex unless ex.to_s =~ /Multiple profiles found with the name/i
@@ -249,7 +249,7 @@ module Portal
       return cached unless cached.to_a.empty?
 
       profiles = []
-      run_and_handle_portal_function { profiles = Spaceship::Portal.provisioning_profile.all(mac: false, xcode: xcode_managed) }
+      run_or_raise_preferred_error_message { profiles = Spaceship::Portal.provisioning_profile.all(mac: false, xcode: xcode_managed) }
       # Log.debug("all profiles (#{profiles.length}):")
       # profiles.each do |profile|
       #   Log.debug("#{profile.name}")
