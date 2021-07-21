@@ -88,7 +88,10 @@ begin
   Log.info('Ensure Provisioning Profiles on Developer Portal')
 
   profile_helper = ProfileHelper.new(project_helper, cert_helper)
-  xcode_managed_signing = profile_helper.ensure_profiles(params.distribution_type, valid_devices, params.generate_profiles == 'yes', params.min_profile_days_valid)
+  xcode_managed_signing = profile_helper.ensure_profiles(params.distribution_type,
+                                                         valid_devices,
+                                                         params.generate_profiles == 'yes',
+                                                         params.min_profile_days_valid)
   ###
 
   unless xcode_managed_signing
@@ -179,15 +182,15 @@ begin
 
   # restore SPACESHIP_AVOID_XCODE_API
   ENV['SPACESHIP_AVOID_XCODE_API'] = orig_spaceship_avoid_xcode_api
-rescue => ex
+rescue StandardError => e
   # restore SPACESHIP_AVOID_XCODE_API
   ENV['SPACESHIP_AVOID_XCODE_API'] = orig_spaceship_avoid_xcode_api
 
   puts
   Log.error('Error:')
-  Log.error(ex.to_s)
+  Log.error(e.to_s)
   puts
   Log.error('Stacktrace (for debugging):')
-  Log.error(ex.backtrace.join("\n").to_s)
+  Log.error(e.backtrace.join("\n").to_s)
   exit 1
 end

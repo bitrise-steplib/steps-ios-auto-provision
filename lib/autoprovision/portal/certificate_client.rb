@@ -8,7 +8,9 @@ module Portal
     def self.download_development_certificates
       development_certificates = []
       run_or_raise_preferred_error_message { development_certificates = Spaceship::Portal.certificate.development.all }
-      run_or_raise_preferred_error_message { development_certificates.concat(Spaceship::Portal.certificate.apple_development.all) }
+      run_or_raise_preferred_error_message do
+        development_certificates.concat(Spaceship::Portal.certificate.apple_development.all)
+      end
 
       certificates = []
       development_certificates.each do |cert|
@@ -24,8 +26,12 @@ module Portal
 
     def self.download_production_certificates
       production_certificates = []
-      run_or_raise_preferred_error_message { production_certificates = Spaceship::Portal.certificate.production.all }
-      run_or_raise_preferred_error_message { production_certificates.concat(Spaceship::Portal.certificate.apple_distribution.all) }
+      run_or_raise_preferred_error_message do
+        production_certificates = Spaceship::Portal.certificate.production.all
+      end
+      run_or_raise_preferred_error_message do
+        production_certificates.concat(Spaceship::Portal.certificate.apple_distribution.all)
+      end
 
       certificates = []
       production_certificates.each do |cert|

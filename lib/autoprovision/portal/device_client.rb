@@ -41,11 +41,11 @@ module Portal
         unless registered_device
           begin
             registered_device = device_client.create!(name: test_device.name, udid: test_device.udid)
-          rescue Spaceship::Client::UnexpectedResponse => ex
-            message = preferred_error_message(ex)
+          rescue Spaceship::Client::UnexpectedResponse => e
+            message = preferred_error_message(e)
             Log.warn("Failed to register device with name: #{test_device.name} udid: #{test_device.udid} error: #{message}")
             next
-          rescue
+          rescue StandardError
             Log.warn("Failed to register device with name: #{test_device.name} udid: #{test_device.udid}")
             next
           end
@@ -54,9 +54,10 @@ module Portal
         end
 
         if %i[ios watchos].include?(platform)
-          valid_devices = valid_devices.append(test_device) if %w[watch ipad iphone ipod].include?(registered_device.device_type)
+          is_ios_or_watchos_device = %w[watch ipad iphone ipod].include?(registered_device.device_type)
+          valid_devices.append(test_device) if is_ios_or_watchos_device
         elsif platform == :tvos
-          valid_devices = valid_devices.append(test_device) if registered_device.device_type == 'tvOS'
+          valid_devices.append(test_device) if registered_device.device_type == 'tvOS'
         end
       end
 

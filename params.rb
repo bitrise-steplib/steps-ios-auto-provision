@@ -1,22 +1,8 @@
 # Params
 class Params
-  attr_accessor :build_url
-  attr_accessor :build_api_token
-  attr_accessor :team_id
-  attr_accessor :certificate_urls_str
-  attr_accessor :passphrases_str
-  attr_accessor :distribution_type
-  attr_accessor :min_profile_days_valid
-  attr_accessor :project_path
-  attr_accessor :scheme
-  attr_accessor :configuration
-  attr_accessor :keychain_path
-  attr_accessor :keychain_password
-  attr_accessor :verbose_log
-  attr_accessor :generate_profiles
-
-  attr_accessor :certificate_urls
-  attr_accessor :passphrases
+  attr_accessor :build_url, :build_api_token, :team_id, :certificate_urls_str, :passphrases_str, :distribution_type,
+                :min_profile_days_valid, :project_path, :scheme, :configuration, :keychain_path, :keychain_password,
+                :verbose_log, :generate_profiles, :certificate_urls, :passphrases
 
   def initialize
     @build_url = ENV['build_url']
@@ -73,6 +59,7 @@ class Params
 
   def split_pipe_separated_list(list)
     return [''] if list.to_s.empty?
+
     list.split('|', -1)
   end
 end

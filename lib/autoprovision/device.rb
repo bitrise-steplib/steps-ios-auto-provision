@@ -1,7 +1,6 @@
 # Device
 class Device
-  attr_reader :udid
-  attr_reader :name
+  attr_reader :udid, :name
 
   def initialize(device_data)
     @udid = device_data['device_identifier'] || ''
@@ -33,12 +32,13 @@ class Device
 
   def self.filter_duplicated_devices(devices)
     return devices if devices.to_a.empty?
+
     devices.uniq { |device| device.udid.sub(/[^0-9A-Za-z]/, '') }
   end
 
   def self.duplicated_device_groups(devices)
     return devices if devices.to_a.empty?
-    groups = devices.group_by { |device| device.udid.sub(/[^0-9A-Za-z]/, '') }.values.select { |a| a.length > 1 }
-    groups
+
+    devices.group_by { |device| device.udid.sub(/[^0-9A-Za-z]/, '') }.values.select { |a| a.length > 1 }
   end
 end

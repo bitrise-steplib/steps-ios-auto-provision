@@ -3,7 +3,7 @@ require 'xcodeproj/plist'
 require 'tmpdir'
 require 'fileutils'
 
-require_relative '../lib/autoprovision/project_helper.rb'
+require_relative '../lib/autoprovision/project_helper'
 
 def recreate_shared_schemes(project)
   schemes_dir = Xcodeproj::XCScheme.user_data_dir(project.path)
@@ -24,7 +24,7 @@ def recreate_shared_schemes(project)
     xcschememanagement['SchemeUserState']["#{target.name}.xcscheme"]['isShown'] = true
   end
 
-  xcschememanagement_path = schemes_dir + 'xcschememanagement.plist'
+  xcschememanagement_path = "#{schemes_dir}xcschememanagement.plist"
   Xcodeproj::Plist.write_to_path(xcschememanagement, xcschememanagement_path)
 end
 

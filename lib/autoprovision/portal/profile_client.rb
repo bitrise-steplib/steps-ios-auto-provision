@@ -71,14 +71,15 @@ module Portal
             include_certificate?(profile, certificate) &&
             device_list_up_to_date?(profile, distribution_type, test_devices)
         end
-      rescue => ex
-        raise ex unless allow_retry
+      rescue StandardError => e
+        raise e unless allow_retry
 
-        Log.debug_exception(ex)
+        Log.debug_exception(e)
         Log.debug('failed to validate profiles, retrying in 2 sec ...')
         sleep(2)
         ProfileClient.clear_cache(true, platform)
-        return ProfileClient.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, certificate, platform, test_devices, min_profile_days_valid, false)
+        return ProfileClient.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, certificate,
+                                                          platform, test_devices, min_profile_days_valid, false)
       end
 
       return profiles.first unless profiles.empty?
@@ -106,14 +107,15 @@ module Portal
                             all_services_enabled?(profile, entitlements) &&
                             include_certificate?(profile, certificate) &&
                             device_list_up_to_date?(profile, distribution_type, test_devices)
-        rescue => ex
-          raise ex unless allow_retry
+        rescue StandardError => e
+          raise e unless allow_retry
 
-          Log.debug_exception(ex)
+          Log.debug_exception(e)
           Log.debug('failed to validate profile, retrying in 2 sec ...')
           sleep(2)
           ProfileClient.clear_cache(false, platform)
-          return ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, min_profile_days_valid, false, test_devices)
+          return ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform,
+                                                     min_profile_days_valid, false, test_devices)
         end
       end
 
@@ -126,17 +128,21 @@ module Portal
       begin
         Log.debug("generating profile: #{profile_name}")
         profile_class = portal_profile_class(distribution_type)
-        run_or_raise_preferred_error_message { profile = profile_class.create!(bundle_id: app.bundle_id, certificate: certificate, name: profile_name, sub_platform: platform == :tvos ? 'tvOS' : nil) }
-      rescue => ex
-        raise ex unless allow_retry
-        raise ex unless ex.to_s =~ /Multiple profiles found with the name/i
+        run_or_raise_preferred_error_message do
+          profile = profile_class.create!(bundle_id: app.bundle_id, certificate: certificate, name: profile_name,
+                                          sub_platform: platform == :tvos ? 'tvOS' : nil)
+        end
+      rescue StandardError => e
+        raise e unless allow_retry
+        raise e unless e.to_s =~ /Multiple profiles found with the name/i
 
         # The profile already exist, paralell step run can produce this issue
-        Log.debug_exception(ex)
+        Log.debug_exception(e)
         Log.debug('failed to generate the profile, retrying in 2 sec ...')
         sleep(2)
         ProfileClient.clear_cache(false, platform)
-        return ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, min_profile_days_valid, false, test_devices)
+        return ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform,
+                                                   min_profile_days_valid, false, test_devices)
       end
 
       raise "failed to find or create provisioning profile for bundle id: #{app.bundle_id}" unless profile
@@ -225,7 +231,7 @@ module Portal
 
     def self.device_list_up_to_date?(profile, distribution_type, test_devices)
       # check if the development and ad-hoc profile's device list is up to date
-      if ['development', 'ad-hoc'].include?(distribution_type) && !test_devices.to_a.nil?
+      if %w[development ad-hoc].include?(distribution_type) && !test_devices.to_a.nil?
         profile_device_udids = profile.devices.map(&:udid)
         test_device_udids = test_devices.map(&:udid)
 
@@ -249,7 +255,9 @@ module Portal
       return cached unless cached.to_a.empty?
 
       profiles = []
-      run_or_raise_preferred_error_message { profiles = Spaceship::Portal.provisioning_profile.all(mac: false, xcode: xcode_managed) }
+      run_or_raise_preferred_error_message do
+        profiles = Spaceship::Portal.provisioning_profile.all(mac: false, xcode: xcode_managed)
+      end
       # Log.debug("all profiles (#{profiles.length}):")
       # profiles.each do |profile|
       #   Log.debug("#{profile.name}")

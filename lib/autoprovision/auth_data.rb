@@ -2,10 +2,7 @@ require_relative 'device'
 
 # AuthData
 class AuthData
-  attr_reader :apple_id
-  attr_reader :password
-  attr_reader :session_cookies
-  attr_reader :test_devices
+  attr_reader :apple_id, :password, :session_cookies, :test_devices
 
   def initialize(auth_data)
     @apple_id = auth_data['apple_id']
@@ -14,12 +11,17 @@ class AuthData
 
     @test_devices = []
     test_devices_json = auth_data['test_devices']
-    test_devices_json.each { |device_data| @test_devices.push(Device.new(device_data)) } unless test_devices_json.to_s.empty?
+    unless test_devices_json.to_s.empty?
+      test_devices_json.each do |device_data|
+        @test_devices.push(Device.new(device_data))
+      end
+    end
   end
 
   def validate
     raise 'developer portal apple id not provided for this build' if @apple_id.to_s.empty?
     raise 'developer portal password not provided for this build' if @password.to_s.empty?
+
     @test_devices.each(&:validate)
   end
 end

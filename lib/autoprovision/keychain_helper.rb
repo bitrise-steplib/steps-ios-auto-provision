@@ -16,7 +16,7 @@ class KeychainHelper
       return
     end
 
-    new_keychain_path = keychain_path + '-db'
+    new_keychain_path = "#{keychain_path}-db"
     if File.file?(new_keychain_path)
       @keychain_path = new_keychain_path
       @keychain_password = keychain_password
@@ -64,7 +64,8 @@ class KeychainHelper
 
     return if Gem::Version.new(current_version) < Gem::Version.new('10.12.0')
 
-    cmd = ['security', 'set-key-partition-list', '-S', 'apple-tool:,apple:', '-k', @keychain_password, "\"#{@keychain_path}\""].join(' ')
+    cmd = ['security', 'set-key-partition-list', '-S', 'apple-tool:,apple:', '-k', @keychain_password,
+           "\"#{@keychain_path}\""].join(' ')
     Log.debug("$ #{cmd}")
     out = `#{cmd}`
     raise "#{cmd} failed, out: #{out}" unless $CHILD_STATUS.success?
@@ -78,7 +79,7 @@ class KeychainHelper
   end
 
   def list_keychains
-    cmd = ['security', 'list-keychains'].join(' ')
+    cmd = %w[security list-keychains].join(' ')
     Log.debug("$ #{cmd}")
     list = `#{cmd}`
     raise "#{cmd} failed, out: #{list}" unless $CHILD_STATUS.success?

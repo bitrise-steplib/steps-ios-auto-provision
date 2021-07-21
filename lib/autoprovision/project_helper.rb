@@ -5,15 +5,15 @@ require 'English'
 
 # ProjectHelper ...
 class ProjectHelper
-  attr_reader :main_target
-  attr_reader :targets
-  attr_reader :platform
+  attr_reader :main_target, :targets, :platform
 
   def initialize(project_or_workspace_path, scheme_name, configuration_name)
     raise "project not exist at: #{project_or_workspace_path}" unless File.exist?(project_or_workspace_path)
 
     extname = File.extname(project_or_workspace_path)
-    raise "unkown project extension: #{extname}, should be: .xcodeproj or .xcworkspace" unless ['.xcodeproj', '.xcworkspace'].include?(extname)
+    unless ['.xcodeproj', '.xcworkspace'].include?(extname)
+      raise "unkown project extension: #{extname}, should be: .xcodeproj or .xcworkspace"
+    end
 
     @project_path = project_or_workspace_path
 
@@ -21,8 +21,10 @@ class ProjectHelper
     scheme, scheme_container_project_path = read_scheme_and_container_project(scheme_name)
 
     # read scheme application targets
-    @main_target, @targets_container_project_path = read_scheme_archivable_target_and_container_project(scheme, scheme_container_project_path)
+    @main_target, @targets_container_project_path = read_scheme_archivable_target_and_container_project(scheme,
+                                                                                                        scheme_container_project_path)
     raise "failed to find #{scheme_name} scheme's main archivable target" unless @main_target
+
     @platform = @main_target.platform_name
 
     @targets = collect_dependent_targets(@main_target)
@@ -32,6 +34,7 @@ class ProjectHelper
     # ensure configuration exist
     action = scheme.archive_action
     raise "archive action not defined for scheme: #{scheme_name}" unless action
+
     default_configuration_name = action.build_configuration
     raise "archive action's configuration not found for scheme: #{scheme_name}" unless default_configuration_name
 
@@ -39,8 +42,12 @@ class ProjectHelper
       @configuration_name = default_configuration_name
     elsif configuration_name != default_configuration_name
       targets.each do |target_obj|
-        configuration = target_obj.build_configuration_list.build_configurations.find { |c| configuration_name.to_s == c.name }
-        raise "build configuration (#{configuration_name}) not defined for target: #{@main_target.name}" unless configuration
+        configuration = target_obj.build_configuration_list.build_configurations.find do |c|
+          configuration_name.to_s == c.name
+        end
+        unless configuration
+          raise "build configuration (#{configuration_name}) not defined for target: #{@main_target.name}"
+        end
       end
 
       Log.warn("Using defined build configuration: #{configuration_name} instead of the scheme's default one (#{default_configuration_name})")
@@ -159,12 +166,16 @@ class ProjectHelper
     Log.debug("checking the Info.plist file's CFBundleIdentifier property...")
 
     info_plist_path = build_settings['INFOPLIST_FILE']
-    raise 'failed to to determine bundle id: xcodebuild -showBuildSettings does not contains PRODUCT_BUNDLE_IDENTIFIER nor INFOPLIST_FILE' unless info_plist_path
+    unless info_plist_path
+      raise 'failed to to determine bundle id: xcodebuild -showBuildSettings does not contains PRODUCT_BUNDLE_IDENTIFIER nor INFOPLIST_FILE'
+    end
 
     info_plist_path = File.expand_path(info_plist_path, File.dirname(@targets_container_project_path))
     info_plist = Plist.parse_xml(info_plist_path)
     bundle_id = info_plist['CFBundleIdentifier']
-    raise 'failed to to determine bundle id: xcodebuild -showBuildSettings does not contains PRODUCT_BUNDLE_IDENTIFIER nor Info.plist' if bundle_id.to_s.empty?
+    if bundle_id.to_s.empty?
+      raise 'failed to to determine bundle id: xcodebuild -showBuildSettings does not contains PRODUCT_BUNDLE_IDENTIFIER nor Info.plist'
+    end
 
     return bundle_id unless bundle_id.to_s.include?('$')
 
@@ -191,6 +202,7 @@ class ProjectHelper
     project = Xcodeproj::Project.open(@targets_container_project_path)
     project.targets.each do |target_obj|
       next unless target_obj.name == target_name
+
       target_found = true
 
       # force target attributes
@@ -208,6 +220,7 @@ class ProjectHelper
       # force target build settings
       target_obj.build_configuration_list.build_configurations.each do |build_configuration|
         next unless build_configuration.name == @configuration_name
+
         configuration_found = true
 
         build_settings = build_configuration.build_settings
@@ -229,7 +242,9 @@ class ProjectHelper
     end
 
     raise "target (#{target_name}) not found in project: #{@targets_container_project_path}" unless target_found
-    raise "configuration (#{@configuration_name}) does not exist in project: #{@targets_container_project_path}" unless configuration_found
+    unless configuration_found
+      raise "configuration (#{@configuration_name}) does not exist in project: #{@targets_container_project_path}"
+    end
 
     project.save
   end
@@ -250,7 +265,7 @@ class ProjectHelper
     project_paths += contained_projects if workspace?
 
     project_paths.each do |project_path|
-      schema_path = File.join(project_path, 'xcshareddata', 'xcschemes', scheme_name + '.xcscheme')
+      schema_path = File.join(project_path, 'xcshareddata', 'xcschemes', "#{scheme_name}.xcscheme")
       next unless File.exist?(schema_path)
 
       return Xcodeproj::XCScheme.new(schema_path), project_path
@@ -295,7 +310,8 @@ class ProjectHelper
       buildable_references = entry.buildable_references || []
       next if buildable_references.empty?
 
-      target, target_project_path = archivable_target_and_container_project(buildable_references, scheme_container_project_dir)
+      target, target_project_path = archivable_target_and_container_project(buildable_references,
+                                                                            scheme_container_project_dir)
       next if target.nil? || target_project_path.nil?
 
       return target, target_project_path
@@ -441,7 +457,9 @@ class ProjectHelper
 
     env_key = split[0]
     env_value = build_settings[env_key]
-    raise "failed to resolve bundle id (#{bundle_id}): build settings not found with key: (#{env_key})" if env_value.to_s.empty?
+    if env_value.to_s.empty?
+      raise "failed to resolve bundle id (#{bundle_id}): build settings not found with key: (#{env_key})"
+    end
 
     prefix + env_value + suffix
   end
@@ -450,12 +468,14 @@ class ProjectHelper
   def codesign_identites_match?(identity1, identity2)
     return true if identity1.downcase.include?(identity2.downcase)
     return true if identity2.downcase.include?(identity1.downcase)
+
     false
   end
 
   # 'iPhone Developer: Bitrise Bot (ABCD)' is exact compared to 'iPhone Developer'
   def exact_codesign_identity(identity1, identity2)
     return nil unless codesign_identites_match?(identity1, identity2)
+
     identity1.length > identity2.length ? identity1 : identity2
   end
 end

@@ -3,7 +3,7 @@ class Log
   @verbose = true
 
   class << self
-     attr_accessor :verbose
+    attr_accessor :verbose
   end
 
   def self.info(str)
@@ -40,6 +40,7 @@ class Log
 
   def self.secure_value(value)
     return '' if value.empty?
+
     '***'
   end
 end

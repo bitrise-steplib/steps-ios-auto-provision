@@ -4,8 +4,7 @@ require_relative 'portal/certificate_client'
 
 # CertificateHelper ...
 class CertificateHelper
-  attr_reader :development_certificate_info
-  attr_reader :production_certificate_info
+  attr_reader :development_certificate_info, :production_certificate_info
 
   def initialize
     @all_development_certificate_infos = []
@@ -15,7 +14,9 @@ class CertificateHelper
   end
 
   def download_and_identify(urls, passes)
-    raise "certificates count (#{urls.length}) and passphrases count (#{passes.length}) should match" unless urls.length == passes.length
+    unless urls.length == passes.length
+      raise "certificates count (#{urls.length}) and passphrases count (#{passes.length}) should match"
+    end
 
     certificate_infos = []
     urls.each_with_index do |url, idx|
@@ -56,13 +57,17 @@ class CertificateHelper
         common_name = certificate_common_name(certificate_info.certificate)
         common_name.downcase.include?(name.downcase)
       end
-      team_development_certificate_infos = filtered_team_development_certificate_infos unless filtered_team_development_certificate_infos.empty?
+      unless filtered_team_development_certificate_infos.empty?
+        team_development_certificate_infos = filtered_team_development_certificate_infos
+      end
 
       filtered_team_production_certificate_infos = team_production_certificate_infos.select do |certificate_info|
         common_name = certificate_common_name(certificate_info.certificate)
         common_name.downcase.include?(name.downcase)
       end
-      team_production_certificate_infos = filtered_team_production_certificate_infos unless filtered_team_production_certificate_infos.empty?
+      unless filtered_team_production_certificate_infos.empty?
+        team_production_certificate_infos = filtered_team_production_certificate_infos
+      end
     end
 
     if team_development_certificate_infos.length > 1
@@ -220,6 +225,7 @@ class CertificateHelper
 
     team_certificate_infos = find_certificate_infos_by_team_id(team_id, certificate_infos)
     return team_certificate_infos[0] if team_certificate_infos.to_a.length == 1
+
     Log.print('no development certificate found') if team_certificate_infos.to_a.empty?
     Log.warn("#{team_certificate_infos.length} development certificate found") if team_certificate_infos.to_a.length > 1
   end
@@ -241,7 +247,9 @@ class CertificateHelper
     Log.warn("multiple codesign identity uploaded with common name: #{new_certificate_common_name}")
 
     cert_info = certificate_infos[index]
-    certificate_infos[index] = new_certificate_info if new_certificate_info.certificate.not_after > cert_info.certificate.not_after
+    if new_certificate_info.certificate.not_after > cert_info.certificate.not_after
+      certificate_infos[index] = new_certificate_info
+    end
 
     certificate_infos
   end

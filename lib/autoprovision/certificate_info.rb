@@ -1,8 +1,6 @@
 # CertificateInfo
 class CertificateInfo
-  attr_reader :path
-  attr_reader :passphrase
-  attr_reader :certificate
+  attr_reader :path, :passphrase, :certificate
   attr_accessor :portal_certificate
 
   def initialize(path, passphrase, certificate)

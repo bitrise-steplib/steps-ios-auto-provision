@@ -23,10 +23,12 @@ class ProfileHelper
       Log.warn('project uses Xcode managed signing, but generate_profiles set to true, trying to generate Provisioning Profiles')
 
       begin
-        distribution_types.each { |distr_type| ensure_manual_profiles(distr_type, @project_helper.platform, min_profile_days_valid, test_devices) }
-      rescue => ex
+        distribution_types.each do |distr_type|
+          ensure_manual_profiles(distr_type, @project_helper.platform, min_profile_days_valid, test_devices)
+        end
+      rescue StandardError => e
         Log.error('generate_profiles set to true, but failed to generate Provisioning Profiles with error:')
-        Log.error(ex.to_s)
+        Log.error(e.to_s)
         Log.info("\nTrying to use Xcode managed Provisioning Profiles")
 
         ensure_profiles(distribution_type, test_devices, false, min_profile_days_valid)
@@ -62,7 +64,8 @@ class ProfileHelper
       entitlements = @project_helper.target_entitlements(target_name) || {}
 
       Log.print("checking xcode managed #{distribution_type} profile for target: #{target_name} (#{bundle_id}) with #{entitlements.length} services on developer portal")
-      portal_profile = Portal::ProfileClient.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type, certificate, platform, test_devices, min_profile_days_valid)
+      portal_profile = Portal::ProfileClient.ensure_xcode_managed_profile(bundle_id, entitlements, distribution_type,
+                                                                          certificate, platform, test_devices, min_profile_days_valid)
 
       Log.print("downloading #{distribution_type} profile: #{portal_profile.name}")
       profile_path = write_profile(portal_profile)
@@ -90,7 +93,8 @@ class ProfileHelper
       app = Portal::AppClient.sync_app_services(app, entitlements)
 
       Log.print("ensure #{distribution_type} profile for target: #{target_name} on developer portal")
-      portal_profile = Portal::ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type, platform, min_profile_days_valid, test_devices)
+      portal_profile = Portal::ProfileClient.ensure_manual_profile(certificate, app, entitlements, distribution_type,
+                                                                   platform, min_profile_days_valid, test_devices)
 
       Log.print("downloading #{distribution_type} profile: #{portal_profile.name}")
       profile_path = write_profile(portal_profile)
@@ -109,7 +113,7 @@ class ProfileHelper
     profiles_dir = File.join(home_dir, 'Library/MobileDevice/Provisioning Profiles')
     FileUtils.mkdir_p(profiles_dir) unless File.directory?(profiles_dir)
 
-    profile_path = File.join(profiles_dir, profile.uuid + '.mobileprovision')
+    profile_path = File.join(profiles_dir, "#{profile.uuid}.mobileprovision")
     Log.warn("profile already exists at: #{profile_path}, overwriting...") if File.file?(profile_path)
 
     File.write(profile_path, profile.download)

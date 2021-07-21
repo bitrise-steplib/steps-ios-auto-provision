@@ -51,7 +51,9 @@ RSpec.describe '.ensure_test_devices' do
     allow(fake_portal_client).to receive(:all).and_return([fake_portal_device])
     allow(fake_portal_client).to receive(:create!).and_raise('error')
 
-    valid_devices = Portal::DeviceClient.ensure_test_devices([existing_device, invalid_device], :ios, fake_portal_client)
+    valid_devices = Portal::DeviceClient.ensure_test_devices([existing_device, invalid_device],
+                                                             :ios,
+                                                             fake_portal_client)
 
     expect(valid_devices).to eq([existing_device])
   end
@@ -79,7 +81,7 @@ RSpec.describe '.ensure_test_devices' do
     [:watchos, 'ipad', 1],
     [:watchos, 'iphone', 1],
     [:watchos, 'ipod', 1],
-    [:watchos, 'tvOS', 0],
+    [:watchos, 'tvOS', 0]
   ].each do |platform, device_type, len|
     it "on #{platform} platform with #{device_type} device valid devices lenght should be #{len}" do
       device = Device.new(
@@ -91,14 +93,14 @@ RSpec.describe '.ensure_test_devices' do
       allow(fake_portal_device).to receive(:name).and_return(device.name)
       allow(fake_portal_device).to receive(:udid).and_return(device.udid)
       allow(fake_portal_device).to receive(:device_type).and_return(device_type)
-  
+
       fake_portal_client = double
       allow(fake_portal_client).to receive(:all).and_return(nil)
       allow(fake_portal_client).to receive(:create!).and_return(fake_portal_device)
 
       valid_devices = Portal::DeviceClient.ensure_test_devices([device], platform, fake_portal_client)
 
-      expect(valid_devices.length()).to eq(len)
+      expect(valid_devices.length).to eq(len)
     end
   end
 end
