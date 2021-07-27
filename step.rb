@@ -1,6 +1,13 @@
 require_relative 'params'
+require_relative 'xcode'
 require_relative 'log/log'
 require_relative 'lib/autoprovision'
+
+CODESIGN_IDENTITY_IPHONE_DEVELOPER = 'iPhone Developer'.freeze
+CODESIGN_IDENTITY_IPHONE_DISTRIBUTION = 'iPhone Distribution'.freeze
+
+CODESIGN_IDENTITY_APPLE_DEVELOPMENT = 'Apple Development'.freeze
+CODESIGN_IDENTITY_APPLE_DISTRIBUTION = 'Apple Distribution'.freeze
 
 begin
   # Params
@@ -37,12 +44,30 @@ begin
   cert_helper.download_and_identify(certificate_urls, params.passphrases)
   ###
 
-  # Anlyzing project
+  # Xcode version
+  Log.info('Xcode version')
+  xcode = Xcode.new
+  Log.print("Xcode #{xcode.version}")
+  Log.print("Build version #{xcode.build_version}")
+
+  # Analyzing project
   Log.info('Analyzing project')
 
   project_helper = ProjectHelper.new(params.project_path, params.scheme, params.configuration)
-  codesign_identity = project_helper.project_codesign_identity
   team_id = project_helper.project_team_id
+  codesign_identity = project_helper.project_codesign_identity
+
+  xcode_managed_signing = project_helper.uses_xcode_auto_codesigning? && params.generate_profiles == 'no'
+  if xcode_managed_signing && xcode.major_version >= 13
+    case codesign_identity
+    when CODESIGN_IDENTITY_IPHONE_DEVELOPER
+      codesign_identity = CODESIGN_IDENTITY_APPLE_DEVELOPMENT
+      Log.warn("Xcode managed signing with Xcode >= 13, changing codesign identity from #{CODESIGN_IDENTITY_IPHONE_DEVELOPER} to #{CODESIGN_IDENTITY_APPLE_DEVELOPMENT}")
+    when CODESIGN_IDENTITY_IPHONE_DISTRIBUTION
+      codesign_identity = CODESIGN_IDENTITY_APPLE_DISTRIBUTION
+      Log.warn("Xcode managed signing with Xcode >= 13, changing codesign identity from #{CODESIGN_IDENTITY_IPHONE_DISTRIBUTION} to #{CODESIGN_IDENTITY_APPLE_DISTRIBUTION}")
+    end
+  end
 
   Log.print("project codesign identity: #{codesign_identity}")
   Log.print("project team id: #{team_id}")
