@@ -81,7 +81,7 @@ RSpec.describe '.ensure_test_devices' do
     [:watchos, 'ipod', 1],
     [:watchos, 'tvOS', 0],
   ].each do |platform, device_type, len|
-    it "on #{platform} platform with #{device_type} device valid devices lenght should be #{len}" do
+    it "on #{platform} platform with #{device_type} device valid devices length should be #{len}" do
       device = Device.new(
         'device_identifier' => '123456',
         'title' => 'New Device'
