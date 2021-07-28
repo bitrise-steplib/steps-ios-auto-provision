@@ -5,7 +5,7 @@ require_relative 'common'
 module Portal
   # DeviceClient ...
   class DeviceClient
-    def self.ensure_test_devices(test_devices, device_client = Spaceship::Portal.device)
+    def self.ensure_test_devices(test_devices, platform, device_client = Spaceship::Portal.device)
       valid_devices = []
       if test_devices.to_a.empty?
         Log.success('No test devices registered on Bitrise.')
@@ -25,26 +25,24 @@ module Portal
 
       # Remove the duplications from the device list
       test_devices = Device.filter_duplicated_devices(test_devices)
-      portal_devices = fetch_devices(device_client)
+      registered_devices = fetch_registered_devices(device_client)
 
-      new_device_registered = false
       test_devices.each do |test_device|
-        registered_test_device = nil
+        registered_device = nil
 
-        portal_devices.each do |portal_device|
-          next unless portal_device.udid == test_device.udid
+        registered_devices.each do |device|
+          next unless device.udid == test_device.udid
 
-          registered_test_device = portal_device
-          Log.success("test device #{registered_test_device.name} (#{registered_test_device.udid}) already registered")
+          registered_device = device
+          Log.success("test device #{registered_device.name} (#{registered_device.udid}) already registered")
           break
         end
 
-        unless registered_test_device
-          new_device_registered = true
+        unless registered_device
           begin
-            registered_test_device = device_client.create!(name: test_device.name, udid: test_device.udid)
+            registered_device = device_client.create!(name: test_device.name, udid: test_device.udid)
           rescue Spaceship::Client::UnexpectedResponse => ex
-            message = result_string(ex)
+            message = preferred_error_message(ex)
             Log.warn("Failed to register device with name: #{test_device.name} udid: #{test_device.udid} error: #{message}")
             next
           rescue
@@ -52,21 +50,24 @@ module Portal
             next
           end
 
-          Log.success("registering test device #{registered_test_device.name} (#{registered_test_device.udid})")
+          Log.success("registering test device #{registered_device.name} (#{registered_device.udid})")
         end
 
-        valid_devices = valid_devices.append(test_device)
-        raise 'failed to find or create device' unless registered_test_device
+        if %i[ios watchos].include?(platform)
+          valid_devices = valid_devices.append(test_device) if %w[watch ipad iphone ipod].include?(registered_device.device_type)
+        elsif platform == :tvos
+          valid_devices = valid_devices.append(test_device) if registered_device.device_type == 'tvOS'
+        end
       end
 
       Log.success("#{valid_devices.length} Bitrise test devices are present on Apple Developer Portal.")
       valid_devices
     end
 
-    def self.fetch_devices(device_client = Spaceship::Portal.device)
-      portal_devices = nil
-      run_and_handle_portal_function { portal_devices = device_client.all(mac: false, include_disabled: true) || [] }
-      portal_devices
+    def self.fetch_registered_devices(device_client = Spaceship::Portal.device)
+      devices = nil
+      run_or_raise_preferred_error_message { devices = device_client.all(mac: false, include_disabled: true) || [] }
+      devices
     end
   end
 end

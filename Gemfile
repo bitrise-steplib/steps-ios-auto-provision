@@ -7,5 +7,5 @@ gem 'xcodeproj'
 
 group :test do
   gem 'rspec'
-  gem 'rubocop', '0.61.1'
+  gem 'rubocop', '~> 1.18'
 end
