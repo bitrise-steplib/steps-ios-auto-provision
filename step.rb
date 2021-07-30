@@ -37,7 +37,7 @@ begin
   cert_helper.download_and_identify(certificate_urls, params.passphrases)
   ###
 
-  # Anlyzing project
+  # Analyzing project
   Log.info('Analyzing project')
 
   project_helper = ProjectHelper.new(params.project_path, params.scheme, params.configuration)
