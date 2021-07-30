@@ -7,7 +7,7 @@ RSpec.describe '.ensure_test_devices' do
     fake_portal_client = double
     allow(fake_portal_client).to receive(:all).and_return(nil)
 
-    valid_devices = Portal::DeviceClient.ensure_test_devices([], :ios, fake_portal_client)
+    valid_devices = Portal::DeviceClient.ensure_test_devices(true, [], :ios, fake_portal_client)
 
     expect(valid_devices).to eq([])
   end
@@ -27,7 +27,7 @@ RSpec.describe '.ensure_test_devices' do
     allow(fake_portal_client).to receive(:all).and_return(nil)
     allow(fake_portal_client).to receive(:create!).and_return(fake_portal_device)
 
-    valid_devices = Portal::DeviceClient.ensure_test_devices([device], :ios, fake_portal_client)
+    valid_devices = Portal::DeviceClient.ensure_test_devices(true, [device], :ios, fake_portal_client)
 
     expect([device]).to eq(valid_devices)
   end
@@ -51,7 +51,7 @@ RSpec.describe '.ensure_test_devices' do
     allow(fake_portal_client).to receive(:all).and_return([fake_portal_device])
     allow(fake_portal_client).to receive(:create!).and_raise('error')
 
-    valid_devices = Portal::DeviceClient.ensure_test_devices([existing_device, invalid_device], :ios, fake_portal_client)
+    valid_devices = Portal::DeviceClient.ensure_test_devices(true, [existing_device, invalid_device], :ios, fake_portal_client)
 
     expect([existing_device]).to eq(valid_devices)
   end
@@ -96,7 +96,7 @@ RSpec.describe '.ensure_test_devices' do
       allow(fake_portal_client).to receive(:all).and_return(nil)
       allow(fake_portal_client).to receive(:create!).and_return(fake_portal_device)
 
-      valid_devices = Portal::DeviceClient.ensure_test_devices([device], platform, fake_portal_client)
+      valid_devices = Portal::DeviceClient.ensure_test_devices(true, [device], platform, fake_portal_client)
 
       expect(valid_devices.length).to eq(len)
     end
