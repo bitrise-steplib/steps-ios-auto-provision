@@ -29,10 +29,10 @@ RSpec.describe '.ensure_test_devices' do
 
     valid_devices = Portal::DeviceClient.ensure_test_devices([device], :ios, fake_portal_client)
 
-    expect(valid_devices).to eq([device])
+    expect([device]).to eq(valid_devices)
   end
 
-  it 'supresses error due to invalid or mac device UDID' do
+  it 'suppresses error due to invalid or mac device UDID' do
     existing_device = Device.new(
       'device_identifier' => '123456',
       'title' => 'Existing Device'
@@ -53,7 +53,7 @@ RSpec.describe '.ensure_test_devices' do
 
     valid_devices = Portal::DeviceClient.ensure_test_devices([existing_device, invalid_device], :ios, fake_portal_client)
 
-    expect(valid_devices).to eq([existing_device])
+    expect([existing_device]).to eq(valid_devices)
   end
 
   [
@@ -98,7 +98,7 @@ RSpec.describe '.ensure_test_devices' do
 
       valid_devices = Portal::DeviceClient.ensure_test_devices([device], platform, fake_portal_client)
 
-      expect(valid_devices.length()).to eq(len)
+      expect(valid_devices.length).to eq(len)
     end
   end
 end
