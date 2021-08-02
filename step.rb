@@ -77,10 +77,10 @@ begin
   ###
 
   # Ensure test devices
-  valid_devices = []
+  dev_portal_devices = []
   if %w[development ad-hoc].include?(params.distribution_type)
     Log.info('Ensure test devices on Developer Portal')
-    valid_devices = Portal::DeviceClient.ensure_test_devices(params.register_test_devices == 'yes', auth.test_devices, project_helper.platform)
+    dev_portal_devices = Portal::DeviceClient.ensure_test_devices(params.register_test_devices == 'yes', auth.test_devices, project_helper.platform)
   end
   ###
 
@@ -88,7 +88,7 @@ begin
   Log.info('Ensure Provisioning Profiles on Developer Portal')
 
   profile_helper = ProfileHelper.new(project_helper, cert_helper)
-  xcode_managed_signing = profile_helper.ensure_profiles(params.distribution_type, valid_devices, params.generate_profiles == 'yes', params.min_profile_days_valid)
+  xcode_managed_signing = profile_helper.ensure_profiles(params.distribution_type, dev_portal_devices, params.generate_profiles == 'yes', params.min_profile_days_valid)
   ###
 
   unless xcode_managed_signing
