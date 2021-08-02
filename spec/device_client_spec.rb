@@ -34,6 +34,21 @@ RSpec.describe '.ensure_test_devices' do
     expect(dev_portal_device_udids).to eq(test_device_udids)
   end
 
+  it 'does not registers new device if register_test_devices is not set' do
+    device = Device.new(
+      'device_identifier' => '123456',
+      'title' => 'New Device'
+    )
+
+    fake_portal_client = double
+    allow(fake_portal_client).to receive(:all).and_return(nil)
+
+    dev_portal_devices = Portal::DeviceClient.ensure_test_devices(false, [device], :ios, fake_portal_client)
+    dev_portal_device_udids = dev_portal_devices.map(&:udid)
+
+    expect(dev_portal_device_udids).to eq([])
+  end
+
   it 'suppresses error due to invalid or mac device UDID' do
     existing_device = Device.new(
       'device_identifier' => '123456',
