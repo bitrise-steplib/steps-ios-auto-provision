@@ -3,16 +3,21 @@ require_relative '../lib/autoprovision/device'
 require_relative '../log/log'
 
 RSpec.describe '.ensure_test_devices' do
-  it 'returns empty array for empty input' do
+  it 'returns devices from Apple Developer Portal' do
+    fake_portal_device = double
+    allow(fake_portal_device).to receive(:name).and_return('Device on Developer Portal')
+    allow(fake_portal_device).to receive(:udid).and_return('1234')
+    allow(fake_portal_device).to receive(:device_type).and_return('iphone')
+
     fake_portal_client = double
-    allow(fake_portal_client).to receive(:all).and_return(nil)
+    allow(fake_portal_client).to receive(:all).and_return([fake_portal_device])
 
     dev_portal_devices = Portal::DeviceClient.ensure_test_devices(true, [], :ios, fake_portal_client)
 
-    expect(dev_portal_devices).to eq([])
+    expect(dev_portal_devices).to eq([fake_portal_device])
   end
 
-  it 'it registers new device' do
+  it 'registers new device if register_test_devices set' do
     device = Device.new(
       'device_identifier' => '123456',
       'title' => 'New Device'
