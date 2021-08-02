@@ -7,9 +7,9 @@ RSpec.describe '.ensure_test_devices' do
     fake_portal_client = double
     allow(fake_portal_client).to receive(:all).and_return(nil)
 
-    valid_devices = Portal::DeviceClient.ensure_test_devices(true, [], :ios, fake_portal_client)
+    dev_portal_devices = Portal::DeviceClient.ensure_test_devices(true, [], :ios, fake_portal_client)
 
-    expect(valid_devices).to eq([])
+    expect(dev_portal_devices).to eq([])
   end
 
   it 'it registers new device' do
@@ -27,9 +27,11 @@ RSpec.describe '.ensure_test_devices' do
     allow(fake_portal_client).to receive(:all).and_return(nil)
     allow(fake_portal_client).to receive(:create!).and_return(fake_portal_device)
 
-    valid_devices = Portal::DeviceClient.ensure_test_devices(true, [device], :ios, fake_portal_client)
+    dev_portal_devices = Portal::DeviceClient.ensure_test_devices(true, [device], :ios, fake_portal_client)
+    dev_portal_device_udids = dev_portal_devices.map(&:udid)
+    test_device_udids = [device].map(&:udid)
 
-    expect([device]).to eq(valid_devices)
+    expect(dev_portal_device_udids).to eq(test_device_udids)
   end
 
   it 'suppresses error due to invalid or mac device UDID' do
@@ -51,9 +53,11 @@ RSpec.describe '.ensure_test_devices' do
     allow(fake_portal_client).to receive(:all).and_return([fake_portal_device])
     allow(fake_portal_client).to receive(:create!).and_raise('error')
 
-    valid_devices = Portal::DeviceClient.ensure_test_devices(true, [existing_device, invalid_device], :ios, fake_portal_client)
+    dev_portal_devices = Portal::DeviceClient.ensure_test_devices(true, [existing_device, invalid_device], :ios, fake_portal_client)
+    dev_portal_device_udids = dev_portal_devices.map(&:udid)
+    test_device_udids = [existing_device].map(&:udid)
 
-    expect([existing_device]).to eq(valid_devices)
+    expect(dev_portal_device_udids).to eq(test_device_udids)
   end
 
   [
@@ -96,9 +100,9 @@ RSpec.describe '.ensure_test_devices' do
       allow(fake_portal_client).to receive(:all).and_return(nil)
       allow(fake_portal_client).to receive(:create!).and_return(fake_portal_device)
 
-      valid_devices = Portal::DeviceClient.ensure_test_devices(true, [device], platform, fake_portal_client)
+      dev_portal_devices = Portal::DeviceClient.ensure_test_devices(true, [device], platform, fake_portal_client)
 
-      expect(valid_devices.length).to eq(len)
+      expect(dev_portal_devices.length).to eq(len)
     end
   end
 end
