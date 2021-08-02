@@ -124,7 +124,7 @@ inputs:
   opts:
     title: Should the step register test devices with the Apple Developer Portal?
     description: |-
-      If set the step will register known test devices from team members with the Apple Developer Portal.
+      If set the step will register known test devices on Bitrise from team members with the Apple Developer Portal.
       Note that setting this to "yes" may cause devices to be registered against your limited quantity of test devices in the Apple Developer Portal, which can only be removed once annually during your renewal window.
     value_options:
     - "yes"
