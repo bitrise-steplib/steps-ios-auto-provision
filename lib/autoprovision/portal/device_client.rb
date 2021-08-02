@@ -15,21 +15,22 @@ module Portal
       end
 
       if register_test_devices && !test_devices.empty?
-        Log.info("Checking if #{test_devices.length} Bitrise test device(s) are registered on Developer Portal")
+        unique_test_devices = Device.filter_duplicated_devices(test_devices)
+
+        Log.info("Checking if #{unique_test_devices.length} Bitrise test device(s) are registered on Developer Portal")
+        unique_test_devices.each do |test_device|
+          Log.debug("- #{test_device.name}, UDID (#{test_device.udid})")
+        end
+
         duplicated_devices_groups = Device.duplicated_device_groups(test_devices)
         unless duplicated_devices_groups.to_a.empty?
           Log.warn('Devices with duplicated UDID are registered on Bitrise, will be ignored:')
           duplicated_devices_groups.each do |duplicated_devices|
-            Log.warn("#{duplicated_devices.map(&:udid).join("\n")}\n\n")
+            Log.warn("- #{duplicated_devices.map(&:udid).join(' - ')}")
           end
         end
 
-        test_devices = Device.filter_duplicated_devices(test_devices)
-        test_devices.each do |test_device|
-          Log.debug("- #{test_device.name}, UDID (#{test_device.udid})")
-        end
-
-        new_dev_portal_devices = register_missing_test_devices(device_client, test_devices, dev_portal_devices)
+        new_dev_portal_devices = register_missing_test_devices(device_client, unique_test_devices, dev_portal_devices)
         dev_portal_devices = dev_portal_devices.concat(new_dev_portal_devices)
       end
 
