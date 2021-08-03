@@ -12,7 +12,7 @@ RSpec.describe '.ensure_test_devices' do
     fake_portal_client = double
     allow(fake_portal_client).to receive(:all).and_return([fake_portal_device])
 
-    dev_portal_devices = Portal::DeviceClient.ensure_test_devices([], :ios, fake_portal_client)
+    dev_portal_devices = Portal::DeviceClient.ensure_test_devices(nil, :ios, fake_portal_client)
 
     expect(dev_portal_devices).to eq([fake_portal_device])
   end
