@@ -196,6 +196,7 @@ workflows:
         - configuration: $BITRISE_CONFIGURATION
         - generate_profiles: $GENERATE_PROFILES
         - verbose_log: "yes"
+        - register_test_devices: "yes"
 
   _check_outputs:
     steps:

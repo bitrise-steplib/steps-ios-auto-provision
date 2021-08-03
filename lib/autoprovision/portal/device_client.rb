@@ -6,67 +6,94 @@ module Portal
   # DeviceClient ...
   class DeviceClient
     def self.ensure_test_devices(test_devices, platform, device_client = Spaceship::Portal.device)
-      valid_devices = []
-      if test_devices.to_a.empty?
-        Log.success('No test devices registered on Bitrise.')
+      Log.info('Fetching Apple Developer Portal devices')
+      dev_portal_devices = fetch_registered_devices(device_client)
 
-        valid_devices
+      Log.print("#{dev_portal_devices.length} devices are registered on the Apple Developer Portal")
+      dev_portal_devices.each do |dev_portal_device|
+        Log.debug("- #{dev_portal_device.name}, #{dev_portal_device.device_type}, UDID (#{dev_portal_device.udid})")
       end
 
-      # Log the duplicated devices (by udid)
-      duplicated_devices_groups = Device.duplicated_device_groups(test_devices)
-      unless duplicated_devices_groups.to_a.empty?
-        Log.debug('Devices registered multiples times on Bitrise:')
+      unless test_devices.empty?
+        unique_test_devices = Device.filter_duplicated_devices(test_devices)
 
-        duplicated_devices_groups.each do |duplicated_devices|
-          Log.debug("#{duplicated_devices.map(&:udid).join("\n")}\n\n")
+        Log.info("Checking if #{unique_test_devices.length} Bitrise test device(s) are registered on Developer Portal")
+        unique_test_devices.each do |test_device|
+          Log.debug("- #{test_device.name}, UDID (#{test_device.udid})")
+        end
+
+        duplicated_devices_groups = Device.duplicated_device_groups(test_devices)
+        unless duplicated_devices_groups.to_a.empty?
+          Log.warn('Devices with duplicated UDID are registered on Bitrise, will be ignored:')
+          duplicated_devices_groups.each do |duplicated_devices|
+            Log.warn("- #{duplicated_devices.map(&:udid).join(' - ')}")
+          end
+        end
+
+        new_dev_portal_devices = register_missing_test_devices(device_client, unique_test_devices, dev_portal_devices)
+        dev_portal_devices = dev_portal_devices.concat(new_dev_portal_devices)
+      end
+
+      filter_dev_portal_devices(dev_portal_devices, platform)
+    end
+
+    def self.filter_dev_portal_devices(dev_portal_devices, platform)
+      filtered_devices = []
+      dev_portal_devices.each do |dev_portal_device|
+        if %i[ios watchos].include?(platform)
+          filtered_devices = filtered_devices.append(dev_portal_device) if %w[watch ipad iphone ipod].include?(dev_portal_device.device_type)
+        elsif platform == :tvos
+          filtered_devices = filtered_devices.append(dev_portal_device) if dev_portal_device.device_type == 'tvOS'
         end
       end
+      filtered_devices
+    end
 
-      # Remove the duplications from the device list
-      test_devices = Device.filter_duplicated_devices(test_devices)
-      registered_devices = fetch_registered_devices(device_client)
-
-      test_devices.each do |test_device|
-        registered_device = nil
-
-        registered_devices.each do |device|
-          next unless device.udid == test_device.udid
-
-          registered_device = device
-          Log.success("test device #{registered_device.name} (#{registered_device.udid}) already registered")
+    def self.find_dev_portal_device(test_device, dev_portal_devices)
+      device = nil
+      dev_portal_devices.each do |dev_portal_device|
+        if test_device.udid == dev_portal_device.udid
+          device = dev_portal_device
           break
         end
+      end
+      device
+    end
 
-        unless registered_device
-          begin
-            registered_device = device_client.create!(name: test_device.name, udid: test_device.udid)
-          rescue Spaceship::Client::UnexpectedResponse => ex
-            message = preferred_error_message(ex)
-            Log.warn("Failed to register device with name: #{test_device.name} udid: #{test_device.udid} error: #{message}")
-            next
-          rescue
-            Log.warn("Failed to register device with name: #{test_device.name} udid: #{test_device.udid}")
-            next
-          end
+    def self.register_missing_test_devices(device_client = Spaceship::Portal.device, test_devices, dev_portal_devices)
+      new_dev_portal_devices = []
 
-          Log.success("registering test device #{registered_device.name} (#{registered_device.udid})")
+      test_devices.each do |test_device|
+        Log.print("checking if the device (#{test_device.udid}) is registered")
+
+        dev_portal_device = find_dev_portal_device(test_device, dev_portal_devices)
+        unless dev_portal_device.nil?
+          Log.print('device already registered')
+          next
         end
 
-        if %i[ios watchos].include?(platform)
-          valid_devices = valid_devices.append(test_device) if %w[watch ipad iphone ipod].include?(registered_device.device_type)
-        elsif platform == :tvos
-          valid_devices = valid_devices.append(test_device) if registered_device.device_type == 'tvOS'
-        end
+        Log.print('registering device')
+        new_dev_portal_device = register_test_device_on_dev_portal(device_client, test_device)
+        new_dev_portal_devices.append(new_dev_portal_device) unless new_dev_portal_device.nil?
       end
 
-      Log.success("#{valid_devices.length} Bitrise test devices are present on Apple Developer Portal.")
-      valid_devices
+      new_dev_portal_devices
+    end
+
+    def self.register_test_device_on_dev_portal(device_client = Spaceship::Portal.device, test_device)
+      device_client.create!(name: test_device.name, udid: test_device.udid)
+    rescue Spaceship::Client::UnexpectedResponse => ex
+      message = preferred_error_message(ex)
+      Log.warn("Failed to register device with name: #{test_device.name} udid: #{test_device.udid} error: #{message}")
+      nil
+    rescue
+      Log.warn("Failed to register device with name: #{test_device.name} udid: #{test_device.udid}")
+      nil
     end
 
     def self.fetch_registered_devices(device_client = Spaceship::Portal.device)
       devices = nil
-      run_or_raise_preferred_error_message { devices = device_client.all(mac: false, include_disabled: true) || [] }
+      run_or_raise_preferred_error_message { devices = device_client.all(mac: false, include_disabled: false) || [] }
       devices
     end
   end

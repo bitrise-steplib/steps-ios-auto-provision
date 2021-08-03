@@ -3,16 +3,21 @@ require_relative '../lib/autoprovision/device'
 require_relative '../log/log'
 
 RSpec.describe '.ensure_test_devices' do
-  it 'returns empty array for empty input' do
+  it 'returns devices from Apple Developer Portal' do
+    fake_portal_device = double
+    allow(fake_portal_device).to receive(:name).and_return('Device on Developer Portal')
+    allow(fake_portal_device).to receive(:udid).and_return('1234')
+    allow(fake_portal_device).to receive(:device_type).and_return('iphone')
+
     fake_portal_client = double
-    allow(fake_portal_client).to receive(:all).and_return(nil)
+    allow(fake_portal_client).to receive(:all).and_return([fake_portal_device])
 
-    valid_devices = Portal::DeviceClient.ensure_test_devices([], :ios, fake_portal_client)
+    dev_portal_devices = Portal::DeviceClient.ensure_test_devices([], :ios, fake_portal_client)
 
-    expect(valid_devices).to eq([])
+    expect(dev_portal_devices).to eq([fake_portal_device])
   end
 
-  it 'it registers new device' do
+  it 'registers new device' do
     device = Device.new(
       'device_identifier' => '123456',
       'title' => 'New Device'
@@ -27,12 +32,14 @@ RSpec.describe '.ensure_test_devices' do
     allow(fake_portal_client).to receive(:all).and_return(nil)
     allow(fake_portal_client).to receive(:create!).and_return(fake_portal_device)
 
-    valid_devices = Portal::DeviceClient.ensure_test_devices([device], :ios, fake_portal_client)
+    dev_portal_devices = Portal::DeviceClient.ensure_test_devices([device], :ios, fake_portal_client)
+    dev_portal_device_udids = dev_portal_devices.map(&:udid)
+    test_device_udids = [device].map(&:udid)
 
-    expect(valid_devices).to eq([device])
+    expect(dev_portal_device_udids).to eq(test_device_udids)
   end
 
-  it 'supresses error due to invalid or mac device UDID' do
+  it 'suppresses error due to invalid or mac device UDID' do
     existing_device = Device.new(
       'device_identifier' => '123456',
       'title' => 'Existing Device'
@@ -51,9 +58,11 @@ RSpec.describe '.ensure_test_devices' do
     allow(fake_portal_client).to receive(:all).and_return([fake_portal_device])
     allow(fake_portal_client).to receive(:create!).and_raise('error')
 
-    valid_devices = Portal::DeviceClient.ensure_test_devices([existing_device, invalid_device], :ios, fake_portal_client)
+    dev_portal_devices = Portal::DeviceClient.ensure_test_devices([existing_device, invalid_device], :ios, fake_portal_client)
+    dev_portal_device_udids = dev_portal_devices.map(&:udid)
+    test_device_udids = [existing_device].map(&:udid)
 
-    expect(valid_devices).to eq([existing_device])
+    expect(dev_portal_device_udids).to eq(test_device_udids)
   end
 
   [
@@ -96,9 +105,9 @@ RSpec.describe '.ensure_test_devices' do
       allow(fake_portal_client).to receive(:all).and_return(nil)
       allow(fake_portal_client).to receive(:create!).and_return(fake_portal_device)
 
-      valid_devices = Portal::DeviceClient.ensure_test_devices([device], platform, fake_portal_client)
+      dev_portal_devices = Portal::DeviceClient.ensure_test_devices([device], platform, fake_portal_client)
 
-      expect(valid_devices.length()).to eq(len)
+      expect(dev_portal_devices.length).to eq(len)
     end
   end
 end
