@@ -14,7 +14,7 @@ module Portal
         Log.debug("- #{dev_portal_device.name}, #{dev_portal_device.device_type}, UDID (#{dev_portal_device.udid})")
       end
 
-      unless test_devices.empty?
+      unless test_devices.to_a.empty?
         unique_test_devices = Device.filter_duplicated_devices(test_devices)
 
         Log.info("Checking if #{unique_test_devices.length} Bitrise test device(s) are registered on Developer Portal")
