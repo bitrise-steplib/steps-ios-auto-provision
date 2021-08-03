@@ -67,6 +67,7 @@ begin
   end
 
   raise 'failed to determine project development team' unless team_id
+
   ###
 
   # Matching project codesign identity with the uploaded certificates
@@ -76,9 +77,7 @@ begin
 
   # If development certificate is uploaded, do development auto code signing next to the specified distribution type.
   distribution_types = [params.distribution_type]
-  if params.distribution_type != 'development' && cert_helper.certificate_info('development')
-    distribution_types = ['development'].concat(distribution_types)
-  end
+  distribution_types = ['development'].concat(distribution_types) if params.distribution_type != 'development' && cert_helper.certificate_info('development')
 
   Log.debug("distribution_types: #{distribution_types}")
   ##
