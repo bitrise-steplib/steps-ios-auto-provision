@@ -11,14 +11,7 @@ class ProfileHelper
     @profiles = {}
   end
 
-  def ensure_profiles(distribution_type, test_devices, generate_profiles = false, min_profile_days_valid = 0)
-    distribution_types = [distribution_type]
-    if distribution_type != 'development' && @certificate_helper.certificate_info('development')
-      distribution_types = ['development'].concat(distribution_types)
-    end
-
-    Log.debug("distribution_types: #{distribution_types}")
-
+  def ensure_profiles(distribution_types, test_devices, generate_profiles = false, min_profile_days_valid = 0)
     if @project_helper.uses_xcode_auto_codesigning? && generate_profiles
       Log.warn('project uses Xcode managed signing, but generate_profiles set to true, trying to generate Provisioning Profiles')
 
@@ -29,7 +22,7 @@ class ProfileHelper
         Log.error(ex.to_s)
         Log.info("\nTrying to use Xcode managed Provisioning Profiles")
 
-        ensure_profiles(distribution_type, test_devices, false, min_profile_days_valid)
+        ensure_profiles(distribution_types, test_devices, false, min_profile_days_valid)
       end
 
       return false

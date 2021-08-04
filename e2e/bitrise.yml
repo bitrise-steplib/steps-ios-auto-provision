@@ -10,6 +10,7 @@ app:
   - BITFALL_APPLE_IOS_CERTIFICATE_URL_LIST: $BITFALL_APPLE_IOS_CERTIFICATE_URL_LIST
   - BITFALL_APPLE_IOS_CERTIFICATE_PASSPHRASE_LIST: $BITFALL_APPLE_IOS_CERTIFICATE_PASSPHRASE_LIST
   - BITRISE_APPLE_TEAM_ID: $BITRISE_APPLE_TEAM_ID
+  - REGISTER_TEST_DEVICES: "yes"
 
 workflows:
   test_new_certificates:
@@ -48,6 +49,7 @@ workflows:
     - DISTRIBUTION_TYPE: ad-hoc
     - GENERATE_PROFILES: "yes"
     - EXPORT_OPTIONS:
+    - REGISTER_TEST_DEVICES: "no"
     after_run:
     - _run
     - _check_outputs
@@ -196,7 +198,7 @@ workflows:
         - configuration: $BITRISE_CONFIGURATION
         - generate_profiles: $GENERATE_PROFILES
         - verbose_log: "yes"
-        - register_test_devices: "yes"
+        - register_test_devices: $REGISTER_TEST_DEVICES
 
   _check_outputs:
     steps:

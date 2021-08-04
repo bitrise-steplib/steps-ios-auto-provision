@@ -74,14 +74,20 @@ begin
   Log.info('Matching project codesign identity with the uploaded certificates')
 
   cert_helper.ensure_certificate(codesign_identity, team_id, params.distribution_type)
-  ###
+
+  # If development certificate is uploaded, do development auto code signing next to the specified distribution type.
+  distribution_types = [params.distribution_type]
+  distribution_types = ['development'].concat(distribution_types) if params.distribution_type != 'development' && cert_helper.certificate_info('development')
+
+  Log.debug("distribution_types: #{distribution_types}")
+  ##
 
   # Ensure test devices
   dev_portal_devices = []
-  if %w[development ad-hoc].include?(params.distribution_type)
+  distribution_type_requires_device_list = !(%w[development ad-hoc] & distribution_types).empty?
+  if distribution_type_requires_device_list
     Log.info('Ensure test devices on Developer Portal')
-    test_devices = nil
-    test_devices = auth.test_devices if params.register_test_devices == 'yes'
+    test_devices = params.register_test_devices == 'yes' ? auth.test_devices : []
     dev_portal_devices = Portal::DeviceClient.ensure_test_devices(test_devices, project_helper.platform)
   end
   ###
@@ -90,7 +96,7 @@ begin
   Log.info('Ensure Provisioning Profiles on Developer Portal')
 
   profile_helper = ProfileHelper.new(project_helper, cert_helper)
-  xcode_managed_signing = profile_helper.ensure_profiles(params.distribution_type, dev_portal_devices, params.generate_profiles == 'yes', params.min_profile_days_valid)
+  xcode_managed_signing = profile_helper.ensure_profiles(distribution_types, dev_portal_devices, params.generate_profiles == 'yes', params.min_profile_days_valid)
   ###
 
   unless xcode_managed_signing
