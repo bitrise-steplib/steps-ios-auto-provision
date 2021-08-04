@@ -3,6 +3,15 @@ require_relative '../lib/autoprovision/device'
 require_relative '../log/log'
 
 RSpec.describe '.ensure_test_devices' do
+  it 'returns empty array if no test devices provided and no registered devices found on Apple developer Portal' do
+    fake_portal_client = double
+    allow(fake_portal_client).to receive(:all).and_return(nil)
+
+    dev_portal_devices = Portal::DeviceClient.ensure_test_devices([], :ios, fake_portal_client)
+
+    expect(dev_portal_devices).to eq([])
+  end
+
   it 'returns devices from Apple Developer Portal' do
     fake_portal_device = double
     allow(fake_portal_device).to receive(:name).and_return('Device on Developer Portal')
@@ -12,9 +21,16 @@ RSpec.describe '.ensure_test_devices' do
     fake_portal_client = double
     allow(fake_portal_client).to receive(:all).and_return([fake_portal_device])
 
-    dev_portal_devices = Portal::DeviceClient.ensure_test_devices(nil, :ios, fake_portal_client)
+    dev_portal_devices = Portal::DeviceClient.ensure_test_devices([], :ios, fake_portal_client)
 
     expect(dev_portal_devices).to eq([fake_portal_device])
+  end
+
+  it 'raises exception if test_devices is nil' do
+    fake_portal_client = double
+    allow(fake_portal_client).to receive(:all).and_return(nil)
+
+    expect { Portal::DeviceClient.ensure_test_devices(nil, :ios, fake_portal_client) }.to raise_error(NoMethodError)
   end
 
   it 'registers new device' do

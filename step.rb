@@ -87,8 +87,7 @@ begin
   distribution_type_requires_device_list = !(%w[development ad-hoc] & distribution_types).empty?
   if distribution_type_requires_device_list
     Log.info('Ensure test devices on Developer Portal')
-    test_devices = nil
-    test_devices = auth.test_devices if params.register_test_devices == 'yes'
+    test_devices = params.register_test_devices == 'yes' ? auth.test_devices : []
     dev_portal_devices = Portal::DeviceClient.ensure_test_devices(test_devices, project_helper.platform)
   end
   ###
