@@ -46,8 +46,19 @@ class AuthHelper
     http_object = Net::HTTP.new(uri.host, uri.port)
     http_object.use_ssl = true
 
-    response = http_object.start do |http|
-      http.request(request)
+    response = nil
+    4.times do |i|
+      response = http_object.start do |http|
+        http.request(request)
+      end
+
+      if response == Net::HTTPServerError
+        Log.debug("Request failed, retrying. (response: #{response})")
+        sleep(i**2)
+        next
+      end
+
+      break
     end
 
     raise 'failed to get response' unless response
