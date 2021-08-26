@@ -68,3 +68,7 @@ workflows:
         - scheme: $BITRISE_SCHEME
         - verbose_log: "yes"
         - generate_profiles: $GENERATE_PROFILES
+
+  generate-readme:
+    steps:
+    - git::https://github.com/bitrise-steplib/steps-readme-generator.git@main:
