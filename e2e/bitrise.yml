@@ -55,21 +55,6 @@ workflows:
     - _check_outputs
     - _check_xcode_archive
 
-  test_xcode_managed_development:
-    envs:
-    - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-multi-target.git
-    - TEST_APP_BRANCH: automatic
-    - BITRISE_PROJECT_PATH: code-sign-test.xcodeproj
-    - BITRISE_SCHEME: code-sign-test
-    - BITRISE_CONFIGURATION:
-    - DISTRIBUTION_TYPE: development
-    - GENERATE_PROFILES: "no"
-    - EXPORT_OPTIONS: 
-    after_run:
-    - _run
-    - _check_outputs
-    - _check_xcode_archive
-
   test_xcode_managed:
     envs:
     - TEST_APP_URL: https://github.com/bitrise-io/sample-apps-ios-multi-target.git
