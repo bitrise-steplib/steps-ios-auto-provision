@@ -11,6 +11,22 @@ begin
   Log.verbose = (params.verbose_log == 'yes')
   ###
 
+  Log.warn("
+This Step has been deprecated in the favour of the new automatic code signing options on Bitrise.
+
+Option A) 
+The latest versions of the 'Xcode Archive & Export for iOS', 'Xcode Build for testing for iOS', 
+and the 'Export iOS and tvOS Xcode archive' steps have built-in automatic code signing.
+We suggest to remove this step from your workflow and start to use
+the automatic code signing feature in the Steps mentioned above.
+
+Option B) 
+If you are not using any of the mentioned Xcode steps, then you can replace
+the 'iOS Auto Provision with Apple ID' Step with the 'Manage iOS Code signing' Step.
+
+You can read more about these changes in our blog post:
+https://blog.bitrise.io/post/simplifying-automatic-code-signing-on-bitrise.")
+
   # Unset SPACESHIP_AVOID_XCODE_API
   orig_spaceship_avoid_xcode_api = ENV['SPACESHIP_AVOID_XCODE_API']
   Log.debug("\noriginal SPACESHIP_AVOID_XCODE_API: #{orig_spaceship_avoid_xcode_api}")
