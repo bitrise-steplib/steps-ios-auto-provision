@@ -1,4 +1,4 @@
-# iOS Auto Provision with Apple ID
+# iOS Auto Provision with Apple ID (Deprecated)
 
 [![Step changelog](https://shields.io/github/v/release/bitrise-steplib/steps-ios-auto-provision?include_prereleases&label=changelog&color=blueviolet)](https://github.com/bitrise-steplib/steps-ios-auto-provision/releases)
 
@@ -7,7 +7,18 @@ Automatically manages your iOS Provisioning Profiles for your Xcode project.
 <details>
 <summary>Description</summary>
 
+### This Step has been deprecated in the favour of the new automatic code signing options on Bitrise.
+You can read more about these changes in our blog post: [https://blog.bitrise.io/post/simplifying-automatic-code-signing-on-bitrise](https://blog.bitrise.io/post/simplifying-automatic-code-signing-on-bitrise).
 
+#### Option A)
+The latest versions of the [Xcode Archive & Export for iOS](https://www.bitrise.io/integrations/steps/xcode-archive), [Xcode Build for testing for iOS](https://www.bitrise.io/integrations/steps/xcode-build-for-test), and the [Export iOS and tvOS Xcode archive](https://www.bitrise.io/integrations/steps/xcode-archive) Steps have built-in automatic code signing.
+We suggest to remove this step from your workflow and start to use the automatic code signing feature in the Steps mentioned above.
+
+#### Option B)
+If you are not using any of the mentioned Xcode steps, then you can replace
+this iOS Auto Provision Step with the [Manage iOS Code signing](https://www.bitrise.io/integrations/steps/manage-ios-code-signing) Step.
+
+### Description
 The [Step](https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/#ios-auto-provision-with-apple-id-step) uses session-based authentication to connect to an Apple Developer account. In addition to an Apple ID and password, it also stores the 2-factor authentication (2FA) code you provide.
 
 Please note that the [iOS Auto Provision with App Store Connect API](https://app.bitrise.io/integrations/steps/ios-auto-provision-appstoreconnect) Step uses the official [App Store Connect API](https://developer.apple.com/documentation/appstoreconnectapi/generating_tokens_for_api_requests) instead of the old session-based method.
