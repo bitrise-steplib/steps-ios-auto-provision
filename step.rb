@@ -14,13 +14,13 @@ begin
   Log.warn("
 This Step has been deprecated in the favour of the new automatic code signing options on Bitrise.
 
-Option A) 
-The latest versions of the 'Xcode Archive & Export for iOS', 'Xcode Build for testing for iOS', 
+Option A)
+The latest versions of the 'Xcode Archive & Export for iOS', 'Xcode Build for testing for iOS',
 and the 'Export iOS and tvOS Xcode archive' steps have built-in automatic code signing.
 We suggest to remove this step from your workflow and start to use
 the automatic code signing feature in the Steps mentioned above.
 
-Option B) 
+Option B)
 If you are not using any of the mentioned Xcode steps, then you can replace
 the 'iOS Auto Provision with Apple ID' Step with the 'Manage iOS Code signing' Step.
 
