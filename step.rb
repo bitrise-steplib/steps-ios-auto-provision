@@ -14,14 +14,14 @@ begin
   Log.warn("\n")
   Log.warn('This Step has been deprecated in the favour of the new automatic code signing options on Bitrise.')
   Log.warn("
-#### Option A)
+Option A)
 The latest versions of the [Xcode Archive & Export for iOS](https://www.bitrise.io/integrations/steps/xcode-archive),
 [Xcode Build for testing for iOS](https://www.bitrise.io/integrations/steps/xcode-build-for-test),
 and the [Export iOS and tvOS Xcode archive](https://www.bitrise.io/integrations/steps/xcode-archive) Steps
 have built-in automatic code signing.
 We suggest to remove this step from your workflow and start to use the automatic code signing feature in the Steps mentioned above.
 
-#### Option B)
+Option B)
 If you are not using any of the mentioned Xcode steps, then you can replace this iOS Auto Provision Step with
 the [Manage iOS Code signing](https://www.bitrise.io/integrations/steps/manage-ios-code-signing) Step.
 
