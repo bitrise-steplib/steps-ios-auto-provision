@@ -7,15 +7,15 @@ Automatically manages your iOS Provisioning Profiles for your Xcode project.
 <details>
 <summary>Description</summary>
 
-### This Step has been deprecated in the favour of the new automatic code signing options on Bitrise.
+### This Step has been deprecated in favour of the new automatic code signing options on Bitrise.
 You can read more about these changes in our blog post: [https://blog.bitrise.io/post/simplifying-automatic-code-signing-on-bitrise](https://blog.bitrise.io/post/simplifying-automatic-code-signing-on-bitrise).
 
 #### Option A)
 The latest versions of the [Xcode Archive & Export for iOS](https://www.bitrise.io/integrations/steps/xcode-archive), [Xcode Build for testing for iOS](https://www.bitrise.io/integrations/steps/xcode-build-for-test), and the [Export iOS and tvOS Xcode archive](https://www.bitrise.io/integrations/steps/xcode-archive) Steps have built-in automatic code signing.
-We suggest to remove this step from your workflow and start to use the automatic code signing feature in the Steps mentioned above.
+We recommend removing this Step from your Workflow and using the automatic code signing feature in the Steps mentioned above.
 
 #### Option B)
-If you are not using any of the mentioned Xcode steps, then you can replace
+If you are not using any of the mentioned Xcode Steps, then you can replace
 this iOS Auto Provision Step with the [Manage iOS Code signing](https://www.bitrise.io/integrations/steps/manage-ios-code-signing) Step.
 
 ### Description
