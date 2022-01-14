@@ -5,8 +5,8 @@ require_relative 'lib/autoprovision'
 begin
   # Params
   params = Params.new
-  # params.print
-  # params.validate
+  params.print
+  params.validate
 
   Log.verbose = (params.verbose_log == 'yes')
   ###
