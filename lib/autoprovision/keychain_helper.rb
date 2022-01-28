@@ -33,11 +33,11 @@ class KeychainHelper
       import_certificate(path, passphrase)
     end
 
+    unlock_keychain
     set_key_partition_list_if_needed
     set_keychain_settings_default_lock
     add_to_keychain_search_path
     set_default_keychain
-    unlock_keychain
   end
 
   private
