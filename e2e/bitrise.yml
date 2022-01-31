@@ -163,6 +163,8 @@ workflows:
     - cocoapods-install:
         run_if: '{{enveq "INSTALL_PODS" "true"}}'
         title: CocoaPods install
+        inputs:
+        - verbose: "true"
     - path::./:
         title: Step Test
         run_if: true
