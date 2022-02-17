@@ -29,6 +29,8 @@ class KeychainHelper
   end
 
   def install_certificates(certificate_passphrase_map)
+    unlock_keychain
+
     certificate_passphrase_map.each do |path, passphrase|
       import_certificate(path, passphrase)
     end
@@ -37,7 +39,6 @@ class KeychainHelper
     set_keychain_settings_default_lock
     add_to_keychain_search_path
     set_default_keychain
-    unlock_keychain
   end
 
   private
