@@ -1,5 +1,3 @@
-
-
 title: iOS Auto Provision with Apple ID (Deprecated)
 summary: Automatically manages your iOS Provisioning Profiles for your Xcode project.
 description: |-
@@ -229,8 +227,6 @@ outputs:
   - BITRISE_PRODUCTION_CODESIGN_IDENTITY:
     opts:
       title: "The production code signing identity's name"
-    opts:
-      title: "The production code signing identity's name"
       description: |-
         The production code signing identity's name.
         Example: `iPhone Distribution: Bitrise Bot (VV2J4SV8V4)`
@@ -246,5 +242,3 @@ outputs:
       description: |-
         The main target's production provisioning profile UUID.
         Example: `c5be4123-1234-4f9d-9843-0d9be985a068`
-
- 
